@@ -40,3 +40,82 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Invite page — минимальный дизайн */
+.invite-page {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  text-align: left;
+}
+.invite-page h1 {
+  font-size: 1.5rem;
+  margin-top: 0;
+}
+.invite-page p {
+  margin: 0.5rem 0;
+}
+.invite-page form > div {
+  margin-bottom: 1rem;
+}
+.invite-page label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.invite-page input {
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.invite-page .error {
+  display: block;
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+.invite-page button {
+  margin-top: 0.5rem;
+}
+.invite-page a {
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+/* Login page */
+.login-page {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  text-align: left;
+}
+.login-page h1 {
+  font-size: 1.5rem;
+  margin-top: 0;
+}
+.login-page form > div {
+  margin-bottom: 1rem;
+}
+.login-page label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.login-page input {
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.login-page .error {
+  display: block;
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+.login-page button {
+  margin-top: 0.5rem;
+}
+.login-page .login-links {
+  margin-top: 1rem;
+}
+.login-page .login-links a {
+  margin-right: 1rem;
+}
