@@ -4,14 +4,14 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
  * ГАРАНТИЯ REFRESH
- * — Любой запрос через request() к НЕ-публичному path при 401 сначала вызывает refresh (один раз на «волну»).
+ * — Любой запрос через request() к НЕ-публичному path при 401 или 403 сначала вызывает refresh (один раз на «волну»).
  * — При успехе refresh исходный запрос повторяется с новыми cookies; пользователь остаётся в сессии.
- * — При неуспехе refresh (401/403/404 на /api/auth/refresh) вызывается sessionExpiredHandler(path) и возвращается 401.
- * — Публичные path: при 401 refresh НЕ вызывается (избегаем цикла и лишнего редиректа).
+ * — При неуспехе refresh (401/403/404 на /api/auth/refresh) вызывается sessionExpiredHandler(path) и возвращается исходный status.
+ * — Публичные path: при 401/403 refresh НЕ вызывается (избегаем цикла и лишнего редиректа).
  * — Сетевые ошибки и 5xx на refresh не считаются «сессия умерла»: пользователь не разлогинивается.
  */
 
-/** Публичные эндпоинты: при 401 не вызываем refresh (иначе цикл / лишний редирект). */
+/** Публичные эндпоинты: при 401/403 не вызываем refresh (иначе цикл / лишний редирект). */
 const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/refresh',
@@ -20,7 +20,8 @@ const PUBLIC_PATHS = [
 ];
 
 function isPublicPath(path: string): boolean {
-  const normalized = path.split('?')[0];
+  const raw = path.split('?')[0].trim();
+  const normalized = raw.startsWith('/') ? raw : `/${raw}`;
   return PUBLIC_PATHS.some((p) => normalized === p || normalized.startsWith(p + '/'));
 }
 
@@ -117,11 +118,13 @@ async function requestImpl<T>(
     console.log('Response:', responsePayload);
     console.groupEnd();
 
-    // 401 на защищённом запросе: гарантированно один раз refresh, при успехе — повторить запрос
-    if (res.status === 401 && !internalRetry && !isPublicPath(path)) {
+    // 401 или 403 на защищённом запросе: один раз refresh, при успехе — повторить запрос (часть бэкендов при истечении токена отдаёт 403)
+    const shouldTryRefresh =
+      (res.status === 401 || res.status === 403) && !internalRetry && !isPublicPath(path);
+    if (shouldTryRefresh) {
       const success = await getOrRunRefresh(path);
       if (success) return requestImpl(path, options, true);
-      return { error: error ?? { message: 'Unauthorized' }, status: 401 };
+      return { error: error ?? { message: 'Unauthorized' }, status: res.status };
     }
 
     return { data, error, status: res.status };

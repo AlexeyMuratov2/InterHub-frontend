@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { createCurriculum } from '../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
 
 const VERSION_MAX = 50;
@@ -16,6 +17,7 @@ function parseFieldErrors(details: Record<string, string> | string[] | undefined
 export function CurriculumCreatePage() {
   const { programId } = useParams<{ programId: string }>();
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
   const [version, setVersion] = useState('');
   const [startYear, setStartYear] = useState<number | ''>(new Date().getFullYear());
@@ -24,6 +26,12 @@ export function CurriculumCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!canEdit) {
+      navigate('/dashboards/admin/programs', { replace: true, state: { actionUnavailable: true } });
+    }
+  }, [canEdit, navigate]);
 
   const validate = (): boolean => {
     const err: Record<string, string> = {};
@@ -81,6 +89,14 @@ export function CurriculumCreatePage() {
   };
 
   const { t: tCommon } = useTranslation('common');
+
+  if (!canEdit) {
+    return (
+      <div className="department-form-page">
+        <p>{t('loadingList')}</p>
+      </div>
+    );
+  }
 
   if (!programId) {
     return (

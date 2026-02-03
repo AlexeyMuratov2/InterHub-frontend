@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchCurriculumById, updateCurriculum } from '../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
 
 const VERSION_MAX = 50;
@@ -17,6 +18,7 @@ export function CurriculumEditPage() {
   const { curriculumId } = useParams<{ curriculumId: string }>();
   const id = curriculumId;
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
   const [version, setVersion] = useState('');
   const [startYear, setStartYear] = useState<number | ''>(2024);
@@ -28,6 +30,12 @@ export function CurriculumEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!canEdit) {
+      navigate('/dashboards/admin/programs', { replace: true, state: { actionUnavailable: true } });
+    }
+  }, [canEdit, navigate]);
 
   useEffect(() => {
     if (!id) {
@@ -118,6 +126,14 @@ export function CurriculumEditPage() {
   };
 
   const { t: tCommon } = useTranslation('common');
+
+  if (!canEdit) {
+    return (
+      <div className="department-form-page">
+        <p>{t('loadingList')}</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -3,11 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchProgramById } from '../../../entities/program';
 import { fetchDepartments } from '../../../entities/department';
 import { fetchCurriculaByProgramId, deleteCurriculum, type CurriculumDto } from '../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../shared/i18n';
 
 export function ProgramViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const [loading, setLoading] = useState(true);
@@ -121,15 +123,17 @@ export function ProgramViewPage() {
 
   if (loading) {
     return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
+      <div className="entity-view-page department-form-page">
+        <div className="entity-view-card">
+          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
+        </div>
       </div>
     );
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
+      <div className="entity-view-page department-form-page">
         <div className="department-alert department-alert--error">{t('programNotFoundOrDeleted')}</div>
         <Link to="/dashboards/admin/programs" className="btn-secondary">
           {t('programBackToList')}
@@ -140,7 +144,7 @@ export function ProgramViewPage() {
 
   if (error || !data) {
     return (
-      <div className="department-form-page">
+      <div className="entity-view-page department-form-page">
         <div className="department-alert department-alert--error">
           {error ?? t('dataNotLoaded')}
         </div>
@@ -152,55 +156,66 @@ export function ProgramViewPage() {
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('programViewPageTitle', { name: data.name })}</h1>
-      <dl style={{ marginBottom: '1.5rem' }}>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('code')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.code}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('name')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.name}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('description')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.description ?? tCommon('noData')}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('programDegreeLevel')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.degreeLevel ?? tCommon('noData')}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('programDepartment')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.departmentName ?? tCommon('noData')}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('createdAt')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{formatDateTime(data.createdAt, locale)}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('programUpdatedAt')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{formatDateTime(data.updatedAt, locale)}</dd>
-      </dl>
-      <div className="department-form-actions">
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => navigate(`/dashboards/admin/programs/${id}/edit`)}
-        >
-          {t('editTitle')}
-        </button>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
+    <div className="entity-view-page department-form-page">
+      {!canEdit && (
+        <div className="department-alert department-alert--info" role="status">
+          {t('viewOnlyNotice')}
+        </div>
+      )}
+      <header className="entity-view-header">
+        <h1 className="entity-view-title">{t('programViewPageTitle', { name: data.name })}</h1>
+        <div className="entity-view-actions department-form-actions">
+          {canEdit && (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => navigate(`/dashboards/admin/programs/${id}/edit`)}
+            >
+              {t('editTitle')}
+            </button>
+          )}
+          <Link to="/dashboards/admin/programs" className="btn-secondary">
+            {t('programBackToList')}
+          </Link>
+        </div>
+      </header>
+      <div className="entity-view-card">
+        <dl className="entity-view-dl entity-view-dl--two-cols">
+          <dt>{t('code')}</dt>
+          <dd>{data.code}</dd>
+          <dt>{t('name')}</dt>
+          <dd>{data.name}</dd>
+          <dt>{t('description')}</dt>
+          <dd>{data.description ?? tCommon('noData')}</dd>
+          <dt>{t('programDegreeLevel')}</dt>
+          <dd>{data.degreeLevel ?? tCommon('noData')}</dd>
+          <dt>{t('programDepartment')}</dt>
+          <dd>{data.departmentName ?? tCommon('noData')}</dd>
+          <dt>{t('createdAt')}</dt>
+          <dd>{formatDateTime(data.createdAt, locale)}</dd>
+          <dt>{t('programUpdatedAt')}</dt>
+          <dd>{formatDateTime(data.updatedAt, locale)}</dd>
+        </dl>
       </div>
 
-      <section className="department-table-wrap" style={{ marginTop: '2rem' }}>
-        <h2 className="department-form-title" style={{ marginBottom: '0.75rem' }}>
-          {t('curriculumSectionTitle')}
-        </h2>
+      <section className="entity-view-card">
+        <h2 className="entity-view-card-title">{t('curriculumSectionTitle')}</h2>
         {curriculaError && (
           <div className="department-alert department-alert--error" role="alert">
             {curriculaError}
           </div>
         )}
-        <div className="department-page-toolbar" style={{ marginBottom: '0.75rem' }}>
-          <Link
-            to={`/dashboards/admin/programs/${id}/curricula/new`}
-            className="department-page-create"
-          >
-            <span>+</span>
-            {t('curriculumAdd')}
-          </Link>
-        </div>
+        {canEdit && (
+          <div className="department-page-toolbar" style={{ marginBottom: '0.75rem' }}>
+            <Link
+              to={`/dashboards/admin/programs/${id}/curricula/new`}
+              className="department-page-create"
+            >
+              <span>+</span>
+              {t('curriculumAdd')}
+            </Link>
+          </div>
+        )}
         {curriculaLoading ? (
           <div className="department-empty">
             <p>{t('loadingList')}</p>
@@ -208,14 +223,17 @@ export function ProgramViewPage() {
         ) : curricula.length === 0 ? (
           <div className="department-empty">
             <p>{t('curriculumNoCurricula')}</p>
-            <Link
-              to={`/dashboards/admin/programs/${id}/curricula/new`}
-              className="department-page-create"
-            >
-              {t('curriculumAdd')}
-            </Link>
+            {canEdit && (
+              <Link
+                to={`/dashboards/admin/programs/${id}/curricula/new`}
+                className="department-page-create"
+              >
+                {t('curriculumAdd')}
+              </Link>
+            )}
           </div>
         ) : (
+          <div className="department-table-wrap">
           <table className="department-table">
             <thead>
               <tr>
@@ -239,30 +257,35 @@ export function ProgramViewPage() {
                   <td>{formatDateTime(c.createdAt, locale)}</td>
                   <td>
                     <div className="department-table-actions">
-                      <button
-                        type="button"
-                        className="department-table-btn"
-                        onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
-                        title={t('editTitle')}
-                        aria-label={t('editTitle')}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className="department-table-btn department-table-btn--danger"
-                        onClick={() => setDeleteCurriculumId(c.id)}
-                        title={t('deleteTitle')}
-                        aria-label={t('deleteTitle')}
-                      >
-                        🗑
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            type="button"
+                            className="department-table-btn"
+                            onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
+                            title={t('editTitle')}
+                            aria-label={t('editTitle')}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="department-table-btn department-table-btn--danger"
+                            onClick={() => setDeleteCurriculumId(c.id)}
+                            title={t('deleteTitle')}
+                            aria-label={t('deleteTitle')}
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

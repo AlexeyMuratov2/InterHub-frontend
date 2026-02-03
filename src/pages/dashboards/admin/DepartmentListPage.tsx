@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchDepartments,
   deleteDepartment,
   type DepartmentDto,
 } from '../../../entities/department';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../shared/i18n';
 
 function truncate(str: string | null, max: number): string {
@@ -14,7 +15,12 @@ function truncate(str: string | null, max: number): string {
 
 export function DepartmentListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const canEdit = useCanEditInAdmin();
   const { t, locale } = useTranslation('dashboard');
+  const [actionUnavailableNotice, setActionUnavailableNotice] = useState(
+    (location.state as { actionUnavailable?: boolean })?.actionUnavailable ?? false
+  );
   const [list, setList] = useState<DepartmentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +77,28 @@ export function DepartmentListPage() {
 
   const { t: tCommon } = useTranslation('common');
 
+  useEffect(() => {
+    if (actionUnavailableNotice) {
+      const id = setTimeout(() => setActionUnavailableNotice(false), 5000);
+      return () => clearTimeout(id);
+    }
+  }, [actionUnavailableNotice]);
+
   return (
     <div className="department-page">
       <h1 className="department-page-title">{t('departmentManagement')}</h1>
       <p className="department-page-subtitle">{t('departmentSubtitle')}</p>
 
+      {!canEdit && (
+        <div className="department-alert department-alert--info" role="status">
+          {t('viewOnlyNotice')}
+        </div>
+      )}
+      {actionUnavailableNotice && (
+        <div className="department-alert department-alert--info" role="alert">
+          {t('actionUnavailableForRole')}
+        </div>
+      )}
       {error && (
         <div className="department-alert department-alert--error" role="alert">
           {error}
@@ -98,10 +121,12 @@ export function DepartmentListPage() {
             aria-label={t('searchDepartments')}
           />
         </div>
-        <Link to="/dashboards/admin/departments/new" className="department-page-create">
-          <span>+</span>
-          {t('createDepartment')}
-        </Link>
+        {canEdit && (
+          <Link to="/dashboards/admin/departments/new" className="department-page-create">
+            <span>+</span>
+            {t('createDepartment')}
+          </Link>
+        )}
       </div>
 
       <div className="department-table-wrap">
@@ -111,8 +136,8 @@ export function DepartmentListPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="department-empty">
-            <p>{list.length === 0 ? t('noDepartments') : t('noResults')}</p>
-            {list.length === 0 && (
+            <p>            {list.length === 0 ? t('noDepartments') : t('noResults')}</p>
+            {list.length === 0 && canEdit && (
               <Link to="/dashboards/admin/departments/new" className="department-page-create">
                 {t('addDepartment')}
               </Link>
@@ -147,24 +172,28 @@ export function DepartmentListPage() {
                       >
                         👁
                       </button>
-                      <button
-                        type="button"
-                        className="department-table-btn"
-                        onClick={() => navigate(`/dashboards/admin/departments/${d.id}/edit`)}
-                        title={t('editTitle')}
-                        aria-label={t('editTitle')}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className="department-table-btn department-table-btn--danger"
-                        onClick={() => openDeleteModal(d.id)}
-                        title={t('deleteTitle')}
-                        aria-label={t('deleteTitle')}
-                      >
-                        🗑
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            type="button"
+                            className="department-table-btn"
+                            onClick={() => navigate(`/dashboards/admin/departments/${d.id}/edit`)}
+                            title={t('editTitle')}
+                            aria-label={t('editTitle')}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="department-table-btn department-table-btn--danger"
+                            onClick={() => openDeleteModal(d.id)}
+                            title={t('deleteTitle')}
+                            aria-label={t('deleteTitle')}
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

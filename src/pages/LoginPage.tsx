@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import universityLogo from '../assets/university-logo.png';
 import { login } from '../shared/api';
 import { useAuth } from '../app/providers';
 import { getRolesFromUser, getDefaultDashboardPath } from '../shared/config';
@@ -137,71 +138,86 @@ export default function LoginPage() {
     state.message;
 
   return (
-    <div className="login-page">
-      <div className="login-page-header">
-        <h1>{t('title')}</h1>
-        <LanguageSwitcher className="login-page-lang" variant="buttons" />
-      </div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="login-email">{t('email')}</label>
-          <input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setEmailError('');
-            }}
-            autoComplete="email"
-            disabled={state.status === 'submitting'}
-          />
-          {(emailError || (state.status === 'error' && state.fieldErrors?.email)) && (
-            <span className="error">
-              {emailError || (state.status === 'error' ? state.fieldErrors?.email : undefined)}
-            </span>
-          )}
+    <div className="auth-card-page">
+      <div className="auth-card">
+        <div className="auth-card-header">
+          <img src={universityLogo} alt="" className="auth-card-icon" />
+          <h1 className="auth-card-title">{t('title')}</h1>
+          <p className="auth-card-subtitle">{t('loginSubtitle')}</p>
+          <LanguageSwitcher className="auth-card-lang" variant="select" />
         </div>
-        <div>
-          <label htmlFor="login-password">{t('password')}</label>
-          <input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setPasswordError('');
-            }}
-            autoComplete="current-password"
-            disabled={state.status === 'submitting'}
-          />
-          {(passwordError || (state.status === 'error' && state.fieldErrors?.password)) && (
-            <span className="error">
-              {passwordError || (state.status === 'error' ? state.fieldErrors?.password : undefined)}
-            </span>
-          )}
-        </div>
-        {showSessionExpired && !showGeneralError && (
-          <p className="error">{t('sessionExpired')}</p>
-        )}
-        {showGeneralError && (
-          <p className="error">
-            {state.message}
-            {state.code === AUTH_ERROR_CODES.USER_NOT_ACTIVE && (
-              <> <Link to="/invite">{t('linkInvite')}</Link></>
+        <div className="auth-card-body">
+          <form onSubmit={handleSubmit} className="auth-card-form">
+            <div className="auth-card-field">
+              <label htmlFor="login-email">{t('email')}</label>
+              <input
+                id="login-email"
+                type="email"
+                className="auth-card-input"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                placeholder="student@neusoft.edu.cn"
+                autoComplete="email"
+                disabled={state.status === 'submitting'}
+              />
+              {(emailError || (state.status === 'error' && state.fieldErrors?.email)) && (
+                <span className="auth-card-field-error">
+                  {emailError || (state.status === 'error' ? state.fieldErrors?.email : undefined)}
+                </span>
+              )}
+            </div>
+            <div className="auth-card-field">
+              <label htmlFor="login-password">{t('password')}</label>
+              <input
+                id="login-password"
+                type="password"
+                className="auth-card-input"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
+                placeholder={t('passwordPlaceholder')}
+                autoComplete="current-password"
+                disabled={state.status === 'submitting'}
+              />
+              {(passwordError || (state.status === 'error' && state.fieldErrors?.password)) && (
+                <span className="auth-card-field-error">
+                  {passwordError || (state.status === 'error' ? state.fieldErrors?.password : undefined)}
+                </span>
+              )}
+              <a href="#" className="auth-card-forgot" onClick={(e) => e.preventDefault()}>
+                {t('forgotPassword')}
+              </a>
+            </div>
+            {showSessionExpired && !showGeneralError && (
+              <p className="auth-card-error">{t('sessionExpired')}</p>
             )}
-          </p>
-        )}
-        {state.status === 'network-error' && (
-          <p className="error">{t('errorNetwork')}</p>
-        )}
-        <button type="submit" disabled={state.status === 'submitting'}>
-          {state.status === 'submitting' ? t('submitting') : t('submit')}
-        </button>
-      </form>
-      <p className="login-links">
-        <Link to="/invite">{t('linkInvite')}</Link>
-      </p>
+            {showGeneralError && (
+              <p className="auth-card-error">
+                {state.message}
+                {state.code === AUTH_ERROR_CODES.USER_NOT_ACTIVE && (
+                  <> <Link to="/invite" className="auth-card-link">{t('linkInvite')}</Link></>
+                )}
+              </p>
+            )}
+            {state.status === 'network-error' && (
+              <p className="auth-card-error">{t('errorNetwork')}</p>
+            )}
+            <button type="submit" className="auth-card-btn auth-card-btn--primary" disabled={state.status === 'submitting'}>
+              {state.status === 'submitting' ? t('submitting') : t('submit')}
+            </button>
+
+            <p className="auth-card-footer">
+              {t('noAccount')}{' '}
+              <Link to="/invite">{t('contactAdmissions')}</Link>
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

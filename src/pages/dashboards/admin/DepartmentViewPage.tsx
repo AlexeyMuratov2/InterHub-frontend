@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchDepartmentById } from '../../../entities/department';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../shared/i18n';
 
 export function DepartmentViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const [loading, setLoading] = useState(true);
@@ -53,15 +55,17 @@ export function DepartmentViewPage() {
 
   if (loading) {
     return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
+      <div className="entity-view-page department-form-page">
+        <div className="entity-view-card">
+          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
+        </div>
       </div>
     );
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
+      <div className="entity-view-page department-form-page">
         <div className="department-alert department-alert--error">{t('departmentNotFound')}</div>
         <Link to="/dashboards/admin/departments" className="btn-secondary">
           {t('backToList')}
@@ -72,7 +76,7 @@ export function DepartmentViewPage() {
 
   if (error || !data) {
     return (
-      <div className="department-form-page">
+      <div className="entity-view-page department-form-page">
         <div className="department-alert department-alert--error">
           {error ?? t('dataNotLoaded')}
         </div>
@@ -84,29 +88,40 @@ export function DepartmentViewPage() {
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('viewPageTitle', { name: data.name })}</h1>
-      <dl style={{ marginBottom: '1.5rem' }}>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('code')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.code}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('name')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.name}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('description')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{data.description ?? tCommon('noData')}</dd>
-        <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('createdAt')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{formatDateTime(data.createdAt, locale)}</dd>
-      </dl>
-      <div className="department-form-actions">
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => navigate(`/dashboards/admin/departments/${id}/edit`)}
-        >
-          {t('editTitle')}
-        </button>
-        <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
-        </Link>
+    <div className="entity-view-page department-form-page">
+      {!canEdit && (
+        <div className="department-alert department-alert--info" role="status">
+          {t('viewOnlyNotice')}
+        </div>
+      )}
+      <header className="entity-view-header">
+        <h1 className="entity-view-title">{t('viewPageTitle', { name: data.name })}</h1>
+        <div className="entity-view-actions department-form-actions">
+          {canEdit && (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => navigate(`/dashboards/admin/departments/${id}/edit`)}
+            >
+              {t('editTitle')}
+            </button>
+          )}
+          <Link to="/dashboards/admin/departments" className="btn-secondary">
+            {t('backToList')}
+          </Link>
+        </div>
+      </header>
+      <div className="entity-view-card">
+        <dl className="entity-view-dl">
+          <dt>{t('code')}</dt>
+          <dd>{data.code}</dd>
+          <dt>{t('name')}</dt>
+          <dd>{data.name}</dd>
+          <dt>{t('description')}</dt>
+          <dd>{data.description ?? tCommon('noData')}</dd>
+          <dt>{t('createdAt')}</dt>
+          <dd>{formatDateTime(data.createdAt, locale)}</dd>
+        </dl>
       </div>
     </div>
   );

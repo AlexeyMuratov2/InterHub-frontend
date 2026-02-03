@@ -14,6 +14,9 @@ export { ProgramViewPage } from './ProgramViewPage';
 export { CurriculumCreatePage } from './CurriculumCreatePage';
 export { CurriculumEditPage } from './CurriculumEditPage';
 
+/** Страницы админ-дашборда: модуль Invitations (приглашения) */
+export { InvitationListPage, InvitationCreatePage, InvitationViewPage } from './invitations';
+
 /** Для реестра дашбордов: редирект на список отделов (основной экран админки) */
 export function AdminDashboardPage() {
   return <Navigate to="/dashboards/admin/departments" replace />;

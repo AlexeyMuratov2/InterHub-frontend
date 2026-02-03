@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createDepartment } from '../../../entities/department';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
 
 const CODE_MAX = 50;
@@ -8,6 +9,7 @@ const NAME_MAX = 255;
 
 export function DepartmentCreatePage() {
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -15,6 +17,16 @@ export function DepartmentCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!canEdit) {
+      navigate('/dashboards/admin/departments', { replace: true, state: { actionUnavailable: true } });
+    }
+  }, [canEdit, navigate]);
+
+  if (!canEdit) {
+    return <div className="department-form-page"><p>{t('loadingList')}</p></div>;
+  }
 
   const validate = (): boolean => {
     const err: Record<string, string> = {};

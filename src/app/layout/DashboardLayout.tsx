@@ -1,5 +1,8 @@
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
+import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
+import { useCanEditInAdmin } from '../hooks/useCanEditInAdmin';
+import { useCanManageInvitations } from '../hooks/useCanManageInvitations';
 import { useTranslation } from '../../shared/i18n';
 import { LanguageSwitcher } from '../../shared/i18n';
 
@@ -7,21 +10,44 @@ const ADMIN_MENU = [
   { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true },
   { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
   { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
+  { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
 ] as const;
 
 /** Layout дашборда: сайдбар слева (тёмный), шапка + контент по центру. */
 export function DashboardLayout() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const canEdit = useCanEditInAdmin();
+  const canManageInvitations = useCanManageInvitations();
   const { t } = useTranslation('dashboard');
   const isDepartments = location.pathname.startsWith('/dashboards/admin/departments');
   const isPrograms = location.pathname.startsWith('/dashboards/admin/programs');
+  const isInvitations = location.pathname.startsWith('/dashboards/admin/invitations');
+
+  const headerSectionTitle = isDepartments
+    ? t('menuDepartments')
+    : isPrograms
+      ? t('menuProgramsAndCurricula')
+      : isInvitations
+        ? t('menuInvitations')
+        : t('menuDashboard');
+
+  const showHeaderCreate =
+    (canEdit && isDepartments) ||
+    (canEdit && isPrograms) ||
+    (isInvitations && canManageInvitations);
+
+  const headerCreateLink = isDepartments
+    ? '/dashboards/admin/departments/new'
+    : isPrograms
+      ? '/dashboards/admin/programs/new'
+      : '/dashboards/admin/invitations/new';
 
   return (
     <div className="app-dashboard-layout">
       <aside className="app-dashboard-sidebar">
         <div className="app-dashboard-sidebar-brand">
-          <span className="app-dashboard-sidebar-logo">🎓</span>
+          <img src={universityLogo} alt="" className="app-dashboard-sidebar-logo" />
           <span className="app-dashboard-sidebar-title">{t('sidebarBrand')}</span>
           <span className="app-dashboard-sidebar-subtitle">{t('sidebarSubtitle')}</span>
         </div>
@@ -45,16 +71,10 @@ export function DashboardLayout() {
         <header className="app-dashboard-header">
           <div className="app-dashboard-header-left">
             <span className="app-dashboard-header-section">
-              {isDepartments ? t('menuDepartments') : isPrograms ? t('menuProgramsAndCurricula') : t('menuDashboard')}
+              {headerSectionTitle}
             </span>
-            {isDepartments && (
-              <Link to="/dashboards/admin/departments/new" className="app-dashboard-header-create">
-                <span className="app-dashboard-header-create-icon">+</span>
-                {t('headerCreate')}
-              </Link>
-            )}
-            {isPrograms && (
-              <Link to="/dashboards/admin/programs/new" className="app-dashboard-header-create">
+            {showHeaderCreate && (
+              <Link to={headerCreateLink} className="app-dashboard-header-create">
                 <span className="app-dashboard-header-create-icon">+</span>
                 {t('headerCreate')}
               </Link>

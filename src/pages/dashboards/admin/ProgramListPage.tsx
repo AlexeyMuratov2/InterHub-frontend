@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchPrograms,
   deleteProgram,
@@ -10,6 +10,7 @@ import {
   deleteCurriculum,
   type CurriculumDto,
 } from '../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../shared/i18n';
 
 type CurriculumWithProgram = CurriculumDto & { programName: string; programCode: string };
@@ -21,7 +22,12 @@ function truncate(str: string | null, max: number): string {
 
 export function ProgramListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const canEdit = useCanEditInAdmin();
   const { t, locale } = useTranslation('dashboard');
+  const [actionUnavailableNotice, setActionUnavailableNotice] = useState(
+    (location.state as { actionUnavailable?: boolean })?.actionUnavailable ?? false
+  );
   const [list, setList] = useState<ProgramDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,11 +176,28 @@ export function ProgramListPage() {
 
   const { t: tCommon } = useTranslation('common');
 
+  useEffect(() => {
+    if (actionUnavailableNotice) {
+      const id = setTimeout(() => setActionUnavailableNotice(false), 5000);
+      return () => clearTimeout(id);
+    }
+  }, [actionUnavailableNotice]);
+
   return (
     <div className="department-page">
       <h1 className="department-page-title">{t('programManagement')}</h1>
       <p className="department-page-subtitle">{t('programSubtitle')}</p>
 
+      {!canEdit && (
+        <div className="department-alert department-alert--info" role="status">
+          {t('viewOnlyNotice')}
+        </div>
+      )}
+      {actionUnavailableNotice && (
+        <div className="department-alert department-alert--info" role="alert">
+          {t('actionUnavailableForRole')}
+        </div>
+      )}
       {error && (
         <div className="department-alert department-alert--error" role="alert">
           {error}
@@ -197,10 +220,12 @@ export function ProgramListPage() {
             aria-label={t('programSearch')}
           />
         </div>
-        <Link to="/dashboards/admin/programs/new" className="department-page-create">
-          <span>+</span>
-          {t('programCreate')}
-        </Link>
+        {canEdit && (
+          <Link to="/dashboards/admin/programs/new" className="department-page-create">
+            <span>+</span>
+            {t('programCreate')}
+          </Link>
+        )}
       </div>
 
       <div className="department-table-wrap">
@@ -210,8 +235,8 @@ export function ProgramListPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="department-empty">
-            <p>{list.length === 0 ? t('programNoPrograms') : t('noResults')}</p>
-            {list.length === 0 && (
+            <p>            {list.length === 0 ? t('programNoPrograms') : t('noResults')}</p>
+            {list.length === 0 && canEdit && (
               <Link to="/dashboards/admin/programs/new" className="department-page-create">
                 {t('programAdd')}
               </Link>
@@ -248,24 +273,28 @@ export function ProgramListPage() {
                       >
                         👁
                       </button>
-                      <button
-                        type="button"
-                        className="department-table-btn"
-                        onClick={() => navigate(`/dashboards/admin/programs/${p.id}/edit`)}
-                        title={t('editTitle')}
-                        aria-label={t('editTitle')}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className="department-table-btn department-table-btn--danger"
-                        onClick={() => openDeleteModal(p.id)}
-                        title={t('deleteTitle')}
-                        aria-label={t('deleteTitle')}
-                      >
-                        🗑
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            type="button"
+                            className="department-table-btn"
+                            onClick={() => navigate(`/dashboards/admin/programs/${p.id}/edit`)}
+                            title={t('editTitle')}
+                            aria-label={t('editTitle')}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="department-table-btn department-table-btn--danger"
+                            onClick={() => openDeleteModal(p.id)}
+                            title={t('deleteTitle')}
+                            aria-label={t('deleteTitle')}
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -326,33 +355,37 @@ export function ProgramListPage() {
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <select
-              value={addCurriculumProgramId}
-              onChange={(e) => setAddCurriculumProgramId(e.target.value)}
-              className="department-form select-inline"
-              style={{ width: 'auto', minWidth: '180px', padding: '0.5rem 0.75rem' }}
-              aria-label={t('curriculumSelectProgram')}
-            >
-              <option value="">{t('curriculumSelectProgram')}</option>
-              {list.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.code})
-                </option>
-              ))}
-            </select>
-            <Link
-              to={
-                addCurriculumProgramId
-                  ? `/dashboards/admin/programs/${addCurriculumProgramId}/curricula/new`
-                  : '#'
-              }
-              className="department-page-create"
-              style={{ pointerEvents: addCurriculumProgramId ? undefined : 'none', opacity: addCurriculumProgramId ? 1 : 0.6 }}
-              aria-disabled={!addCurriculumProgramId}
-            >
-              <span>+</span>
-              {t('curriculumAdd')}
-            </Link>
+            {canEdit && (
+              <>
+                <select
+                  value={addCurriculumProgramId}
+                  onChange={(e) => setAddCurriculumProgramId(e.target.value)}
+                  className="department-form select-inline"
+                  style={{ width: 'auto', minWidth: '180px', padding: '0.5rem 0.75rem' }}
+                  aria-label={t('curriculumSelectProgram')}
+                >
+                  <option value="">{t('curriculumSelectProgram')}</option>
+                  {list.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.code})
+                    </option>
+                  ))}
+                </select>
+                <Link
+                  to={
+                    addCurriculumProgramId
+                      ? `/dashboards/admin/programs/${addCurriculumProgramId}/curricula/new`
+                      : '#'
+                  }
+                  className="department-page-create"
+                  style={{ pointerEvents: addCurriculumProgramId ? undefined : 'none', opacity: addCurriculumProgramId ? 1 : 0.6 }}
+                  aria-disabled={!addCurriculumProgramId}
+                >
+                  <span>+</span>
+                  {t('curriculumAdd')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
         {curriculaLoading ? (
@@ -401,24 +434,28 @@ export function ProgramListPage() {
                   <td>{formatDate(c.createdAt, locale)}</td>
                   <td>
                     <div className="department-table-actions">
-                      <button
-                        type="button"
-                        className="department-table-btn"
-                        onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
-                        title={t('editTitle')}
-                        aria-label={t('editTitle')}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className="department-table-btn department-table-btn--danger"
-                        onClick={() => openDeleteCurriculumModal(c.id)}
-                        title={t('deleteTitle')}
-                        aria-label={t('deleteTitle')}
-                      >
-                        🗑
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            type="button"
+                            className="department-table-btn"
+                            onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
+                            title={t('editTitle')}
+                            aria-label={t('editTitle')}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="department-table-btn department-table-btn--danger"
+                            onClick={() => openDeleteCurriculumModal(c.id)}
+                            title={t('deleteTitle')}
+                            aria-label={t('deleteTitle')}
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -15,6 +15,9 @@ import {
   ProgramViewPage,
   CurriculumCreatePage,
   CurriculumEditPage,
+  InvitationListPage,
+  InvitationCreatePage,
+  InvitationViewPage,
 } from './pages/dashboards/admin';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
@@ -54,6 +57,9 @@ function App() {
             <Route path="departments/new" element={<DepartmentCreatePage />} />
             <Route path="departments/:id" element={<DepartmentViewPage />} />
             <Route path="departments/:id/edit" element={<DepartmentEditPage />} />
+            <Route path="invitations" element={<InvitationListPage />} />
+            <Route path="invitations/new" element={<InvitationCreatePage />} />
+            <Route path="invitations/:id" element={<InvitationViewPage />} />
             <Route path="programs" element={<ProgramListPage />} />
             <Route path="programs/new" element={<ProgramCreatePage />} />
             <Route path="programs/curricula/:curriculumId/edit" element={<CurriculumEditPage />} />

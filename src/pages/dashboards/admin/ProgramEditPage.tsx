@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchProgramById, updateProgram } from '../../../entities/program';
 import { fetchDepartments, type DepartmentDto } from '../../../entities/department';
+import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
 
 const NAME_MAX = 255;
@@ -16,6 +17,7 @@ function parseFieldErrors(details: Record<string, string> | string[] | undefined
 export function ProgramEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -29,6 +31,12 @@ export function ProgramEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!canEdit) {
+      navigate('/dashboards/admin/programs', { replace: true, state: { actionUnavailable: true } });
+    }
+  }, [canEdit, navigate]);
 
   useEffect(() => {
     fetchDepartments().then(({ data, error: err }) => {
@@ -124,6 +132,14 @@ export function ProgramEditPage() {
   };
 
   const { t: tCommon } = useTranslation('common');
+
+  if (!canEdit) {
+    return (
+      <div className="department-form-page">
+        <p>{t('loadingList')}</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

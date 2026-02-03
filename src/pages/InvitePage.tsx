@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import universityLogo from '../assets/university-logo.png';
 import { validateToken, acceptInvitation, login } from '../shared/api';
 import type { TokenValidationResult } from '../shared/api';
+import { INVITATION_VALIDATION_CODE } from '../shared/api/types';
 import { useAuth } from '../app/providers';
 import { getRolesFromUser, getDefaultDashboardPath } from '../shared/config';
 import { useTranslation } from '../shared/i18n';
@@ -13,7 +15,7 @@ type ValidationState =
   | { status: 'no-token' }
   | { status: 'valid'; data: TokenValidationResult }
   | { status: 'token-regenerated'; email?: string }
-  | { status: 'error'; error?: string }
+  | { status: 'error'; error?: string; code?: string }
   | { status: 'network-error' };
 
 type AcceptState =
@@ -25,14 +27,20 @@ type AcceptState =
 
 const MIN_PASSWORD_LENGTH = 8;
 
-function getValidationErrorMessage(t: (key: string) => string, error: string | undefined): string {
+function getValidationErrorMessage(
+  t: (key: string) => string,
+  error: string | undefined,
+  code?: string
+): string {
+  if (code === INVITATION_VALIDATION_CODE.TOKEN_INVALID) return t('invalidOrAlreadyUsed');
+  if (code === INVITATION_VALIDATION_CODE.INVITATION_EXPIRED) return t('expired');
+  if (code === INVITATION_VALIDATION_CODE.NOT_ACCEPTABLE) return t('unavailable');
   if (!error) return t('networkError');
   if (error === 'Invalid token') return t('invalidLink');
   if (error === 'Invitation has expired') return t('expired');
   if (error.includes('CANCELLED')) return t('cancelled');
   if (error.includes('ACCEPTED')) return t('alreadyAccepted');
   if (error.includes('status:')) return t('unavailable');
-  // "Ссылка приглашения недействительна или уже использована." or similar (invalid or already used)
   const lower = error.toLowerCase();
   if (
     (error.includes('недействительна') && error.includes('использована')) ||
@@ -41,6 +49,10 @@ function getValidationErrorMessage(t: (key: string) => string, error: string | u
     return t('invalidOrAlreadyUsed');
   }
   return error;
+}
+
+function showLoginLinkForValidationCode(code?: string): boolean {
+  return code === INVITATION_VALIDATION_CODE.NOT_ACCEPTABLE;
 }
 
 function InvitePageContent() {
@@ -57,53 +69,71 @@ function InvitePageContent() {
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
 
+  /** Первый финальный ответ побеждает: после tokenRegenerated/valid/error не перезаписывать из повторного запроса */
+  const terminalValidationSetRef = useRef(false);
+
   useEffect(() => {
     if (!token.trim()) {
       setValidation({ status: 'no-token' });
       return;
     }
+    terminalValidationSetRef.current = false;
     setValidation({ status: 'loading' });
     setAcceptState({ status: 'idle' });
 
     validateToken(token).then((result) => {
+      const apply = (next: ValidationState) => {
+        if (terminalValidationSetRef.current) return;
+        terminalValidationSetRef.current = true;
+        setValidation(next);
+      };
+
       if (result.ok) {
         const { data } = result;
         if (data.valid === true) {
-          setValidation({ status: 'valid', data });
-        } else if (data.tokenRegenerated === true) {
-          setValidation({ status: 'token-regenerated', email: data.email });
+          apply({ status: 'valid', data });
+        } else if (data.tokenRegenerated === true || data.code === INVITATION_VALIDATION_CODE.TOKEN_EXPIRED_EMAIL_RESENT) {
+          apply({ status: 'token-regenerated', email: data.email ?? undefined });
         } else {
-          setValidation({ status: 'error', error: data.error });
+          apply({ status: 'error', error: data.error ?? undefined, code: data.code ?? undefined });
         }
       } else {
         if (result.status === 0) {
-          setValidation({ status: 'network-error' });
+          apply({ status: 'network-error' });
         } else {
-          setValidation({ status: 'error', error: result.error?.message });
+          apply({
+            status: 'error',
+            error: result.error?.message,
+            code: result.error?.code,
+          });
         }
       }
     });
-    // Only re-validate when token changes; omit t to avoid infinite loop (t can change identity each render)
   }, [token]);
 
   const handleRetryValidation = () => {
     if (!token.trim()) return;
+    terminalValidationSetRef.current = false;
     setValidation({ status: 'loading' });
     validateToken(token).then((result) => {
       if (result.ok) {
         const { data } = result;
         if (data.valid === true) {
           setValidation({ status: 'valid', data });
-        } else if (data.tokenRegenerated === true) {
-          setValidation({ status: 'token-regenerated', email: data.email });
+        } else if (data.tokenRegenerated === true || data.code === INVITATION_VALIDATION_CODE.TOKEN_EXPIRED_EMAIL_RESENT) {
+          setValidation({ status: 'token-regenerated', email: data.email ?? undefined });
         } else {
-          setValidation({ status: 'error', error: data.error });
+          setValidation({ status: 'error', error: data.error ?? undefined, code: data.code ?? undefined });
         }
       } else {
         if (result.status === 0) {
           setValidation({ status: 'network-error' });
         } else {
-          setValidation({ status: 'error', error: result.error?.message });
+          setValidation({
+            status: 'error',
+            error: result.error?.message,
+            code: result.error?.code,
+          });
         }
       }
     });
@@ -156,29 +186,35 @@ function InvitePageContent() {
         return;
       }
       const { status, error } = result;
+      const code = error?.code;
       const msg = error?.message ?? t('errorActivation');
 
       if (status === 400) {
-        if (error?.code === 'VALIDATION_FAILED' && error?.details) {
+        if (code === 'VALIDATION_FAILED' && error?.details) {
           const details = error.details as Record<string, string>;
           setAcceptState({ status: 'error', message: msg, fieldErrors: details });
+        } else if (code === 'INVITATION_TOKEN_INVALID' || code === 'INVITATION_TOKEN_EXPIRED') {
+          setAcceptState({ status: 'error', message: t('errorUseFreshLink') });
         } else {
-          setAcceptState({
-            status: 'error',
-            message: t('errorUseFreshLink'),
-          });
+          setAcceptState({ status: 'error', message: msg });
         }
       } else if (status === 409) {
-        if (msg.toLowerCase().includes('accepted') || msg.includes('уже') || msg.includes('already')) {
+        if (code === 'INVITATION_ALREADY_ACTIVATED') {
           setAcceptState({
             status: 'error',
             message: t('errorAlreadyActivated'),
             linkInvalidated: true,
           });
-        } else {
+        } else if (code === 'INVITATION_NOT_ACCEPTABLE') {
           setAcceptState({
             status: 'error',
             message: t('errorCannotAccept'),
+            linkInvalidated: true,
+          });
+        } else {
+          setAcceptState({
+            status: 'error',
+            message: msg,
             linkInvalidated: true,
           });
         }
@@ -190,66 +226,101 @@ function InvitePageContent() {
 
   if (validation.status === 'no-token') {
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <h1>{t('title')}</h1>
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <h1 className="auth-card-title">{t('title')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            <p className="auth-card-text">{t('noToken')}</p>
+          </div>
         </div>
-        <p>{t('noToken')}</p>
       </div>
     );
   }
 
   if (validation.status === 'loading') {
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <h1 className="auth-card-title">{t('title')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            <p className="auth-card-text">{t('loading')}</p>
+          </div>
         </div>
-        <p>{t('loading')}</p>
       </div>
     );
   }
 
   if (validation.status === 'network-error') {
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <h1 className="auth-card-title">{t('title')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            <p className="auth-card-error">{t('networkError')}</p>
+            <button type="button" className="auth-card-btn" onClick={handleRetryValidation}>
+              {t('retry')}
+            </button>
+          </div>
         </div>
-        <p>{t('networkError')}</p>
-        <button type="button" onClick={handleRetryValidation}>
-          {t('retry')}
-        </button>
       </div>
     );
   }
 
   if (validation.status === 'error') {
-    const message = getValidationErrorMessage(t, validation.error);
-    const showLoginLink =
-      message.includes('войти') || message.includes('sign in') || message.includes('登录');
+    const message = getValidationErrorMessage(t, validation.error, validation.code);
+    const showLoginLink = showLoginLinkForValidationCode(validation.code);
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <h1 className="auth-card-title">{t('title')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            <p className="auth-card-error">{message}</p>
+            {showLoginLink && (
+              <Link to="/login" className="auth-card-link">
+                {t('goToLogin')}
+              </Link>
+            )}
+          </div>
         </div>
-        <p>{message}</p>
-        {showLoginLink && <Link to="/login">{t('goToLogin')}</Link>}
       </div>
     );
   }
 
   if (validation.status === 'token-regenerated') {
-    const msg = validation.email
-      ? t('tokenRegenerated', { email: validation.email })
+    const email = validation.email;
+    const detailMsg = email
+      ? t('tokenRegenerated', { email })
       : t('tokenRegeneratedNoEmail');
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+      <div className="auth-card-page">
+        <div className="auth-card auth-card--info">
+          <div className="auth-card-header">
+            <span className="auth-card-icon auth-card-icon--success" aria-hidden>✉️</span>
+            <h1 className="auth-card-title">{t('emailSentAgainTitle')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            <p className="auth-card-highlight">{t('emailSentAgainLead')}</p>
+            <p className="auth-card-text">{detailMsg}</p>
+            {email && <p className="auth-card-email">{email}</p>}
+          </div>
         </div>
-        <p>{msg}</p>
       </div>
     );
   }
@@ -260,84 +331,101 @@ function InvitePageContent() {
 
     if (acceptState.status === 'error' && acceptState.linkInvalidated) {
       return (
-        <div className="invite-page">
-          <div className="invite-page-header">
-            <h1>{t('title')}</h1>
-            <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+        <div className="auth-card-page">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <img src={universityLogo} alt="" className="auth-card-icon" />
+              <h1 className="auth-card-title">{t('title')}</h1>
+              <LanguageSwitcher className="auth-card-lang" variant="select" />
+            </div>
+            <div className="auth-card-body">
+              <p className="auth-card-error">{acceptState.message}</p>
+              <Link to="/login" className="auth-card-link">{t('goToLogin')}</Link>
+            </div>
           </div>
-          <p className="error">{acceptState.message}</p>
-          <p>{t('errorUseFreshLink')}</p>
-          <Link to="/login">{t('goToLogin')}</Link>
         </div>
       );
     }
 
     if (acceptState.status === 'logging-in') {
       return (
-        <div className="invite-page">
-          <div className="invite-page-header">
-            <LanguageSwitcher className="invite-page-lang" variant="buttons" />
+        <div className="auth-card-page">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <img src={universityLogo} alt="" className="auth-card-icon" />
+              <h1 className="auth-card-title">{t('title')}</h1>
+              <LanguageSwitcher className="auth-card-lang" variant="select" />
+            </div>
+            <div className="auth-card-body">
+              <p className="auth-card-text">{t('loggingIn')}</p>
+            </div>
           </div>
-          <p>{t('loggingIn')}</p>
         </div>
       );
     }
 
     return (
-      <div className="invite-page">
-        <div className="invite-page-header">
-          <h1>{t('title')}</h1>
-          <LanguageSwitcher className="invite-page-lang" variant="buttons" />
-        </div>
-        {name && <p>{t('hello', { name })}</p>}
-        {data.email && <p>{t('emailLabel')}: {data.email}</p>}
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <h1 className="auth-card-title">{t('title')}</h1>
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+          </div>
+          <div className="auth-card-body">
+            {name && <p className="auth-card-text">{t('hello', { name })}</p>}
+            {data.email && <p className="auth-card-text auth-card-email-label">{t('emailLabel')}: {data.email}</p>}
 
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="password">{t('passwordLabel')}</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setPasswordError('');
-              }}
-              autoComplete="new-password"
-              disabled={acceptState.status === 'submitting'}
-            />
-            {(passwordError || (acceptState.status === 'error' && acceptState.fieldErrors?.password)) && (
-              <span className="error">
-                {passwordError || (acceptState.status === 'error' ? acceptState.fieldErrors?.password : undefined)}
-              </span>
-            )}
+            <form onSubmit={handleSubmit} className="auth-card-form">
+              <div className="auth-card-field">
+                <label htmlFor="password">{t('passwordLabel')}</label>
+                <input
+                  id="password"
+                  type="password"
+                  className="auth-card-input"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError('');
+                  }}
+                  autoComplete="new-password"
+                  disabled={acceptState.status === 'submitting'}
+                />
+                {(passwordError || (acceptState.status === 'error' && acceptState.fieldErrors?.password)) && (
+                  <span className="auth-card-field-error">
+                    {passwordError || (acceptState.status === 'error' ? acceptState.fieldErrors?.password : undefined)}
+                  </span>
+                )}
+              </div>
+              <div className="auth-card-field">
+                <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  className="auth-card-input"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setConfirmError('');
+                  }}
+                  autoComplete="new-password"
+                  disabled={acceptState.status === 'submitting'}
+                />
+                {(confirmError || (acceptState.status === 'error' && acceptState.fieldErrors?.confirmPassword)) && (
+                  <span className="auth-card-field-error">
+                    {confirmError || (acceptState.status === 'error' ? acceptState.fieldErrors?.confirmPassword : undefined)}
+                  </span>
+                )}
+              </div>
+              {acceptState.status === 'error' && acceptState.message && !acceptState.fieldErrors && (
+                <p className="auth-card-error">{acceptState.message}</p>
+              )}
+              <button type="submit" className="auth-card-btn auth-card-btn--primary" disabled={acceptState.status === 'submitting'}>
+                {acceptState.status === 'submitting' ? t('submitting') : t('submit')}
+              </button>
+            </form>
           </div>
-          <div>
-            <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                setConfirmError('');
-              }}
-              autoComplete="new-password"
-              disabled={acceptState.status === 'submitting'}
-            />
-            {(confirmError || (acceptState.status === 'error' && acceptState.fieldErrors?.confirmPassword)) && (
-              <span className="error">
-                {confirmError || (acceptState.status === 'error' ? acceptState.fieldErrors?.confirmPassword : undefined)}
-              </span>
-            )}
-          </div>
-          {acceptState.status === 'error' && acceptState.message && !acceptState.fieldErrors && (
-            <p className="error">{acceptState.message}</p>
-          )}
-          <button type="submit" disabled={acceptState.status === 'submitting'}>
-            {acceptState.status === 'submitting' ? t('submitting') : t('submit')}
-          </button>
-        </form>
+        </div>
       </div>
     );
   }

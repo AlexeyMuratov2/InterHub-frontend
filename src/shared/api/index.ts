@@ -8,4 +8,10 @@ export type {
   UserDto,
   TokenValidationResult,
   AcceptInvitationRequest,
+  InvitationDto,
+  InvitationStatus,
+  CreateInvitationRequest,
+  CreateStudentRequest,
+  CreateTeacherRequest,
 } from './types';
+export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';

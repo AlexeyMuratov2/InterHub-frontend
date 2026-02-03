@@ -37,6 +37,13 @@ body {
   height: 100%;
 }
 
+/* Страницы входа/приглашения — контейнер на весь экран для градиента */
+body:has(.auth-card-page) {
+  display: block;
+  place-items: unset;
+  height: 100%;
+}
+
 /* Дашборд на весь экран при любом соотношении сторон */
 body:has(.app-dashboard-layout) {
   display: block;

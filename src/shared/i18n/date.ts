@@ -29,3 +29,17 @@ export function formatDateTime(iso: string, locale: Locale): string {
     return iso;
   }
 }
+
+/** Форматирует только время по выбранной локали приложения */
+export function formatTime(iso: string, locale: Locale): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  } catch {
+    return iso;
+  }
+}
