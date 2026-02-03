@@ -13,7 +13,7 @@ type ValidationState =
   | { status: 'no-token' }
   | { status: 'valid'; data: TokenValidationResult }
   | { status: 'token-regenerated'; email?: string }
-  | { status: 'error'; message: string }
+  | { status: 'error'; error?: string }
   | { status: 'network-error' };
 
 type AcceptState =
@@ -32,6 +32,14 @@ function getValidationErrorMessage(t: (key: string) => string, error: string | u
   if (error.includes('CANCELLED')) return t('cancelled');
   if (error.includes('ACCEPTED')) return t('alreadyAccepted');
   if (error.includes('status:')) return t('unavailable');
+  // "Ссылка приглашения недействительна или уже использована." or similar (invalid or already used)
+  const lower = error.toLowerCase();
+  if (
+    (error.includes('недействительна') && error.includes('использована')) ||
+    (lower.includes('invalid') && lower.includes('already used'))
+  ) {
+    return t('invalidOrAlreadyUsed');
+  }
   return error;
 }
 
@@ -65,21 +73,18 @@ function InvitePageContent() {
         } else if (data.tokenRegenerated === true) {
           setValidation({ status: 'token-regenerated', email: data.email });
         } else {
-          setValidation({
-            status: 'error',
-            message: getValidationErrorMessage(t, data.error),
-          });
+          setValidation({ status: 'error', error: data.error });
         }
       } else {
         if (result.status === 0) {
           setValidation({ status: 'network-error' });
         } else {
-          const message = getValidationErrorMessage(t, result.error?.message);
-          setValidation({ status: 'error', message });
+          setValidation({ status: 'error', error: result.error?.message });
         }
       }
     });
-  }, [token, t]);
+    // Only re-validate when token changes; omit t to avoid infinite loop (t can change identity each render)
+  }, [token]);
 
   const handleRetryValidation = () => {
     if (!token.trim()) return;
@@ -92,19 +97,13 @@ function InvitePageContent() {
         } else if (data.tokenRegenerated === true) {
           setValidation({ status: 'token-regenerated', email: data.email });
         } else {
-          setValidation({
-            status: 'error',
-            message: getValidationErrorMessage(t, data.error),
-          });
+          setValidation({ status: 'error', error: data.error });
         }
       } else {
         if (result.status === 0) {
           setValidation({ status: 'network-error' });
         } else {
-          setValidation({
-            status: 'error',
-            message: getValidationErrorMessage(t, result.error?.message),
-          });
+          setValidation({ status: 'error', error: result.error?.message });
         }
       }
     });
@@ -227,15 +226,16 @@ function InvitePageContent() {
   }
 
   if (validation.status === 'error') {
+    const message = getValidationErrorMessage(t, validation.error);
+    const showLoginLink =
+      message.includes('войти') || message.includes('sign in') || message.includes('登录');
     return (
       <div className="invite-page">
         <div className="invite-page-header">
           <LanguageSwitcher className="invite-page-lang" variant="buttons" />
         </div>
-        <p>{validation.message}</p>
-        {(validation.message.includes('войти') || validation.message.includes('sign in') || validation.message.includes('登录')) && (
-          <Link to="/login">{t('goToLogin')}</Link>
-        )}
+        <p>{message}</p>
+        {showLoginLink && <Link to="/login">{t('goToLogin')}</Link>}
       </div>
     );
   }

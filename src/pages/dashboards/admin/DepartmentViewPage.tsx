@@ -1,27 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchDepartmentById } from '../../../entities/department';
-import { useTranslation } from '../../../shared/i18n';
-
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
+import { useTranslation, formatDateTime } from '../../../shared/i18n';
 
 export function DepartmentViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation('dashboard');
+  const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +94,7 @@ export function DepartmentViewPage() {
         <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('description')}</dt>
         <dd style={{ margin: '0.25rem 0 0 0' }}>{data.description ?? tCommon('noData')}</dd>
         <dt style={{ fontWeight: 600, marginTop: '0.75rem', color: '#4a5568' }}>{t('createdAt')}</dt>
-        <dd style={{ margin: '0.25rem 0 0 0' }}>{formatDate(data.createdAt)}</dd>
+        <dd style={{ margin: '0.25rem 0 0 0' }}>{formatDateTime(data.createdAt, locale)}</dd>
       </dl>
       <div className="department-form-actions">
         <button

@@ -31,9 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setSessionExpiredHandler(() => {
+    setSessionExpiredHandler((path) => {
       setUserState(null);
-      setSessionExpired(true);
+      // Явный logout: не показывать «Сессия истекла», пользователь сам вышел
+      if (path !== '/api/auth/logout') {
+        setSessionExpired(true);
+      }
     });
     return () => setSessionExpiredHandler(null);
   }, []);

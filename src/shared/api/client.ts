@@ -2,6 +2,15 @@ import type { ErrorResponse } from './types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
+/**
+ * ГАРАНТИЯ REFRESH
+ * — Любой запрос через request() к НЕ-публичному path при 401 сначала вызывает refresh (один раз на «волну»).
+ * — При успехе refresh исходный запрос повторяется с новыми cookies; пользователь остаётся в сессии.
+ * — При неуспехе refresh (401/403/404 на /api/auth/refresh) вызывается sessionExpiredHandler(path) и возвращается 401.
+ * — Публичные path: при 401 refresh НЕ вызывается (избегаем цикла и лишнего редиректа).
+ * — Сетевые ошибки и 5xx на refresh не считаются «сессия умерла»: пользователь не разлогинивается.
+ */
+
 /** Публичные эндпоинты: при 401 не вызываем refresh (иначе цикл / лишний редирект). */
 const PUBLIC_PATHS = [
   '/api/auth/login',
@@ -15,17 +24,17 @@ function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.some((p) => normalized === p || normalized.startsWith(p + '/'));
 }
 
-/** Вызывается при 401 на refresh: сессия мёртва, очистить user и редирект на логин. */
-let sessionExpiredHandler: (() => void) | null = null;
+/** Вызывается при неуспехе refresh (401/403/404). path — запрос, из-за которого пошёл refresh (для логики «явный logout»). */
+let sessionExpiredHandler: ((path?: string) => void) | null = null;
 
-export function setSessionExpiredHandler(handler: (() => void) | null): void {
+export function setSessionExpiredHandler(handler: ((path?: string) => void) | null): void {
   sessionExpiredHandler = handler;
 }
 
-/** Один refresh на «волну» 401: остальные запросы ждут тот же результат. */
+/** Один refresh на «волну» 401: остальные запросы ждут тот же результат. triggerPath — path первого запроса в волне. */
 let refreshPromise: Promise<boolean> | null = null;
 
-async function runRefresh(): Promise<boolean> {
+async function runRefresh(triggerPath: string): Promise<boolean> {
   const url = `${API_BASE}/api/auth/refresh`;
   try {
     const res = await fetch(url, {
@@ -35,7 +44,7 @@ async function runRefresh(): Promise<boolean> {
     });
     if (res.status === 200) return true;
     if (res.status === 401 || res.status === 403 || res.status === 404) {
-      sessionExpiredHandler?.();
+      sessionExpiredHandler?.(triggerPath);
       return false;
     }
     return false;
@@ -44,9 +53,9 @@ async function runRefresh(): Promise<boolean> {
   }
 }
 
-function getOrRunRefresh(): Promise<boolean> {
+function getOrRunRefresh(triggerPath: string): Promise<boolean> {
   if (!refreshPromise) {
-    refreshPromise = runRefresh().then((success) => {
+    refreshPromise = runRefresh(triggerPath).then((success) => {
       refreshPromise = null;
       return success;
     });
@@ -108,9 +117,9 @@ async function requestImpl<T>(
     console.log('Response:', responsePayload);
     console.groupEnd();
 
-    // 401 на защищённом запросе: один раз refresh, при успехе — повторить запрос
+    // 401 на защищённом запросе: гарантированно один раз refresh, при успехе — повторить запрос
     if (res.status === 401 && !internalRetry && !isPublicPath(path)) {
-      const success = await getOrRunRefresh();
+      const success = await getOrRunRefresh(path);
       if (success) return requestImpl(path, options, true);
       return { error: error ?? { message: 'Unauthorized' }, status: 401 };
     }

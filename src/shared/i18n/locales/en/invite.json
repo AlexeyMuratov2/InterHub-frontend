@@ -6,6 +6,7 @@
   "validationError": "Validation error",
   "goToLogin": "Go to sign in",
   "invalidLink": "Link is invalid. Check the link or request a new invitation.",
+  "invalidOrAlreadyUsed": "Invitation link is invalid or has already been used. You can sign in.",
   "expired": "Invitation has expired. Contact your administrator for a new invitation.",
   "cancelled": "Invitation was cancelled. Contact your administrator.",
   "alreadyAccepted": "This invitation was already used. You can sign in.",

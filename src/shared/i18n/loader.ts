@@ -9,20 +9,24 @@ const localeModules = import.meta.glob<{ default: NamespaceMessages }>(
 
 const cache: Partial<Record<Locale, Record<string, NamespaceMessages>>> = {};
 
+const normalizePath = (p: string) => p.replace(/\\/g, '/');
+
 export async function loadLocale(
   locale: Locale
 ): Promise<Record<string, NamespaceMessages>> {
   if (cache[locale]) return cache[locale]!;
 
+  const prefix = `./locales/${locale}/`;
   const entries = Object.entries(localeModules).filter(([path]) =>
-    path.startsWith(`./locales/${locale}/`)
+    normalizePath(path).startsWith(prefix)
   );
 
   const result: Record<string, NamespaceMessages> = {};
   await Promise.all(
     entries.map(async ([path, load]) => {
       const mod = await load();
-      const namespace = path.replace(`./locales/${locale}/`, '').replace('.json', '');
+      const normalized = normalizePath(path);
+      const namespace = normalized.replace(prefix, '').replace('.json', '');
       result[namespace] = mod.default ?? {};
     })
   );

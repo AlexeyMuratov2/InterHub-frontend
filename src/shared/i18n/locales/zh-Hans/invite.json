@@ -6,6 +6,7 @@
   "validationError": "验证错误",
   "goToLogin": "去登录",
   "invalidLink": "链接无效。请检查链接或申请新邀请。",
+  "invalidOrAlreadyUsed": "邀请链接无效或已被使用。您可以登录。",
   "expired": "邀请已过期。请联系管理员获取新邀请。",
   "cancelled": "邀请已取消。请联系管理员。",
   "alreadyAccepted": "此邀请已使用。您可以登录。",

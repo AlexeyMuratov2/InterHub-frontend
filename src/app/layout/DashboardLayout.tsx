@@ -6,6 +6,7 @@ import { LanguageSwitcher } from '../../shared/i18n';
 const ADMIN_MENU = [
   { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true },
   { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
+  { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
 ] as const;
 
 /** Layout дашборда: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -14,6 +15,7 @@ export function DashboardLayout() {
   const { user, logout } = useAuth();
   const { t } = useTranslation('dashboard');
   const isDepartments = location.pathname.startsWith('/dashboards/admin/departments');
+  const isPrograms = location.pathname.startsWith('/dashboards/admin/programs');
 
   return (
     <div className="app-dashboard-layout">
@@ -43,10 +45,16 @@ export function DashboardLayout() {
         <header className="app-dashboard-header">
           <div className="app-dashboard-header-left">
             <span className="app-dashboard-header-section">
-              {isDepartments ? t('menuDepartments') : t('menuDashboard')}
+              {isDepartments ? t('menuDepartments') : isPrograms ? t('menuProgramsAndCurricula') : t('menuDashboard')}
             </span>
             {isDepartments && (
               <Link to="/dashboards/admin/departments/new" className="app-dashboard-header-create">
+                <span className="app-dashboard-header-create-icon">+</span>
+                {t('headerCreate')}
+              </Link>
+            )}
+            {isPrograms && (
+              <Link to="/dashboards/admin/programs/new" className="app-dashboard-header-create">
                 <span className="app-dashboard-header-create-icon">+</span>
                 {t('headerCreate')}
               </Link>

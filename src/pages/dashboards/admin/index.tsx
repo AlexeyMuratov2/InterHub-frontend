@@ -6,6 +6,14 @@ export { DepartmentCreatePage } from './DepartmentCreatePage';
 export { DepartmentEditPage } from './DepartmentEditPage';
 export { DepartmentViewPage } from './DepartmentViewPage';
 
+/** Страницы админ-дашборда: модуль Programs (программы и учебные планы) */
+export { ProgramListPage } from './ProgramListPage';
+export { ProgramCreatePage } from './ProgramCreatePage';
+export { ProgramEditPage } from './ProgramEditPage';
+export { ProgramViewPage } from './ProgramViewPage';
+export { CurriculumCreatePage } from './CurriculumCreatePage';
+export { CurriculumEditPage } from './CurriculumEditPage';
+
 /** Для реестра дашбордов: редирект на список отделов (основной экран админки) */
 export function AdminDashboardPage() {
   return <Navigate to="/dashboards/admin/departments" replace />;

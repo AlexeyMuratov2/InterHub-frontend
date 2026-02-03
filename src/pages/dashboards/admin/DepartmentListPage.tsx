@@ -5,20 +5,7 @@ import {
   deleteDepartment,
   type DepartmentDto,
 } from '../../../entities/department';
-import { useTranslation } from '../../../shared/i18n';
-
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
+import { useTranslation, formatDate } from '../../../shared/i18n';
 
 function truncate(str: string | null, max: number): string {
   if (!str) return '—';
@@ -27,7 +14,7 @@ function truncate(str: string | null, max: number): string {
 
 export function DepartmentListPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation('dashboard');
+  const { t, locale } = useTranslation('dashboard');
   const [list, setList] = useState<DepartmentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -148,7 +135,7 @@ export function DepartmentListPage() {
                   <td>{d.code}</td>
                   <td>{d.name}</td>
                   <td title={d.description ?? undefined}>{truncate(d.description, 60)}</td>
-                  <td>{formatDate(d.createdAt)}</td>
+                  <td>{formatDate(d.createdAt, locale)}</td>
                   <td>
                     <div className="department-table-actions">
                       <button
