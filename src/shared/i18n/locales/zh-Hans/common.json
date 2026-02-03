@@ -1,0 +1,15 @@
+{
+  "loading": "加载中…",
+  "retry": "重试",
+  "cancel": "取消",
+  "create": "创建",
+  "save": "保存",
+  "delete": "删除",
+  "edit": "编辑",
+  "view": "查看",
+  "backToList": "返回列表",
+  "cancelButton": "取消",
+  "submit": "提交",
+  "submitting": "提交中…",
+  "noData": "—"
+}

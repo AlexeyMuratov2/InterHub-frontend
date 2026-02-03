@@ -1,0 +1,8 @@
+{
+  "title": "InterHub",
+  "mainPage": "Главная страница",
+  "signedInAs": "Вы вошли как {{email}}{{fullName}}. ",
+  "dashboard": "Дашборд",
+  "logout": "Выйти",
+  "login": "Войти"
+}

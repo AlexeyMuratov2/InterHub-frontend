@@ -1,0 +1,8 @@
+{
+  "title": "InterHub",
+  "mainPage": "首页",
+  "signedInAs": "您已登录 {{email}}{{fullName}}。",
+  "dashboard": "仪表盘",
+  "logout": "退出",
+  "login": "登录"
+}

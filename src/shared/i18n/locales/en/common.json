@@ -1,0 +1,15 @@
+{
+  "loading": "Loading…",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "create": "Create",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "view": "View",
+  "backToList": "Back to list",
+  "cancelButton": "Cancel",
+  "submit": "Submit",
+  "submitting": "Submitting…",
+  "noData": "—"
+}

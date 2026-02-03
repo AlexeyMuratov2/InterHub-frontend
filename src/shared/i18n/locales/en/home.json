@@ -1,0 +1,8 @@
+{
+  "title": "InterHub",
+  "mainPage": "Main page",
+  "signedInAs": "Signed in as {{email}}{{fullName}}.",
+  "dashboard": "Dashboard",
+  "logout": "Log out",
+  "login": "Sign in"
+}

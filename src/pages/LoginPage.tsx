@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api/auth';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { login } from '../shared/api';
+import { useAuth } from '../app/providers';
+import { getRolesFromUser, getDefaultDashboardPath } from '../shared/config';
+import { useTranslation } from '../shared/i18n';
+import { LanguageSwitcher } from '../shared/i18n';
 
 type LoginState =
   | { status: 'idle' }
@@ -9,44 +12,66 @@ type LoginState =
   | { status: 'error'; code?: string; message: string; fieldErrors?: Record<string, string> }
   | { status: 'network-error' };
 
+const LOGIN_REQUEST_TIMEOUT_MS = 20_000;
+
 const AUTH_ERROR_CODES = {
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   USER_NOT_ACTIVE: 'USER_NOT_ACTIVE',
   USER_DISABLED: 'USER_DISABLED',
 } as const;
 
-function getLoginErrorMessage(code: string | undefined, message: string): string {
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), ms)
+    ),
+  ]);
+}
+
+function getLoginErrorMessage(
+  t: (key: string) => string,
+  code: string | undefined,
+  message: string
+): string {
   if (code === AUTH_ERROR_CODES.INVALID_CREDENTIALS) {
-    return 'Неверный email или пароль.';
+    return t('errorInvalidCredentials');
   }
   if (code === AUTH_ERROR_CODES.USER_NOT_ACTIVE) {
-    return 'Аккаунт не активирован. Проверьте почту — там ссылка для активации. Не пришло письмо? Проверьте папку «Спам» или обратитесь к администратору для повторной отправки приглашения.';
+    return t('errorUserNotActive');
   }
   if (code === AUTH_ERROR_CODES.USER_DISABLED) {
-    return 'Аккаунт отключён. Обратитесь к администратору.';
+    return t('errorUserDisabled');
   }
-  return message || 'Не удалось войти. Проверьте подключение и попробуйте снова.';
+  return message || t('errorGeneric');
 }
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const location = useLocation();
+  const { setUser, sessionExpired, clearSessionExpired } = useAuth();
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [state, setState] = useState<LoginState>({ status: 'idle' });
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  const showSessionExpired = sessionExpired || (location.state as { sessionExpired?: boolean } | null)?.sessionExpired === true;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    clearSessionExpired();
     setEmailError('');
     setPasswordError('');
     setState({ status: 'submitting' });
 
-    login({ email, password }).then((result) => {
+    withTimeout(login({ email, password }), LOGIN_REQUEST_TIMEOUT_MS).then((result) => {
       if (result.ok) {
         setUser(result.data);
-        navigate('/', { replace: true });
+        const roles = getRolesFromUser(result.data);
+        const dashboardPath = getDefaultDashboardPath(roles);
+        navigate(dashboardPath ?? '/dashboards', { replace: true });
         return;
       }
       const { status, error } = result;
@@ -71,7 +96,7 @@ export default function LoginPage() {
         setState({
           status: 'error',
           code,
-          message: getLoginErrorMessage(code, message),
+          message: getLoginErrorMessage(t, code, message),
         });
         setPassword('');
         return;
@@ -81,7 +106,7 @@ export default function LoginPage() {
         setState({
           status: 'error',
           code,
-          message: getLoginErrorMessage(code, message),
+          message: getLoginErrorMessage(t, code, message),
         });
         setPassword('');
         return;
@@ -95,9 +120,14 @@ export default function LoginPage() {
       setState({
         status: 'error',
         code,
-        message: getLoginErrorMessage(code, message),
+        message: getLoginErrorMessage(t, code, message),
       });
       setPassword('');
+    }).catch(() => {
+      setState({
+        status: 'error',
+        message: t('errorGeneric'),
+      });
     });
   };
 
@@ -108,10 +138,13 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
-      <h1>Вход</h1>
+      <div className="login-page-header">
+        <h1>{t('title')}</h1>
+        <LanguageSwitcher className="login-page-lang" variant="buttons" />
+      </div>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="login-email">Email</label>
+          <label htmlFor="login-email">{t('email')}</label>
           <input
             id="login-email"
             type="email"
@@ -130,7 +163,7 @@ export default function LoginPage() {
           )}
         </div>
         <div>
-          <label htmlFor="login-password">Пароль</label>
+          <label htmlFor="login-password">{t('password')}</label>
           <input
             id="login-password"
             type="password"
@@ -148,19 +181,26 @@ export default function LoginPage() {
             </span>
           )}
         </div>
-        {showGeneralError && <p className="error">{state.message}</p>}
-        {state.status === 'network-error' && (
+        {showSessionExpired && !showGeneralError && (
+          <p className="error">{t('sessionExpired')}</p>
+        )}
+        {showGeneralError && (
           <p className="error">
-            Не удалось войти. Проверьте подключение и попробуйте снова.
+            {state.message}
+            {state.code === AUTH_ERROR_CODES.USER_NOT_ACTIVE && (
+              <> <Link to="/invite">{t('linkInvite')}</Link></>
+            )}
           </p>
         )}
+        {state.status === 'network-error' && (
+          <p className="error">{t('errorNetwork')}</p>
+        )}
         <button type="submit" disabled={state.status === 'submitting'}>
-          {state.status === 'submitting' ? 'Вход…' : 'Войти'}
+          {state.status === 'submitting' ? t('submitting') : t('submit')}
         </button>
       </form>
       <p className="login-links">
-        <Link to="/invite">Принять приглашение</Link>
-        {/* Опционально: <Link to="/forgot-password">Забыли пароль?</Link> */}
+        <Link to="/invite">{t('linkInvite')}</Link>
       </p>
     </div>
   );
