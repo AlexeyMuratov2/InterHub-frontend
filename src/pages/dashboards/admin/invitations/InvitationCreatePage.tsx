@@ -6,7 +6,6 @@ import { useTranslation } from '../../../../shared/i18n';
 import type { CreateInvitationRequest, CreateStudentRequest, CreateTeacherRequest } from '../../../../shared/api';
 import {
   ALL_ROLES_ORDER,
-  MANAGING_ROLES,
   MAX_ROLES,
   getRoleLabelKey,
   isManagingRole,

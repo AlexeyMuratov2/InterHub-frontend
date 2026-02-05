@@ -180,7 +180,7 @@ export function InvitationViewPage() {
       <div className="entity-view-card">
         <dl className="entity-view-dl entity-view-dl--two-cols">
           <dt>{t('invitationEmail')}</dt>
-          <dd>{data.email}</dd>
+          <dd>{data.email ?? '—'}</dd>
         <dt>{t('invitationRoles')}</dt>
         <dd>
           {(data.roles ?? []).length === 0
@@ -206,7 +206,7 @@ export function InvitationViewPage() {
           <dt>{t('invitationAcceptedAt')}</dt>
           <dd>{data.acceptedAt ? formatDateTime(data.acceptedAt, locale) : '—'}</dd>
           <dt>{t('invitationInvitedBy')}</dt>
-          <dd>{data.invitedById}</dd>
+          <dd>{data.invitedById ?? '—'}</dd>
         </dl>
       </div>
 

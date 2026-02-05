@@ -57,3 +57,17 @@ export async function deleteCurriculum(id: string): Promise<{
   const result = await request<unknown>(`${BASE}/curricula/${id}`, { method: 'DELETE' });
   return { error: result.error ? { ...result.error, status: result.status } : undefined };
 }
+
+export async function approveCurriculum(
+  id: string,
+  approvedBy: string
+): Promise<{
+  data?: CurriculumDto;
+  error?: { message?: string; status?: number; code?: string; details?: Record<string, string> | string[] };
+}> {
+  const qs = new URLSearchParams({ approvedBy }).toString();
+  const result = await request<CurriculumDto>(`${BASE}/curricula/${id}/approve?${qs}`, {
+    method: 'POST',
+  });
+  return { data: result.data, error: result.error ? { ...result.error, status: result.status } : undefined };
+}

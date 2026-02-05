@@ -10,7 +10,9 @@ const ADMIN_MENU = [
   { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true },
   { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
   { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
+  { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false },
   { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
+  { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false },
 ] as const;
 
 /** Layout дашборда: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -22,26 +24,35 @@ export function DashboardLayout() {
   const { t } = useTranslation('dashboard');
   const isDepartments = location.pathname.startsWith('/dashboards/admin/departments');
   const isPrograms = location.pathname.startsWith('/dashboards/admin/programs');
+  const isSubjects = location.pathname.startsWith('/dashboards/admin/subjects');
   const isInvitations = location.pathname.startsWith('/dashboards/admin/invitations');
+  const isAccounts = location.pathname.startsWith('/dashboards/admin/accounts');
 
   const headerSectionTitle = isDepartments
     ? t('menuDepartments')
     : isPrograms
       ? t('menuProgramsAndCurricula')
-      : isInvitations
-        ? t('menuInvitations')
-        : t('menuDashboard');
+      : isSubjects
+        ? t('menuSubjects')
+        : isInvitations
+          ? t('menuInvitations')
+          : isAccounts
+            ? t('accountManagement')
+            : t('menuDashboard');
 
   const showHeaderCreate =
     (canEdit && isDepartments) ||
     (canEdit && isPrograms) ||
+    (canEdit && isSubjects) ||
     (isInvitations && canManageInvitations);
 
   const headerCreateLink = isDepartments
     ? '/dashboards/admin/departments/new'
     : isPrograms
       ? '/dashboards/admin/programs/new'
-      : '/dashboards/admin/invitations/new';
+      : isSubjects
+        ? '/dashboards/admin/subjects/new'
+        : '/dashboards/admin/invitations/new';
 
   return (
     <div className="app-dashboard-layout">

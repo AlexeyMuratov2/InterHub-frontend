@@ -84,17 +84,23 @@ export type InvitationStatus = (typeof INVITATION_STATUS)[keyof typeof INVITATIO
 export interface InvitationDto {
   id: string;
   userId: string;
-  email: string;
+  email: string | null;
   roles: string[];
   firstName: string | null;
   lastName: string | null;
   status: InvitationStatus;
-  invitedById: string;
+  invitedById: string | null;
   emailSentAt: string | null;
   emailAttempts: number;
   expiresAt: string;
   acceptedAt: string | null;
   createdAt: string;
+}
+
+/** Страница списка приглашений с курсорной пагинацией (GET /api/invitations) */
+export interface InvitationPage {
+  items: InvitationDto[];
+  nextCursor: string | null;
 }
 
 /** Данные студента при создании приглашения (CreateStudentRequest) */
@@ -113,6 +119,46 @@ export interface CreateTeacherRequest {
   faculty: string;
   englishName?: string | null;
   position?: string | null;
+}
+
+// --- Модуль Account (GET/PATCH /api/account/me, GET/PATCH/DELETE /api/account/users) ---
+
+/** Пользователь в API account: текущий пользователь и пользователи списка/по id (UserDto) */
+export interface AccountUserDto {
+  id: string;
+  email: string;
+  roles: string[];
+  status: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  createdAt: string;
+  activatedAt: string | null;
+  lastLoginAt: string | null;
+}
+
+/** Постраничный список пользователей (UserPage) */
+export interface AccountUserPage {
+  items: AccountUserDto[];
+  nextCursor: string | null;
+}
+
+/** Тело PATCH /api/account/me (UpdateProfileRequest) */
+export interface UpdateProfileRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+}
+
+/** Тело PATCH /api/account/users/{id} (UpdateUserRequest) */
+export interface UpdateUserRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  roles?: string[] | null;
 }
 
 /** Запрос на создание приглашения (CreateInvitationRequest) */

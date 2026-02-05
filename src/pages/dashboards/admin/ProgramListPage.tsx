@@ -256,13 +256,26 @@ export function ProgramListPage() {
             </thead>
             <tbody>
               {filtered.map((p) => (
-                <tr key={p.id}>
+                <tr
+                  key={p.id}
+                  className="department-table-row-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/dashboards/admin/programs/${p.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/dashboards/admin/programs/${p.id}`);
+                    }
+                  }}
+                  aria-label={t('viewTitle')}
+                >
                   <td>{p.code}</td>
                   <td>{p.name}</td>
                   <td title={p.description ?? undefined}>{truncate(p.description, 60)}</td>
                   <td>{p.degreeLevel ?? '—'}</td>
                   <td>{formatDate(p.createdAt, locale)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="department-table-actions">
                       <button
                         type="button"
@@ -408,7 +421,9 @@ export function ProgramListPage() {
                 <th>{t('curriculumProgram')}</th>
                 <th>{t('curriculumVersion')}</th>
                 <th>{t('curriculumStartYear')}</th>
+                <th>{t('curriculumEndYear')}</th>
                 <th>{t('curriculumIsActive')}</th>
+                <th>{t('curriculumStatus')}</th>
                 <th>{t('curriculumNotes')}</th>
                 <th>{t('createdAt')}</th>
                 <th>{t('actions')}</th>
@@ -416,23 +431,39 @@ export function ProgramListPage() {
             </thead>
             <tbody>
               {filteredCurricula.map((c) => (
-                <tr key={c.id}>
+                <tr
+                  key={c.id}
+                  className="department-table-row-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/dashboards/admin/programs/${c.programId}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/dashboards/admin/programs/${c.programId}`);
+                    }
+                  }}
+                  aria-label={t('viewTitle')}
+                >
                   <td>
                     <Link
                       to={`/dashboards/admin/programs/${c.programId}`}
                       style={{ color: '#2563eb', textDecoration: 'none' }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {c.programName} ({c.programCode})
                     </Link>
                   </td>
                   <td>{c.version}</td>
                   <td>{c.startYear}</td>
+                  <td>{c.endYear ?? '—'}</td>
                   <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
+                  <td>{c.status}</td>
                   <td title={c.notes ?? undefined}>
                     {truncate(c.notes, 40)}
                   </td>
                   <td>{formatDate(c.createdAt, locale)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="department-table-actions">
                       {canEdit && (
                         <>

@@ -156,12 +156,25 @@ export function DepartmentListPage() {
             </thead>
             <tbody>
               {filtered.map((d) => (
-                <tr key={d.id}>
+                <tr
+                  key={d.id}
+                  className="department-table-row-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/dashboards/admin/departments/${d.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/dashboards/admin/departments/${d.id}`);
+                    }
+                  }}
+                  aria-label={t('viewTitle')}
+                >
                   <td>{d.code}</td>
                   <td>{d.name}</td>
                   <td title={d.description ?? undefined}>{truncate(d.description, 60)}</td>
                   <td>{formatDate(d.createdAt, locale)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="department-table-actions">
                       <button
                         type="button"

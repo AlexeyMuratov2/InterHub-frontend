@@ -50,7 +50,9 @@ export function InvitationListPage() {
   const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const [list, setList] = useState<InvitationDto[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -68,9 +70,30 @@ export function InvitationListPage() {
     if (err) {
       setError(err.message ?? t('invitationErrorLoadList'));
       setList([]);
+      setNextCursor(null);
       return;
     }
-    setList(data ?? []);
+    setList(data?.items ?? []);
+    setNextCursor(data?.nextCursor ?? null);
+  };
+
+  const loadMore = async () => {
+    if (!nextCursor) return;
+    setLoadingMore(true);
+    setError(null);
+    const { data, error: err } = await listInvitations({ cursor: nextCursor });
+    setLoadingMore(false);
+    if (err) {
+      if (err.code === 'INVITATION_NOT_FOUND') {
+        setNextCursor(null);
+        load();
+        return;
+      }
+      setError(err.message ?? t('invitationErrorLoadList'));
+      return;
+    }
+    setList((prev) => [...prev, ...(data?.items ?? [])]);
+    setNextCursor(data?.nextCursor ?? null);
   };
 
   useEffect(() => {
@@ -86,7 +109,7 @@ export function InvitationListPage() {
       const q = search.trim().toLowerCase();
       items = items.filter(
         (i) =>
-          i.email.toLowerCase().includes(q) ||
+          (i.email ?? '').toLowerCase().includes(q) ||
           (i.firstName ?? '').toLowerCase().includes(q) ||
           (i.lastName ?? '').toLowerCase().includes(q)
       );
@@ -215,8 +238,21 @@ export function InvitationListPage() {
             </thead>
             <tbody>
               {filtered.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.email}</td>
+                <tr
+                  key={item.id}
+                  className="department-table-row-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/dashboards/admin/invitations/${item.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/dashboards/admin/invitations/${item.id}`);
+                    }
+                  }}
+                  aria-label={t('viewTitle')}
+                >
+                  <td>{item.email ?? '—'}</td>
                   <td>
                     {(item.roles ?? []).length === 0
                       ? '—'
@@ -232,7 +268,7 @@ export function InvitationListPage() {
                   </td>
                   <td>{formatDateTime(item.expiresAt, locale)}</td>
                   <td>{formatDateTime(item.createdAt, locale)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="department-table-actions">
                       <button
                         type="button"
@@ -281,6 +317,19 @@ export function InvitationListPage() {
           </table>
         )}
       </div>
+
+      {!loading && nextCursor != null && (
+        <div className="department-page-load-more">
+          <button
+            type="button"
+            className="department-page-load-more-btn"
+            disabled={loadingMore}
+            onClick={loadMore}
+          >
+            {loadingMore ? t('loadingList') : t('invitationLoadMore')}
+          </button>
+        </div>
+      )}
 
       {resendId && (
         <div

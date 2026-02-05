@@ -7,6 +7,8 @@ import { useTranslation } from '../../../shared/i18n';
 const VERSION_MAX = 50;
 const START_YEAR_MIN = 1900;
 const START_YEAR_MAX = 2100;
+const END_YEAR_MIN = 1900;
+const END_YEAR_MAX = 2100;
 
 function parseFieldErrors(details: Record<string, string> | string[] | undefined): Record<string, string> {
   if (!details) return {};
@@ -21,6 +23,7 @@ export function CurriculumCreatePage() {
   const { t } = useTranslation('dashboard');
   const [version, setVersion] = useState('');
   const [startYear, setStartYear] = useState<number | ''>(new Date().getFullYear());
+  const [endYear, setEndYear] = useState<number | ''>('');
   const [isActive, setIsActive] = useState(true);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +45,14 @@ export function CurriculumCreatePage() {
     if (Number.isNaN(year)) err.startYear = t('curriculumErrorStartYearRange');
     else if (year < START_YEAR_MIN || year > START_YEAR_MAX)
       err.startYear = t('curriculumErrorStartYearRange');
+
+    const end = typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
+    if (end !== null) {
+      if (Number.isNaN(end)) err.endYear = t('curriculumErrorEndYearRange');
+      else if (end < END_YEAR_MIN || end > END_YEAR_MAX) err.endYear = t('curriculumErrorEndYearRange');
+      else if (!Number.isNaN(year) && end < year) err.endYear = t('curriculumErrorEndYearGteStartYear');
+    }
+
     setFieldErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -54,10 +65,17 @@ export function CurriculumCreatePage() {
     if (!validate()) return;
     const year = typeof startYear === 'number' ? startYear : parseInt(String(startYear), 10);
     if (Number.isNaN(year) || year < START_YEAR_MIN || year > START_YEAR_MAX) return;
+    const end =
+      typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
+    if (end !== null) {
+      if (Number.isNaN(end) || end < END_YEAR_MIN || end > END_YEAR_MAX) return;
+      if (end < year) return;
+    }
     setSubmitting(true);
     const body = {
       version: version.trim(),
       startYear: year,
+      endYear: end,
       isActive,
       notes: notes.trim() || null,
     };
@@ -148,6 +166,23 @@ export function CurriculumCreatePage() {
             aria-invalid={!!fieldErrors.startYear}
           />
           {fieldErrors.startYear && <div className="field-error">{fieldErrors.startYear}</div>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="curriculum-create-endYear">{t('curriculumEndYear')}</label>
+          <input
+            id="curriculum-create-endYear"
+            type="number"
+            min={END_YEAR_MIN}
+            max={END_YEAR_MAX}
+            value={endYear === '' ? '' : endYear}
+            onChange={(e) => {
+              const v = e.target.value;
+              setEndYear(v === '' ? '' : parseInt(v, 10));
+            }}
+            placeholder={t('curriculumEndYearPlaceholder')}
+            aria-invalid={!!fieldErrors.endYear}
+          />
+          {fieldErrors.endYear && <div className="field-error">{fieldErrors.endYear}</div>}
         </div>
         <div className="form-group">
           <label className="form-check">

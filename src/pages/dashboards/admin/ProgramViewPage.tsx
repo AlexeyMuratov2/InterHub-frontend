@@ -239,7 +239,9 @@ export function ProgramViewPage() {
               <tr>
                 <th>{t('curriculumVersion')}</th>
                 <th>{t('curriculumStartYear')}</th>
+                <th>{t('curriculumEndYear')}</th>
                 <th>{t('curriculumIsActive')}</th>
+                <th>{t('curriculumStatus')}</th>
                 <th>{t('curriculumNotes')}</th>
                 <th>{t('createdAt')}</th>
                 <th>{t('actions')}</th>
@@ -250,7 +252,9 @@ export function ProgramViewPage() {
                 <tr key={c.id}>
                   <td>{c.version}</td>
                   <td>{c.startYear}</td>
+                  <td>{c.endYear ?? '—'}</td>
                   <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
+                  <td>{c.status}</td>
                   <td title={c.notes ?? undefined}>
                     {c.notes && c.notes.length > 40 ? c.notes.slice(0, 40) + '…' : c.notes ?? '—'}
                   </td>

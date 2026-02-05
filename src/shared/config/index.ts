@@ -49,6 +49,40 @@ export function canManageInvitations(roles: string[]): boolean {
   return roles.some((r) => INVITATION_ADMIN_ROLES.includes(r as Role));
 }
 
+/** Роли, которым разрешён доступ к списку/просмотру/редактированию пользователей (MODERATOR, ADMIN, SUPER_ADMIN) */
+export const ACCOUNT_MANAGE_ROLES: Role[] = [
+  ROLES.MODERATOR,
+  ROLES.ADMIN,
+  ROLES.SUPER_ADMIN,
+];
+
+/** Роли, которым разрешено удалять пользователей (только ADMIN, SUPER_ADMIN) */
+export const ACCOUNT_DELETE_ROLES: Role[] = [ROLES.SUPER_ADMIN, ROLES.ADMIN];
+
+/** Есть ли право просматривать и редактировать пользователей в разделе «Управление пользователями» */
+export function canManageAccounts(roles: string[]): boolean {
+  return roles.some((r) => ACCOUNT_MANAGE_ROLES.includes(r as Role));
+}
+
+/**
+ * Может ли текущий пользователь удалить целевого.
+ * Нельзя удалить себя; SUPER_ADMIN может удалить только другой аккаунт с ролью SUPER_ADMIN.
+ */
+export function canDeleteUser(
+  currentRoles: string[],
+  currentUserId: string,
+  targetUserId: string,
+  targetRoles: string[]
+): boolean {
+  if (currentUserId === targetUserId) return false;
+  if (!currentRoles.some((r) => ACCOUNT_DELETE_ROLES.includes(r as Role)))
+    return false;
+  const targetIsSuperAdmin = targetRoles.includes(ROLES.SUPER_ADMIN);
+  const currentIsSuperAdmin = currentRoles.includes(ROLES.SUPER_ADMIN);
+  if (targetIsSuperAdmin && !currentIsSuperAdmin) return false;
+  return true;
+}
+
 /** Роли, которым доступен дашборд преподавателя */
 export const DASHBOARD_TEACHER_ROLES: Role[] = [ROLES.TEACHER];
 

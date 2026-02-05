@@ -1,7 +1,31 @@
 export { request, API_BASE, setSessionExpiredHandler } from './client';
 export type { ErrorResponse } from './client';
 export * from './auth';
-export * from './invitations';
+export {
+  validateToken,
+  acceptInvitation,
+  listInvitations,
+  getInvitation,
+  createInvitation,
+  resendInvitation,
+  cancelInvitation,
+} from './invitations';
+export type {
+  ApiResult as InvitationsApiResult,
+  ValidateTokenResult,
+  AcceptInvitationResult,
+  ListInvitationsParams,
+} from './invitations';
+
+export {
+  getMe,
+  patchMe,
+  listUsers,
+  getUser,
+  patchUser,
+  deleteUser,
+} from './account';
+export type { ApiResult as AccountApiResult, ListUsersParams } from './account';
 export type {
   LoginRequest,
   AuthResult,
@@ -9,9 +33,14 @@ export type {
   TokenValidationResult,
   AcceptInvitationRequest,
   InvitationDto,
+  InvitationPage,
   InvitationStatus,
   CreateInvitationRequest,
   CreateStudentRequest,
   CreateTeacherRequest,
+  AccountUserDto,
+  AccountUserPage,
+  UpdateProfileRequest,
+  UpdateUserRequest,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';

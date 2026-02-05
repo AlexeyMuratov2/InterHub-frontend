@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { fetchCurriculumById, updateCurriculum } from '../../../entities/curriculum';
+import {
+  CURRICULUM_STATUS,
+  fetchCurriculumById,
+  updateCurriculum,
+  type CurriculumStatus,
+  type UpdateCurriculumRequest,
+} from '../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
 
 const VERSION_MAX = 50;
 const START_YEAR_MIN = 1900;
 const START_YEAR_MAX = 2100;
+const END_YEAR_MIN = 1900;
+const END_YEAR_MAX = 2100;
 
 function parseFieldErrors(details: Record<string, string> | string[] | undefined): Record<string, string> {
   if (!details) return {};
@@ -22,7 +30,9 @@ export function CurriculumEditPage() {
   const { t } = useTranslation('dashboard');
   const [version, setVersion] = useState('');
   const [startYear, setStartYear] = useState<number | ''>(2024);
+  const [endYear, setEndYear] = useState<number | ''>('');
   const [isActive, setIsActive] = useState(true);
+  const [status, setStatus] = useState<CurriculumStatus>(CURRICULUM_STATUS.DRAFT);
   const [notes, setNotes] = useState('');
   const [programId, setProgramId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +67,9 @@ export function CurriculumEditPage() {
       if (data) {
         setVersion(data.version);
         setStartYear(data.startYear);
+        setEndYear(data.endYear ?? '');
         setIsActive(data.isActive);
+        setStatus(data.status);
         setNotes(data.notes ?? '');
         setProgramId(data.programId);
       } else {
@@ -76,6 +88,13 @@ export function CurriculumEditPage() {
     if (Number.isNaN(year)) err.startYear = t('curriculumErrorStartYearRange');
     else if (year < START_YEAR_MIN || year > START_YEAR_MAX)
       err.startYear = t('curriculumErrorStartYearRange');
+
+    const end = typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
+    if (end !== null) {
+      if (Number.isNaN(end)) err.endYear = t('curriculumErrorEndYearRange');
+      else if (end < END_YEAR_MIN || end > END_YEAR_MAX) err.endYear = t('curriculumErrorEndYearRange');
+      else if (!Number.isNaN(year) && end < year) err.endYear = t('curriculumErrorEndYearGteStartYear');
+    }
     setFieldErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -88,13 +107,22 @@ export function CurriculumEditPage() {
     if (!validate()) return;
     const year = typeof startYear === 'number' ? startYear : parseInt(String(startYear), 10);
     if (Number.isNaN(year) || year < START_YEAR_MIN || year > START_YEAR_MAX) return;
+    const end =
+      typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
+    if (end !== null) {
+      if (Number.isNaN(end) || end < END_YEAR_MIN || end > END_YEAR_MAX) return;
+      if (end < year) return;
+    }
     setSubmitting(true);
-    const body = {
-      version: version.trim(),
+    const body: UpdateCurriculumRequest = {
       startYear: year,
+      endYear: end,
       isActive,
+      status,
       notes: notes.trim() || null,
     };
+    const versionTrim = version.trim();
+    if (versionTrim) body.version = versionTrim;
     const { data, error: err } = await updateCurriculum(id, body);
     setSubmitting(false);
     if (err) {
@@ -201,6 +229,22 @@ export function CurriculumEditPage() {
           {fieldErrors.startYear && <div className="field-error">{fieldErrors.startYear}</div>}
         </div>
         <div className="form-group">
+          <label htmlFor="curriculum-edit-endYear">{t('curriculumEndYear')}</label>
+          <input
+            id="curriculum-edit-endYear"
+            type="number"
+            min={END_YEAR_MIN}
+            max={END_YEAR_MAX}
+            value={endYear === '' ? '' : endYear}
+            onChange={(e) => {
+              const v = e.target.value;
+              setEndYear(v === '' ? '' : parseInt(v, 10));
+            }}
+            aria-invalid={!!fieldErrors.endYear}
+          />
+          {fieldErrors.endYear && <div className="field-error">{fieldErrors.endYear}</div>}
+        </div>
+        <div className="form-group">
           <label className="form-check">
             <input
               type="checkbox"
@@ -210,6 +254,19 @@ export function CurriculumEditPage() {
             />
             <span>{t('curriculumIsActive')}</span>
           </label>
+        </div>
+        <div className="form-group">
+          <label htmlFor="curriculum-edit-status">{t('curriculumStatus')}</label>
+          <select
+            id="curriculum-edit-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as CurriculumStatus)}
+          >
+            <option value={CURRICULUM_STATUS.DRAFT}>{t('curriculumStatusDraft')}</option>
+            <option value={CURRICULUM_STATUS.UNDER_REVIEW}>{t('curriculumStatusUnderReview')}</option>
+            <option value={CURRICULUM_STATUS.APPROVED}>{t('curriculumStatusApproved')}</option>
+            <option value={CURRICULUM_STATUS.ARCHIVED}>{t('curriculumStatusArchived')}</option>
+          </select>
         </div>
         <div className="form-group">
           <label htmlFor="curriculum-edit-notes">{t('curriculumNotes')}</label>

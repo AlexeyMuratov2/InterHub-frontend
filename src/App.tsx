@@ -18,6 +18,14 @@ import {
   InvitationListPage,
   InvitationCreatePage,
   InvitationViewPage,
+  UserListPage,
+  UserViewPage,
+  SubjectListPage,
+  SubjectCreatePage,
+  SubjectViewPage,
+  SubjectEditPage,
+  AssessmentTypeCreatePage,
+  AssessmentTypeEditPage,
 } from './pages/dashboards/admin';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
@@ -60,6 +68,14 @@ function App() {
             <Route path="invitations" element={<InvitationListPage />} />
             <Route path="invitations/new" element={<InvitationCreatePage />} />
             <Route path="invitations/:id" element={<InvitationViewPage />} />
+            <Route path="accounts" element={<UserListPage />} />
+            <Route path="accounts/:id" element={<UserViewPage />} />
+            <Route path="subjects" element={<SubjectListPage />} />
+            <Route path="subjects/new" element={<SubjectCreatePage />} />
+            <Route path="subjects/assessment-types/new" element={<AssessmentTypeCreatePage />} />
+            <Route path="subjects/assessment-types/:id/edit" element={<AssessmentTypeEditPage />} />
+            <Route path="subjects/:id" element={<SubjectViewPage />} />
+            <Route path="subjects/:id/edit" element={<SubjectEditPage />} />
             <Route path="programs" element={<ProgramListPage />} />
             <Route path="programs/new" element={<ProgramCreatePage />} />
             <Route path="programs/curricula/:curriculumId/edit" element={<CurriculumEditPage />} />

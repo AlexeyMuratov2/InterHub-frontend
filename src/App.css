@@ -811,6 +811,32 @@ img.app-dashboard-sidebar-logo {
   background: #1d4ed8;
 }
 
+.department-page-load-more {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.department-page-load-more-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+  background: #fff;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.department-page-load-more-btn:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.department-page-load-more-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .department-table-wrap {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -842,6 +868,10 @@ img.app-dashboard-sidebar-logo {
 
 .department-table tbody tr:hover {
   background: #f7fafc;
+}
+
+.department-table-row-clickable {
+  cursor: pointer;
 }
 
 .department-table-actions {
@@ -1086,6 +1116,160 @@ img.app-dashboard-sidebar-logo {
 
 .department-form-actions .btn-secondary:hover {
   background: #f7fafc;
+}
+
+.department-form-actions .btn-cancel {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.department-form-actions .btn-cancel:hover {
+  background: #f7fafc;
+}
+
+.department-form-actions .btn-action-fixed,
+.department-form-actions .btn-primary.btn-action-fixed,
+.department-form-actions .btn-cancel.btn-action-fixed {
+  min-width: 6.5rem;
+}
+
+.entity-view-actions-hint {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.entity-view-actions .btn-primary,
+.entity-view-actions .btn-delete {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 6.5rem;
+}
+
+.entity-view-actions .btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.entity-view-actions .btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.entity-view-actions .btn-delete {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+}
+
+.entity-view-actions .btn-delete:hover {
+  background: #b91c1c;
+}
+
+.entity-view-actions .btn-action-fixed {
+  min-width: 6.5rem;
+}
+
+/* Карточка просмотра пользователя — в стиле формы */
+.account-view-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.account-view-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.account-view-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.account-view-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.01em;
+}
+
+.account-view-value {
+  font-size: 0.9375rem;
+  color: #1e293b;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.account-view-value:empty::after {
+  content: '—';
+  color: #94a3b8;
+}
+
+.account-view-value--chips,
+.account-view-value:has(.account-view-role-chip) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.account-view-role-chip {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* Форма редактирования пользователя — те же стили, что у приглашений */
+.entity-view-card .department-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.entity-view-card .department-form label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.entity-view-card .department-form input,
+.entity-view-card .department-form textarea,
+.entity-view-card .department-form select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #1a202c;
+  background: #fff;
+}
+
+.entity-view-card .department-form input:focus,
+.entity-view-card .department-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.entity-view-card .department-form input::placeholder {
+  color: #94a3b8;
 }
 
 /* Модалка подтверждения удаления */
@@ -1408,4 +1592,24 @@ img.app-dashboard-sidebar-logo {
 .invitation-add-role-item:hover {
   background: #eff6ff;
   color: #1e40af;
+}
+
+/* Модуль Accounts: чекбоксы ролей при редактировании пользователя */
+.account-roles-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.35rem;
+}
+.account-role-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+}
+.account-role-checkbox input {
+  margin: 0;
+  cursor: pointer;
 }

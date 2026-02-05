@@ -17,6 +17,19 @@ export { CurriculumEditPage } from './CurriculumEditPage';
 /** Страницы админ-дашборда: модуль Invitations (приглашения) */
 export { InvitationListPage, InvitationCreatePage, InvitationViewPage } from './invitations';
 
+/** Страницы админ-дашборда: модуль Accounts (управление пользователями) */
+export { UserListPage, UserViewPage } from './accounts';
+
+/** Страницы админ-дашборда: модуль Subjects (дисциплины и типы контроля) */
+export {
+  SubjectListPage,
+  SubjectCreatePage,
+  SubjectViewPage,
+  SubjectEditPage,
+  AssessmentTypeCreatePage,
+  AssessmentTypeEditPage,
+} from './subjects';
+
 /** Для реестра дашбордов: редирект на список отделов (основной экран админки) */
 export function AdminDashboardPage() {
   return <Navigate to="/dashboards/admin/departments" replace />;
