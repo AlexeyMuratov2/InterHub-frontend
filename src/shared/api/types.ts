@@ -144,6 +144,40 @@ export interface AccountUserPage {
   nextCursor: string | null;
 }
 
+/** Профиль преподавателя (TeacherDto). GET /api/account/users/{id} → teacherProfile. */
+export interface TeacherProfileDto {
+  id: string;
+  userId: string;
+  teacherId: string;
+  faculty: string;
+  englishName: string | null;
+  position: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Профиль студента (StudentDto). GET /api/account/users/{id} → studentProfile. */
+export interface StudentProfileDto {
+  id: string;
+  userId: string;
+  studentId: string;
+  chineseName: string | null;
+  faculty: string;
+  course: string | null;
+  enrollmentYear: number | null;
+  groupName: string | null;
+  groupId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Ответ GET /api/account/users/{id}: пользователь и профили по ролям. */
+export interface UserWithProfilesDto {
+  user: AccountUserDto;
+  teacherProfile: TeacherProfileDto | null;
+  studentProfile: StudentProfileDto | null;
+}
+
 /** Тело PATCH /api/account/me (UpdateProfileRequest) */
 export interface UpdateProfileRequest {
   firstName?: string | null;

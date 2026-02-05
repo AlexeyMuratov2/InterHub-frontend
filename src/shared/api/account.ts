@@ -5,6 +5,7 @@ import type {
   AccountUserPage,
   UpdateProfileRequest,
   UpdateUserRequest,
+  UserWithProfilesDto,
 } from './types';
 
 const BASE = '/api/account';
@@ -55,8 +56,8 @@ export async function listUsers(
   };
 }
 
-export async function getUser(id: string): Promise<ApiResult<AccountUserDto>> {
-  const result = await request<AccountUserDto>(
+export async function getUser(id: string): Promise<ApiResult<UserWithProfilesDto>> {
+  const result = await request<UserWithProfilesDto>(
     `${BASE}/users/${encodeURIComponent(id)}`,
     { method: 'GET' }
   );

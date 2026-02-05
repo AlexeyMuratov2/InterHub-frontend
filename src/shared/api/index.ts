@@ -40,6 +40,9 @@ export type {
   CreateTeacherRequest,
   AccountUserDto,
   AccountUserPage,
+  TeacherProfileDto,
+  StudentProfileDto,
+  UserWithProfilesDto,
   UpdateProfileRequest,
   UpdateUserRequest,
 } from './types';

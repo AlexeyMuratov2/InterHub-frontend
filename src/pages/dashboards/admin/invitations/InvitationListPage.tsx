@@ -258,8 +258,18 @@ export function InvitationListPage() {
                       ? '—'
                       : (item.roles ?? []).map((r) => t(getRoleLabelKey(r))).join(', ')}
                   </td>
-                  <td title={[item.firstName, item.lastName].filter(Boolean).join(' ') || undefined}>
-                    {truncate([item.firstName, item.lastName].filter(Boolean).join(' '), 30) || '—'}
+                  <td title={[item.firstName, item.lastName].filter(Boolean).join(' ') || undefined} onClick={(e) => e.stopPropagation()}>
+                    {item.userId ? (
+                      <Link
+                        to={`/dashboards/admin/accounts/${item.userId}`}
+                        className="invitation-user-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {(truncate([item.firstName, item.lastName].filter(Boolean).join(' '), 30) || item.email) ?? '—'}
+                      </Link>
+                    ) : (
+                      truncate([item.firstName, item.lastName].filter(Boolean).join(' '), 30) || '—'
+                    )}
                   </td>
                   <td>
                     <span className={`invitation-status-badge invitation-status-badge--${item.status.toLowerCase()}`}>

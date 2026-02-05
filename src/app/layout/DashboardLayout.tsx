@@ -27,8 +27,11 @@ export function DashboardLayout() {
   const isSubjects = location.pathname.startsWith('/dashboards/admin/subjects');
   const isInvitations = location.pathname.startsWith('/dashboards/admin/invitations');
   const isAccounts = location.pathname.startsWith('/dashboards/admin/accounts');
+  const isProfile = location.pathname.startsWith('/dashboards/admin/profile');
 
-  const headerSectionTitle = isDepartments
+  const headerSectionTitle = isProfile
+    ? t('profilePageTitleShort')
+    : isDepartments
     ? t('menuDepartments')
     : isPrograms
       ? t('menuProgramsAndCurricula')
@@ -99,13 +102,22 @@ export function DashboardLayout() {
               aria-label="Search"
             />
             <LanguageSwitcher className="app-dashboard-header-lang" variant="select" />
-            <div className="app-dashboard-header-user">
-              <span className="app-dashboard-header-avatar">A</span>
-              <span>{user?.fullName ?? user?.email ?? 'Admin'}</span>
-              <button type="button" onClick={() => logout()} className="app-dashboard-header-logout">
-                ({t('logout')})
-              </button>
-            </div>
+            <Link
+              to="/dashboards/admin/profile"
+              className="app-dashboard-header-profile-link"
+              title={t('profilePageTitleShort')}
+              aria-label={t('profilePageTitleShort')}
+            >
+              <span className="app-dashboard-header-avatar" aria-hidden="true">
+                {(user?.fullName ?? user?.email ?? 'A').charAt(0).toUpperCase()}
+              </span>
+              <span className="app-dashboard-header-user-name">
+                {user?.fullName ?? user?.email ?? 'Admin'}
+              </span>
+            </Link>
+            <button type="button" onClick={() => logout()} className="app-dashboard-header-logout">
+              ({t('logout')})
+            </button>
           </div>
         </header>
         <main className="app-dashboard-main">

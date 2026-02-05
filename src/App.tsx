@@ -15,11 +15,15 @@ import {
   ProgramViewPage,
   CurriculumCreatePage,
   CurriculumEditPage,
+  CurriculumSubjectsPage,
+  CurriculumSubjectCreatePage,
+  CurriculumSubjectEditPage,
   InvitationListPage,
   InvitationCreatePage,
   InvitationViewPage,
   UserListPage,
   UserViewPage,
+  ProfilePage,
   SubjectListPage,
   SubjectCreatePage,
   SubjectViewPage,
@@ -70,6 +74,7 @@ function App() {
             <Route path="invitations/:id" element={<InvitationViewPage />} />
             <Route path="accounts" element={<UserListPage />} />
             <Route path="accounts/:id" element={<UserViewPage />} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="subjects" element={<SubjectListPage />} />
             <Route path="subjects/new" element={<SubjectCreatePage />} />
             <Route path="subjects/assessment-types/new" element={<AssessmentTypeCreatePage />} />
@@ -79,6 +84,9 @@ function App() {
             <Route path="programs" element={<ProgramListPage />} />
             <Route path="programs/new" element={<ProgramCreatePage />} />
             <Route path="programs/curricula/:curriculumId/edit" element={<CurriculumEditPage />} />
+            <Route path="programs/curricula/:curriculumId/subjects" element={<CurriculumSubjectsPage />} />
+            <Route path="programs/curricula/:curriculumId/subjects/new" element={<CurriculumSubjectCreatePage />} />
+            <Route path="programs/curriculum-subjects/:id/edit" element={<CurriculumSubjectEditPage />} />
             <Route path="programs/:programId/curricula/new" element={<CurriculumCreatePage />} />
             <Route path="programs/:id" element={<ProgramViewPage />} />
             <Route path="programs/:id/edit" element={<ProgramEditPage />} />

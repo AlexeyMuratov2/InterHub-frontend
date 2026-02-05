@@ -14,11 +14,21 @@ export { ProgramViewPage } from './ProgramViewPage';
 export { CurriculumCreatePage } from './CurriculumCreatePage';
 export { CurriculumEditPage } from './CurriculumEditPage';
 
+/** Страницы админ-дашборда: модуль Curriculum Subjects (предметы учебного плана) */
+export {
+  CurriculumSubjectsPage,
+  CurriculumSubjectCreatePage,
+  CurriculumSubjectEditPage,
+} from './curriculum-subjects';
+
 /** Страницы админ-дашборда: модуль Invitations (приглашения) */
 export { InvitationListPage, InvitationCreatePage, InvitationViewPage } from './invitations';
 
 /** Страницы админ-дашборда: модуль Accounts (управление пользователями) */
 export { UserListPage, UserViewPage } from './accounts';
+
+/** Страницы админ-дашборда: профиль текущего администратора */
+export { ProfilePage } from './profile';
 
 /** Страницы админ-дашборда: модуль Subjects (дисциплины и типы контроля) */
 export {

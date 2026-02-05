@@ -157,11 +157,20 @@ export function UserListPage() {
                     >
                       <td>{item.email ?? '—'}</td>
                       <td>
-                        {(item.roles ?? []).length === 0
-                          ? '—'
-                          : (item.roles ?? [])
-                              .map((r) => t(getRoleLabelKey(r)))
-                              .join(', ')}
+                        {(item.roles ?? []).length === 0 ? (
+                          '—'
+                        ) : (
+                          <span className="account-list-roles">
+                            {(item.roles ?? []).map((r) => (
+                              <span
+                                key={r}
+                                className="account-view-role-chip"
+                              >
+                                {t(getRoleLabelKey(r))}
+                              </span>
+                            ))}
+                          </span>
+                        )}
                       </td>
                       <td
                         title={getDisplayName(

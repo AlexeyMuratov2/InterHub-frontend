@@ -249,7 +249,20 @@ export function ProgramViewPage() {
             </thead>
             <tbody>
               {curricula.map((c) => (
-                <tr key={c.id}>
+                <tr
+                  key={c.id}
+                  className="department-table-row-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`);
+                    }
+                  }}
+                  aria-label={t('curriculumSubjectsViewTitle')}
+                >
                   <td>{c.version}</td>
                   <td>{c.startYear}</td>
                   <td>{c.endYear ?? '—'}</td>
@@ -259,8 +272,17 @@ export function ProgramViewPage() {
                     {c.notes && c.notes.length > 40 ? c.notes.slice(0, 40) + '…' : c.notes ?? '—'}
                   </td>
                   <td>{formatDateTime(c.createdAt, locale)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="department-table-actions">
+                      <button
+                        type="button"
+                        className="department-table-btn department-table-btn--primary"
+                        onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
+                        title={t('curriculumSubjectsViewTitle')}
+                        aria-label={t('curriculumSubjectsViewTitle')}
+                      >
+                        📚
+                      </button>
                       {canEdit && (
                         <>
                           <button

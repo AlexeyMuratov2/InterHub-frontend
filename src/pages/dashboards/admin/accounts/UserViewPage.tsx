@@ -4,7 +4,7 @@ import {
   getUser,
   patchUser,
   deleteUser,
-  type AccountUserDto,
+  type UserWithProfilesDto,
   type UpdateUserRequest,
 } from '../../../../shared/api';
 import { useCanManageAccounts } from '../../../../app/hooks/useCanManageAccounts';
@@ -21,8 +21,8 @@ export function UserViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const canManage = useCanManageAccounts();
-  const [data, setData] = useState<AccountUserDto | undefined>(undefined);
-  const canDeleteThis = useCanDeleteUser(id ?? '', data?.roles ?? []);
+  const [data, setData] = useState<UserWithProfilesDto | undefined>(undefined);
+  const canDeleteThis = useCanDeleteUser(id ?? '', data?.user?.roles ?? []);
   const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const [loading, setLoading] = useState(true);
@@ -80,13 +80,14 @@ export function UserViewPage() {
   }, [id]);
 
   useEffect(() => {
-    if (data && editing) {
+    if (data?.user && editing) {
+      const u = data.user;
       setForm({
-        firstName: data.firstName ?? undefined,
-        lastName: data.lastName ?? undefined,
-        phone: data.phone ?? undefined,
-        birthDate: data.birthDate ?? undefined,
-        roles: data.roles?.length ? [...data.roles] : undefined,
+        firstName: u.firstName ?? undefined,
+        lastName: u.lastName ?? undefined,
+        phone: u.phone ?? undefined,
+        birthDate: u.birthDate ?? undefined,
+        roles: u.roles?.length ? [...u.roles] : undefined,
       });
     }
   }, [data, editing]);
@@ -111,7 +112,9 @@ export function UserViewPage() {
       }
       return;
     }
-    if (updated) setData(updated);
+    if (updated && data) {
+      setData({ ...data, user: updated });
+    }
     setEditing(false);
   };
 
@@ -197,7 +200,10 @@ export function UserViewPage() {
 
   if (!data) return null;
 
-  const displayName = getDisplayName(data.firstName, data.lastName, data.email);
+  const user = data.user;
+  const displayName = getDisplayName(user.firstName, user.lastName, user.email);
+  const teacherDisplayName = data.teacherProfile?.englishName ?? displayName;
+  const studentDisplayName = data.studentProfile?.chineseName ?? displayName;
 
   return (
     <div className="entity-view-page department-form-page account-view-page">
@@ -389,79 +395,181 @@ export function UserViewPage() {
             </div>
           </form>
         ) : (
-          <div className="account-view-readonly">
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationEmail')}</span>
-              <span className="account-view-value">{data.email ?? '—'}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationRoles')}</span>
-              <span className="account-view-value">
-                {(data.roles ?? []).length === 0
-                  ? '—'
-                  : (data.roles ?? []).map((r) => (
-                      <span key={r} className="account-view-role-chip">
-                        {t(getRoleLabelKey(r))}
-                      </span>
-                    ))}
-              </span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('name')}</span>
-              <span className="account-view-value">{displayName}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationFirstName')}</span>
-              <span className="account-view-value">{data.firstName ?? '—'}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationLastName')}</span>
-              <span className="account-view-value">{data.lastName ?? '—'}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationPhone')}</span>
-              <span className="account-view-value">{data.phone ?? '—'}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationBirthDate')}</span>
-              <span className="account-view-value">{data.birthDate ?? '—'}</span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('accountStatus')}</span>
-              <span className="account-view-value">
-                <span
-                  className={`invitation-status-badge invitation-status-badge--${(
-                    data.status ?? 'PENDING'
-                  ).toLowerCase()}`}
-                >
-                  {t(
-                    `accountStatus${(data.status ?? 'PENDING').charAt(0) + (data.status ?? 'PENDING').slice(1).toLowerCase()}`
-                  )}
-                </span>
-              </span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('invitationCreatedAt')}</span>
-              <span className="account-view-value">
-                {formatDateTime(data.createdAt, locale)}
-              </span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('accountActivatedAt')}</span>
-              <span className="account-view-value">
-                {data.activatedAt
-                  ? formatDateTime(data.activatedAt, locale)
-                  : '—'}
-              </span>
-            </div>
-            <div className="account-view-row">
-              <span className="account-view-label">{t('accountLastLoginAt')}</span>
-              <span className="account-view-value">
-                {data.lastLoginAt
-                  ? formatDateTime(data.lastLoginAt, locale)
-                  : '—'}
-              </span>
-            </div>
+          <div className="account-view-sections">
+            {/* Секция: аккаунт (общие данные пользователя) */}
+            <section className="account-profile-section account-profile-section--account">
+              <h2 className="account-profile-section-title">
+                {t('accountSectionAccount')}
+              </h2>
+              <div className="account-view-readonly">
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationEmail')}</span>
+                  <span className="account-view-value">{user.email ?? '—'}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationRoles')}</span>
+                  <span className="account-view-value">
+                    {(user.roles ?? []).length === 0
+                      ? '—'
+                      : (user.roles ?? []).map((r) => (
+                          <span key={r} className="account-view-role-chip">
+                            {t(getRoleLabelKey(r))}
+                          </span>
+                        ))}
+                  </span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('name')}</span>
+                  <span className="account-view-value">{displayName}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationFirstName')}</span>
+                  <span className="account-view-value">{user.firstName ?? '—'}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationLastName')}</span>
+                  <span className="account-view-value">{user.lastName ?? '—'}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationPhone')}</span>
+                  <span className="account-view-value">{user.phone ?? '—'}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationBirthDate')}</span>
+                  <span className="account-view-value">{user.birthDate ?? '—'}</span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('accountStatus')}</span>
+                  <span className="account-view-value">
+                    <span
+                      className={`invitation-status-badge invitation-status-badge--${(
+                        user.status ?? 'PENDING'
+                      ).toLowerCase()}`}
+                    >
+                      {t(
+                        `accountStatus${(user.status ?? 'PENDING').charAt(0) + (user.status ?? 'PENDING').slice(1).toLowerCase()}`
+                      )}
+                    </span>
+                  </span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('invitationCreatedAt')}</span>
+                  <span className="account-view-value">
+                    {formatDateTime(user.createdAt, locale)}
+                  </span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('accountActivatedAt')}</span>
+                  <span className="account-view-value">
+                    {user.activatedAt
+                      ? formatDateTime(user.activatedAt, locale)
+                      : '—'}
+                  </span>
+                </div>
+                <div className="account-view-row">
+                  <span className="account-view-label">{t('accountLastLoginAt')}</span>
+                  <span className="account-view-value">
+                    {user.lastLoginAt
+                      ? formatDateTime(user.lastLoginAt, locale)
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* Секция: профиль преподавателя (только если есть) */}
+            {data.teacherProfile != null && (
+              <section className="account-profile-section account-profile-section--teacher">
+                <h2 className="account-profile-section-title">
+                  {t('accountSectionTeacherProfile')}
+                </h2>
+                <p className="account-profile-section-subtitle">
+                  {t('accountDisplayNameLabel')}: {teacherDisplayName}
+                </p>
+                <div className="account-view-readonly">
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationTeacherId')}</span>
+                    <span className="account-view-value">{data.teacherProfile.teacherId}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationFaculty')}</span>
+                    <span className="account-view-value">{data.teacherProfile.faculty}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationEnglishName')}</span>
+                    <span className="account-view-value">{data.teacherProfile.englishName ?? '—'}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationPosition')}</span>
+                    <span className="account-view-value">{data.teacherProfile.position ?? '—'}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationCreatedAt')}</span>
+                    <span className="account-view-value">
+                      {formatDateTime(data.teacherProfile.createdAt, locale)}
+                    </span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('accountProfileUpdatedAt')}</span>
+                    <span className="account-view-value">
+                      {formatDateTime(data.teacherProfile.updatedAt, locale)}
+                    </span>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Секция: профиль студента (только если есть) */}
+            {data.studentProfile != null && (
+              <section className="account-profile-section account-profile-section--student">
+                <h2 className="account-profile-section-title">
+                  {t('accountSectionStudentProfile')}
+                </h2>
+                <p className="account-profile-section-subtitle">
+                  {t('accountDisplayNameLabel')}: {studentDisplayName}
+                </p>
+                <div className="account-view-readonly">
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationStudentId')}</span>
+                    <span className="account-view-value">{data.studentProfile.studentId}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationFaculty')}</span>
+                    <span className="account-view-value">{data.studentProfile.faculty}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationChineseName')}</span>
+                    <span className="account-view-value">{data.studentProfile.chineseName ?? '—'}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationCourse')}</span>
+                    <span className="account-view-value">{data.studentProfile.course ?? '—'}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationEnrollmentYear')}</span>
+                    <span className="account-view-value">
+                      {data.studentProfile.enrollmentYear ?? '—'}
+                    </span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationGroupName')}</span>
+                    <span className="account-view-value">{data.studentProfile.groupName ?? '—'}</span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('invitationCreatedAt')}</span>
+                    <span className="account-view-value">
+                      {formatDateTime(data.studentProfile.createdAt, locale)}
+                    </span>
+                  </div>
+                  <div className="account-view-row">
+                    <span className="account-view-label">{t('accountProfileUpdatedAt')}</span>
+                    <span className="account-view-value">
+                      {formatDateTime(data.studentProfile.updatedAt, locale)}
+                    </span>
+                  </div>
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>

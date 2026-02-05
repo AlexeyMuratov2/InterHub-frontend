@@ -188,7 +188,18 @@ export function InvitationViewPage() {
             : (data.roles ?? []).map((r) => t(getRoleLabelKey(r))).join(', ')}
         </dd>
           <dt>{t('name')}</dt>
-          <dd>{fullName}</dd>
+          <dd>
+            {data.userId ? (
+              <Link
+                to={`/dashboards/admin/accounts/${data.userId}`}
+                className="invitation-user-link"
+              >
+                {fullName}
+              </Link>
+            ) : (
+              fullName
+            )}
+          </dd>
           <dt>{t('invitationStatus')}</dt>
           <dd>
             <span className={`invitation-status-badge invitation-status-badge--${data.status.toLowerCase()}`}>
