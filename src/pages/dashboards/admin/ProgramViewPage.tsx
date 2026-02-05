@@ -5,6 +5,8 @@ import { fetchDepartments } from '../../../entities/department';
 import { fetchCurriculaByProgramId, deleteCurriculum, type CurriculumDto } from '../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../shared/i18n';
+import { EntityViewLayout } from '../../../widgets/entity-view-layout';
+import { Alert, ConfirmModal } from '../../../shared/ui';
 
 export function ProgramViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -121,230 +123,173 @@ export function ProgramViewPage() {
     setDeleteCurriculumId(null);
   };
 
-  if (loading) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">{t('programNotFoundOrDeleted')}</div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">
-          {error ?? t('dataNotLoaded')}
-        </div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="entity-view-page department-form-page">
-      {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('viewOnlyNotice')}
-        </div>
-      )}
-      <header className="entity-view-header">
-        <h1 className="entity-view-title">{t('programViewPageTitle', { name: data.name })}</h1>
-        <div className="entity-view-actions department-form-actions">
-          {canEdit && (
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => navigate(`/dashboards/admin/programs/${id}/edit`)}
-            >
-              {t('editTitle')}
-            </button>
-          )}
-          <Link to="/dashboards/admin/programs" className="btn-secondary">
-            {t('programBackToList')}
-          </Link>
-        </div>
-      </header>
-      <div className="entity-view-card">
-        <dl className="entity-view-dl entity-view-dl--two-cols">
-          <dt>{t('code')}</dt>
-          <dd>{data.code}</dd>
-          <dt>{t('name')}</dt>
-          <dd>{data.name}</dd>
-          <dt>{t('description')}</dt>
-          <dd>{data.description ?? tCommon('noData')}</dd>
-          <dt>{t('programDegreeLevel')}</dt>
-          <dd>{data.degreeLevel ?? tCommon('noData')}</dd>
-          <dt>{t('programDepartment')}</dt>
-          <dd>{data.departmentName ?? tCommon('noData')}</dd>
-          <dt>{t('createdAt')}</dt>
-          <dd>{formatDateTime(data.createdAt, locale)}</dd>
-          <dt>{t('programUpdatedAt')}</dt>
-          <dd>{formatDateTime(data.updatedAt, locale)}</dd>
-        </dl>
-      </div>
-
-      <section className="entity-view-card">
-        <h2 className="entity-view-card-title">{t('curriculumSectionTitle')}</h2>
-        {curriculaError && (
-          <div className="department-alert department-alert--error" role="alert">
-            {curriculaError}
-          </div>
-        )}
-        {canEdit && (
-          <div className="department-page-toolbar" style={{ marginBottom: '0.75rem' }}>
-            <Link
-              to={`/dashboards/admin/programs/${id}/curricula/new`}
-              className="department-page-create"
-            >
-              <span>+</span>
-              {t('curriculumAdd')}
-            </Link>
-          </div>
-        )}
-        {curriculaLoading ? (
-          <div className="department-empty">
-            <p>{t('loadingList')}</p>
-          </div>
-        ) : curricula.length === 0 ? (
-          <div className="department-empty">
-            <p>{t('curriculumNoCurricula')}</p>
-            {canEdit && (
-              <Link
-                to={`/dashboards/admin/programs/${id}/curricula/new`}
-                className="department-page-create"
-              >
-                {t('curriculumAdd')}
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="department-table-wrap">
-          <table className="department-table">
-            <thead>
-              <tr>
-                <th>{t('curriculumVersion')}</th>
-                <th>{t('curriculumStartYear')}</th>
-                <th>{t('curriculumEndYear')}</th>
-                <th>{t('curriculumIsActive')}</th>
-                <th>{t('curriculumStatus')}</th>
-                <th>{t('curriculumNotes')}</th>
-                <th>{t('createdAt')}</th>
-                <th>{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {curricula.map((c) => (
-                <tr
-                  key={c.id}
-                  className="department-table-row-clickable"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`);
-                    }
-                  }}
-                  aria-label={t('curriculumSubjectsViewTitle')}
-                >
-                  <td>{c.version}</td>
-                  <td>{c.startYear}</td>
-                  <td>{c.endYear ?? '—'}</td>
-                  <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
-                  <td>{c.status}</td>
-                  <td title={c.notes ?? undefined}>
-                    {c.notes && c.notes.length > 40 ? c.notes.slice(0, 40) + '…' : c.notes ?? '—'}
-                  </td>
-                  <td>{formatDateTime(c.createdAt, locale)}</td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <div className="department-table-actions">
-                      <button
-                        type="button"
-                        className="department-table-btn department-table-btn--primary"
-                        onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
-                        title={t('curriculumSubjectsViewTitle')}
-                        aria-label={t('curriculumSubjectsViewTitle')}
-                      >
-                        📚
-                      </button>
-                      {canEdit && (
-                        <>
-                          <button
-                            type="button"
-                            className="department-table-btn"
-                            onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
-                            title={t('editTitle')}
-                            aria-label={t('editTitle')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="department-table-btn department-table-btn--danger"
-                            onClick={() => setDeleteCurriculumId(c.id)}
-                            title={t('deleteTitle')}
-                            aria-label={t('deleteTitle')}
-                          >
-                            🗑
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        )}
-      </section>
-
-      {deleteCurriculumId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteCurriculumId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('curriculumDeleteConfirmTitle')}</h3>
-            <p>{t('curriculumDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setDeleteCurriculumId(null)}
-              >
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deletingCurriculum}
-                onClick={() => handleDeleteCurriculum(deleteCurriculumId)}
-              >
-                {deletingCurriculum ? tCommon('submitting') : tCommon('delete')}
-              </button>
+    <>
+      <EntityViewLayout
+        loading={loading}
+        notFound={notFound}
+        error={error}
+        notFoundMessage={t('programNotFoundOrDeleted')}
+        errorMessage={error ?? t('dataNotLoaded')}
+        backTo="/dashboards/admin/programs"
+        backLabel={t('programBackToList')}
+        viewOnly={!canEdit}
+        viewOnlyMessage={t('viewOnlyNotice')}
+        title={data ? t('programViewPageTitle', { name: data.name }) : ''}
+        onEditClick={canEdit && id ? () => navigate(`/dashboards/admin/programs/${id}/edit`) : undefined}
+        editLabel={t('editTitle')}
+      >
+        {data && (
+          <>
+            <div className="entity-view-card">
+              <dl className="entity-view-dl entity-view-dl--two-cols">
+                <dt>{t('code')}</dt>
+                <dd>{data.code}</dd>
+                <dt>{t('name')}</dt>
+                <dd>{data.name}</dd>
+                <dt>{t('description')}</dt>
+                <dd>{data.description ?? tCommon('noData')}</dd>
+                <dt>{t('programDegreeLevel')}</dt>
+                <dd>{data.degreeLevel ?? tCommon('noData')}</dd>
+                <dt>{t('programDepartment')}</dt>
+                <dd>{data.departmentName ?? tCommon('noData')}</dd>
+                <dt>{t('createdAt')}</dt>
+                <dd>{formatDateTime(data.createdAt, locale)}</dd>
+                <dt>{t('programUpdatedAt')}</dt>
+                <dd>{formatDateTime(data.updatedAt, locale)}</dd>
+              </dl>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+
+            <section className="entity-view-card">
+              <h2 className="entity-view-card-title">{t('curriculumSectionTitle')}</h2>
+              {curriculaError && (
+                <Alert variant="error" role="alert">
+                  {curriculaError}
+                </Alert>
+              )}
+              {canEdit && (
+                <div className="department-page-toolbar" style={{ marginBottom: '0.75rem' }}>
+                  <Link
+                    to={`/dashboards/admin/programs/${id}/curricula/new`}
+                    className="department-page-create"
+                  >
+                    <span>+</span>
+                    {t('curriculumAdd')}
+                  </Link>
+                </div>
+              )}
+              {curriculaLoading ? (
+                <div className="department-empty">
+                  <p>{t('loadingList')}</p>
+                </div>
+              ) : curricula.length === 0 ? (
+                <div className="department-empty">
+                  <p>{t('curriculumNoCurricula')}</p>
+                  {canEdit && (
+                    <Link
+                      to={`/dashboards/admin/programs/${id}/curricula/new`}
+                      className="department-page-create"
+                    >
+                      {t('curriculumAdd')}
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <div className="department-table-wrap">
+                  <table className="department-table">
+                    <thead>
+                      <tr>
+                        <th>{t('curriculumVersion')}</th>
+                        <th>{t('curriculumStartYear')}</th>
+                        <th>{t('curriculumEndYear')}</th>
+                        <th>{t('curriculumIsActive')}</th>
+                        <th>{t('curriculumStatus')}</th>
+                        <th>{t('curriculumNotes')}</th>
+                        <th>{t('createdAt')}</th>
+                        <th>{t('actions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {curricula.map((c) => (
+                        <tr
+                          key={c.id}
+                          className="department-table-row-clickable"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`);
+                            }
+                          }}
+                          aria-label={t('curriculumSubjectsViewTitle')}
+                        >
+                          <td>{c.version}</td>
+                          <td>{c.startYear}</td>
+                          <td>{c.endYear ?? '—'}</td>
+                          <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
+                          <td>{c.status}</td>
+                          <td title={c.notes ?? undefined}>
+                            {c.notes && c.notes.length > 40 ? c.notes.slice(0, 40) + '…' : c.notes ?? '—'}
+                          </td>
+                          <td>{formatDateTime(c.createdAt, locale)}</td>
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <div className="department-table-actions">
+                              <button
+                                type="button"
+                                className="department-table-btn department-table-btn--primary"
+                                onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/subjects`)}
+                                title={t('curriculumSubjectsViewTitle')}
+                                aria-label={t('curriculumSubjectsViewTitle')}
+                              >
+                                📚
+                              </button>
+                              {canEdit && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="department-table-btn"
+                                    onClick={() => navigate(`/dashboards/admin/programs/curricula/${c.id}/edit`)}
+                                    title={t('editTitle')}
+                                    aria-label={t('editTitle')}
+                                  >
+                                    ✎
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="department-table-btn department-table-btn--danger"
+                                    onClick={() => setDeleteCurriculumId(c.id)}
+                                    title={t('deleteTitle')}
+                                    aria-label={t('deleteTitle')}
+                                  >
+                                    🗑
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </EntityViewLayout>
+
+      <ConfirmModal
+        open={deleteCurriculumId != null}
+        title={t('curriculumDeleteConfirmTitle')}
+        message={t('curriculumDeleteConfirmText')}
+        onCancel={() => setDeleteCurriculumId(null)}
+        onConfirm={() => deleteCurriculumId != null && handleDeleteCurriculum(deleteCurriculumId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deletingCurriculum ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deletingCurriculum}
+      />
+    </>
   );
 }

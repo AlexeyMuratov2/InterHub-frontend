@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchProgramById, updateProgram } from '../../../entities/program';
 import { fetchDepartments, type DepartmentDto } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
 
 const NAME_MAX = 255;
 const DEGREE_LEVEL_MAX = 50;
@@ -134,116 +135,97 @@ export function ProgramEditPage() {
   const { t: tCommon } = useTranslation('common');
 
   if (!canEdit) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (loading) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">{t('programNotFoundOrDeleted')}</div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('programNotFoundOrDeleted')}
+        backTo="/dashboards/admin/programs"
+        backLabel={t('programBackToList')}
+      />
     );
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('programEditPageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="program-edit-code">{t('code')}</label>
-          <input
-            id="program-edit-code"
-            type="text"
-            value={code}
-            readOnly
-            className="read-only"
-            aria-readonly="true"
-          />
-          <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('codeReadOnly')}</small>
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-edit-name">{t('programNameRequired')}</label>
-          <input
-            id="program-edit-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={NAME_MAX}
-            placeholder={t('namePlaceholder')}
-            aria-invalid={!!fieldErrors.name}
-          />
-          {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-edit-description">{t('description')}</label>
-          <textarea
-            id="program-edit-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('descriptionPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-edit-degreeLevel">{t('programDegreeLevel')}</label>
-          <input
-            id="program-edit-degreeLevel"
-            type="text"
-            value={degreeLevel}
-            onChange={(e) => setDegreeLevel(e.target.value)}
-            maxLength={DEGREE_LEVEL_MAX}
-            placeholder={t('programDegreeLevelPlaceholder')}
-            aria-invalid={!!fieldErrors.degreeLevel}
-          />
-          {fieldErrors.degreeLevel && <div className="field-error">{fieldErrors.degreeLevel}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-edit-departmentId">{t('programDepartment')}</label>
-          <select
-            id="program-edit-departmentId"
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            aria-invalid={!!fieldErrors.departmentId}
-          >
-            <option value="">{t('programDepartmentNone')}</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.code})
-              </option>
-            ))}
-          </select>
-          {departmentsLoading && <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('loadingList')}</small>}
-          {fieldErrors.departmentId && <div className="field-error">{fieldErrors.departmentId}</div>}
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('saving') : tCommon('save')}
-          </button>
-          <Link to="/dashboards/admin/programs" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout title={t('programEditPageTitle')} error={error} onSubmit={handleSubmit}>
+      <FormGroup label={t('code')} htmlFor="program-edit-code" hint={t('codeReadOnly')}>
+        <input
+          id="program-edit-code"
+          type="text"
+          value={code}
+          readOnly
+          className="read-only"
+          aria-readonly="true"
+        />
+      </FormGroup>
+      <FormGroup label={t('programNameRequired')} htmlFor="program-edit-name" error={fieldErrors.name}>
+        <input
+          id="program-edit-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={NAME_MAX}
+          placeholder={t('namePlaceholder')}
+          aria-invalid={!!fieldErrors.name}
+        />
+      </FormGroup>
+      <FormGroup label={t('description')} htmlFor="program-edit-description">
+        <textarea
+          id="program-edit-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('descriptionPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('programDegreeLevel')}
+        htmlFor="program-edit-degreeLevel"
+        error={fieldErrors.degreeLevel}
+      >
+        <input
+          id="program-edit-degreeLevel"
+          type="text"
+          value={degreeLevel}
+          onChange={(e) => setDegreeLevel(e.target.value)}
+          maxLength={DEGREE_LEVEL_MAX}
+          placeholder={t('programDegreeLevelPlaceholder')}
+          aria-invalid={!!fieldErrors.degreeLevel}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('programDepartment')}
+        htmlFor="program-edit-departmentId"
+        error={fieldErrors.departmentId}
+        hint={departmentsLoading ? t('loadingList') : undefined}
+      >
+        <select
+          id="program-edit-departmentId"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+          aria-invalid={!!fieldErrors.departmentId}
+        >
+          <option value="">{t('programDepartmentNone')}</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({d.code})
+            </option>
+          ))}
+        </select>
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('saving') : tCommon('save')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/programs"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

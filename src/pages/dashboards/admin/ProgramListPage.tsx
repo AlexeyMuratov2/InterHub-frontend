@@ -12,6 +12,8 @@ import {
 } from '../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../shared/i18n';
+import { EntityListLayout } from '../../../widgets/entity-list-layout';
+import { Alert, ConfirmModal } from '../../../shared/ui';
 
 type CurriculumWithProgram = CurriculumDto & { programName: string; programCode: string };
 
@@ -184,50 +186,23 @@ export function ProgramListPage() {
   }, [actionUnavailableNotice]);
 
   return (
-    <div className="department-page">
-      <h1 className="department-page-title">{t('programManagement')}</h1>
-      <p className="department-page-subtitle">{t('programSubtitle')}</p>
-
-      {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('viewOnlyNotice')}
-        </div>
-      )}
-      {actionUnavailableNotice && (
-        <div className="department-alert department-alert--info" role="alert">
-          {t('actionUnavailableForRole')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="department-alert department-alert--success" role="status">
-          {success}
-        </div>
-      )}
-
-      <div className="department-page-toolbar">
-        <div className="department-page-search-wrap">
-          <input
-            type="search"
-            className="department-page-search"
-            placeholder={t('programSearch')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label={t('programSearch')}
-          />
-        </div>
-        {canEdit && (
-          <Link to="/dashboards/admin/programs/new" className="department-page-create">
-            <span>+</span>
-            {t('programCreate')}
-          </Link>
-        )}
-      </div>
-
+    <EntityListLayout
+      title={t('programManagement')}
+      subtitle={t('programSubtitle')}
+      viewOnly={!canEdit}
+      viewOnlyMessage={t('viewOnlyNotice')}
+      actionUnavailable={actionUnavailableNotice}
+      actionUnavailableMessage={t('actionUnavailableForRole')}
+      error={error}
+      success={success}
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t('programSearch')}
+      searchAriaLabel={t('programSearch')}
+      createTo="/dashboards/admin/programs/new"
+      createLabel={t('programCreate')}
+      showCreate={canEdit}
+    >
       <div className="department-table-wrap">
         {loading ? (
           <div className="department-empty">
@@ -317,32 +292,16 @@ export function ProgramListPage() {
         )}
       </div>
 
-      {deleteId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('programDeleteConfirmTitle')}</h3>
-            <p>{t('programDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={closeDeleteModal}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deleting}
-                onClick={() => handleDelete(deleteId)}
-              >
-                {deleting ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={deleteId != null}
+        title={t('programDeleteConfirmTitle')}
+        message={t('programDeleteConfirmText')}
+        onCancel={closeDeleteModal}
+        onConfirm={() => deleteId != null && handleDelete(deleteId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deleting ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deleting}
+      />
 
       <section className="department-table-wrap" style={{ marginTop: '2.5rem' }}>
         <h2 className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
@@ -352,8 +311,10 @@ export function ProgramListPage() {
           {t('curriculumSectionSubtitle')}
         </p>
         {curriculaError && (
-          <div className="department-alert department-alert--error" role="alert" style={{ marginBottom: '1rem' }}>
-            {curriculaError}
+          <div style={{ marginBottom: '1rem' }}>
+            <Alert variant="error" role="alert">
+              {curriculaError}
+            </Alert>
           </div>
         )}
         <div className="department-page-toolbar">
@@ -496,32 +457,16 @@ export function ProgramListPage() {
         )}
       </section>
 
-      {deleteCurriculumId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={closeDeleteCurriculumModal}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('curriculumDeleteConfirmTitle')}</h3>
-            <p>{t('curriculumDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={closeDeleteCurriculumModal}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deletingCurriculum}
-                onClick={() => handleDeleteCurriculum(deleteCurriculumId)}
-              >
-                {deletingCurriculum ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmModal
+        open={deleteCurriculumId != null}
+        title={t('curriculumDeleteConfirmTitle')}
+        message={t('curriculumDeleteConfirmText')}
+        onCancel={closeDeleteCurriculumModal}
+        onConfirm={() => deleteCurriculumId != null && handleDeleteCurriculum(deleteCurriculumId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deletingCurriculum ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deletingCurriculum}
+      />
+    </EntityListLayout>
   );
 }

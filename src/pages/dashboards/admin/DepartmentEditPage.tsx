@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchDepartmentById, updateDepartment } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
 
 const NAME_MAX = 255;
 
@@ -99,85 +100,62 @@ export function DepartmentEditPage() {
   const { t: tCommon } = useTranslation('common');
 
   if (!canEdit) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (loading) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">{t('departmentNotFound')}</div>
-        <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('departmentNotFound')}
+        backTo="/dashboards/admin/departments"
+        backLabel={t('backToList')}
+      />
     );
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('editPageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="edit-code">{t('code')}</label>
-          <input
-            id="edit-code"
-            type="text"
-            value={code}
-            readOnly
-            className="read-only"
-            aria-readonly="true"
-          />
-          <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('codeReadOnly')}</small>
-        </div>
-        <div className="form-group">
-          <label htmlFor="edit-name">{t('nameRequired')}</label>
-          <input
-            id="edit-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={NAME_MAX}
-            placeholder={t('namePlaceholder')}
-            aria-invalid={!!fieldErrors.name}
-          />
-          {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="edit-description">{t('description')}</label>
-          <textarea
-            id="edit-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('descriptionPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('saving') : tCommon('save')}
-          </button>
-          <Link to="/dashboards/admin/departments" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout title={t('editPageTitle')} error={error} onSubmit={handleSubmit}>
+      <FormGroup label={t('code')} htmlFor="edit-code" hint={t('codeReadOnly')}>
+        <input
+          id="edit-code"
+          type="text"
+          value={code}
+          readOnly
+          className="read-only"
+          aria-readonly="true"
+        />
+      </FormGroup>
+      <FormGroup label={t('nameRequired')} htmlFor="edit-name" error={fieldErrors.name}>
+        <input
+          id="edit-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={NAME_MAX}
+          placeholder={t('namePlaceholder')}
+          aria-invalid={!!fieldErrors.name}
+        />
+      </FormGroup>
+      <FormGroup label={t('description')} htmlFor="edit-description">
+        <textarea
+          id="edit-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('descriptionPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('saving') : tCommon('save')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/departments"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

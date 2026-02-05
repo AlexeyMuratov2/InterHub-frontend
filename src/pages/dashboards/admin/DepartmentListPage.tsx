@@ -7,6 +7,8 @@ import {
 } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../shared/i18n';
+import { EntityListLayout } from '../../../widgets/entity-list-layout';
+import { ConfirmModal } from '../../../shared/ui';
 
 function truncate(str: string | null, max: number): string {
   if (!str) return '—';
@@ -28,6 +30,7 @@ export function DepartmentListPage() {
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
@@ -85,50 +88,23 @@ export function DepartmentListPage() {
   }, [actionUnavailableNotice]);
 
   return (
-    <div className="department-page">
-      <h1 className="department-page-title">{t('departmentManagement')}</h1>
-      <p className="department-page-subtitle">{t('departmentSubtitle')}</p>
-
-      {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('viewOnlyNotice')}
-        </div>
-      )}
-      {actionUnavailableNotice && (
-        <div className="department-alert department-alert--info" role="alert">
-          {t('actionUnavailableForRole')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="department-alert department-alert--success" role="status">
-          {success}
-        </div>
-      )}
-
-      <div className="department-page-toolbar">
-        <div className="department-page-search-wrap">
-          <input
-            type="search"
-            className="department-page-search"
-            placeholder={t('searchDepartments')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label={t('searchDepartments')}
-          />
-        </div>
-        {canEdit && (
-          <Link to="/dashboards/admin/departments/new" className="department-page-create">
-            <span>+</span>
-            {t('createDepartment')}
-          </Link>
-        )}
-      </div>
-
+    <EntityListLayout
+      title={t('departmentManagement')}
+      subtitle={t('departmentSubtitle')}
+      viewOnly={!canEdit}
+      viewOnlyMessage={t('viewOnlyNotice')}
+      actionUnavailable={actionUnavailableNotice}
+      actionUnavailableMessage={t('actionUnavailableForRole')}
+      error={error}
+      success={success}
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t('searchDepartments')}
+      searchAriaLabel={t('searchDepartments')}
+      createTo="/dashboards/admin/departments/new"
+      createLabel={t('createDepartment')}
+      showCreate={canEdit}
+    >
       <div className="department-table-wrap">
         {loading ? (
           <div className="department-empty">
@@ -136,7 +112,7 @@ export function DepartmentListPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="department-empty">
-            <p>            {list.length === 0 ? t('noDepartments') : t('noResults')}</p>
+            <p>{list.length === 0 ? t('noDepartments') : t('noResults')}</p>
             {list.length === 0 && canEdit && (
               <Link to="/dashboards/admin/departments/new" className="department-page-create">
                 {t('addDepartment')}
@@ -216,32 +192,16 @@ export function DepartmentListPage() {
         )}
       </div>
 
-      {deleteId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('deleteConfirmTitle')}</h3>
-            <p>{t('deleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={closeDeleteModal}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deleting}
-                onClick={() => handleDelete(deleteId)}
-              >
-                {deleting ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmModal
+        open={deleteId != null}
+        title={t('deleteConfirmTitle')}
+        message={t('deleteConfirmText')}
+        onCancel={closeDeleteModal}
+        onConfirm={() => deleteId != null && handleDelete(deleteId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deleting ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deleting}
+      />
+    </EntityListLayout>
   );
 }

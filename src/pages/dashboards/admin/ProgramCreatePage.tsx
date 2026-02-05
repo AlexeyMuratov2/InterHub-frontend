@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createProgram } from '../../../entities/program';
 import { fetchDepartments, type DepartmentDto } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions } from '../../../shared/ui';
 
 const CODE_MAX = 50;
 const NAME_MAX = 255;
@@ -108,91 +109,86 @@ export function ProgramCreatePage() {
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('programCreatePageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="program-create-code">{t('programCodeRequired')}</label>
-          <input
-            id="program-create-code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            maxLength={CODE_MAX}
-            placeholder={t('programCodePlaceholder')}
-            autoComplete="off"
-            aria-invalid={!!fieldErrors.code}
-          />
-          {fieldErrors.code && <div className="field-error">{fieldErrors.code}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-create-name">{t('programNameRequired')}</label>
-          <input
-            id="program-create-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={NAME_MAX}
-            placeholder={t('namePlaceholder')}
-            aria-invalid={!!fieldErrors.name}
-          />
-          {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-create-description">{t('description')}</label>
-          <textarea
-            id="program-create-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('descriptionPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-create-degreeLevel">{t('programDegreeLevel')}</label>
-          <input
-            id="program-create-degreeLevel"
-            type="text"
-            value={degreeLevel}
-            onChange={(e) => setDegreeLevel(e.target.value)}
-            maxLength={DEGREE_LEVEL_MAX}
-            placeholder={t('programDegreeLevelPlaceholder')}
-            aria-invalid={!!fieldErrors.degreeLevel}
-          />
-          {fieldErrors.degreeLevel && <div className="field-error">{fieldErrors.degreeLevel}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="program-create-departmentId">{t('programDepartment')}</label>
-          <select
-            id="program-create-departmentId"
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            aria-invalid={!!fieldErrors.departmentId}
-          >
-            <option value="">{t('programDepartmentNone')}</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.code})
-              </option>
-            ))}
-          </select>
-          {departmentsLoading && <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('loadingList')}</small>}
-          {fieldErrors.departmentId && <div className="field-error">{fieldErrors.departmentId}</div>}
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('programCreating') : tCommon('create')}
-          </button>
-          <Link to="/dashboards/admin/programs" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout
+      title={t('programCreatePageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+      <FormGroup label={t('programCodeRequired')} htmlFor="program-create-code" error={fieldErrors.code}>
+        <input
+          id="program-create-code"
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          maxLength={CODE_MAX}
+          placeholder={t('programCodePlaceholder')}
+          autoComplete="off"
+          aria-invalid={!!fieldErrors.code}
+        />
+      </FormGroup>
+      <FormGroup label={t('programNameRequired')} htmlFor="program-create-name" error={fieldErrors.name}>
+        <input
+          id="program-create-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={NAME_MAX}
+          placeholder={t('namePlaceholder')}
+          aria-invalid={!!fieldErrors.name}
+        />
+      </FormGroup>
+      <FormGroup label={t('description')} htmlFor="program-create-description">
+        <textarea
+          id="program-create-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('descriptionPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('programDegreeLevel')}
+        htmlFor="program-create-degreeLevel"
+        error={fieldErrors.degreeLevel}
+      >
+        <input
+          id="program-create-degreeLevel"
+          type="text"
+          value={degreeLevel}
+          onChange={(e) => setDegreeLevel(e.target.value)}
+          maxLength={DEGREE_LEVEL_MAX}
+          placeholder={t('programDegreeLevelPlaceholder')}
+          aria-invalid={!!fieldErrors.degreeLevel}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('programDepartment')}
+        htmlFor="program-create-departmentId"
+        error={fieldErrors.departmentId}
+      >
+        <select
+          id="program-create-departmentId"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+          aria-invalid={!!fieldErrors.departmentId}
+        >
+          <option value="">{t('programDepartmentNone')}</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({d.code})
+            </option>
+          ))}
+        </select>
+        {departmentsLoading && (
+          <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('loadingList')}</small>
+        )}
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('programCreating') : tCommon('create')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/programs"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

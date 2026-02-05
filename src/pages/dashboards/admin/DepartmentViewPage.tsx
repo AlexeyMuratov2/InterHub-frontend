@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { fetchDepartmentById } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../shared/i18n';
+import { EntityViewLayout } from '../../../widgets/entity-view-layout';
 
 export function DepartmentViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -53,76 +54,35 @@ export function DepartmentViewPage() {
     };
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">{t('departmentNotFound')}</div>
-        <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">
-          {error ?? t('dataNotLoaded')}
-        </div>
-        <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="entity-view-page department-form-page">
-      {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('viewOnlyNotice')}
+    <EntityViewLayout
+      loading={loading}
+      notFound={notFound}
+      error={error}
+      notFoundMessage={t('departmentNotFound')}
+      errorMessage={error ?? t('dataNotLoaded')}
+      backTo="/dashboards/admin/departments"
+      backLabel={t('backToList')}
+      viewOnly={!canEdit}
+      viewOnlyMessage={t('viewOnlyNotice')}
+      title={data ? t('viewPageTitle', { name: data.name }) : ''}
+      onEditClick={canEdit && id ? () => navigate(`/dashboards/admin/departments/${id}/edit`) : undefined}
+      editLabel={t('editTitle')}
+    >
+      {data && (
+        <div className="entity-view-card">
+          <dl className="entity-view-dl">
+            <dt>{t('code')}</dt>
+            <dd>{data.code}</dd>
+            <dt>{t('name')}</dt>
+            <dd>{data.name}</dd>
+            <dt>{t('description')}</dt>
+            <dd>{data.description ?? tCommon('noData')}</dd>
+            <dt>{t('createdAt')}</dt>
+            <dd>{formatDateTime(data.createdAt, locale)}</dd>
+          </dl>
         </div>
       )}
-      <header className="entity-view-header">
-        <h1 className="entity-view-title">{t('viewPageTitle', { name: data.name })}</h1>
-        <div className="entity-view-actions department-form-actions">
-          {canEdit && (
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => navigate(`/dashboards/admin/departments/${id}/edit`)}
-            >
-              {t('editTitle')}
-            </button>
-          )}
-          <Link to="/dashboards/admin/departments" className="btn-secondary">
-            {t('backToList')}
-          </Link>
-        </div>
-      </header>
-      <div className="entity-view-card">
-        <dl className="entity-view-dl">
-          <dt>{t('code')}</dt>
-          <dd>{data.code}</dd>
-          <dt>{t('name')}</dt>
-          <dd>{data.name}</dd>
-          <dt>{t('description')}</dt>
-          <dd>{data.description ?? tCommon('noData')}</dd>
-          <dt>{t('createdAt')}</dt>
-          <dd>{formatDateTime(data.createdAt, locale)}</dd>
-        </dl>
-      </div>
-    </div>
+    </EntityViewLayout>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createDepartment } from '../../../entities/department';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions } from '../../../shared/ui';
 
 const CODE_MAX = 50;
 const NAME_MAX = 255;
@@ -25,7 +26,11 @@ export function DepartmentCreatePage() {
   }, [canEdit, navigate]);
 
   if (!canEdit) {
-    return <div className="department-form-page"><p>{t('loadingList')}</p></div>;
+    return (
+      <div className="department-form-page">
+        <p>{t('loadingList')}</p>
+      </div>
+    );
   }
 
   const validate = (): boolean => {
@@ -73,60 +78,49 @@ export function DepartmentCreatePage() {
   const { t: tCommon } = useTranslation('common');
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('createPageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="create-code">{t('codeRequired')}</label>
-          <input
-            id="create-code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            maxLength={CODE_MAX}
-            placeholder={t('codePlaceholder')}
-            autoComplete="off"
-            aria-invalid={!!fieldErrors.code}
-          />
-          {fieldErrors.code && <div className="field-error">{fieldErrors.code}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="create-name">{t('nameRequired')}</label>
-          <input
-            id="create-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={NAME_MAX}
-            placeholder={t('namePlaceholder')}
-            aria-invalid={!!fieldErrors.name}
-          />
-          {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="create-description">{t('description')}</label>
-          <textarea
-            id="create-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('descriptionPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('creating') : tCommon('create')}
-          </button>
-          <Link to="/dashboards/admin/departments" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout
+      title={t('createPageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+      <FormGroup label={t('codeRequired')} htmlFor="create-code" error={fieldErrors.code}>
+        <input
+          id="create-code"
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          maxLength={CODE_MAX}
+          placeholder={t('codePlaceholder')}
+          autoComplete="off"
+          aria-invalid={!!fieldErrors.code}
+        />
+      </FormGroup>
+      <FormGroup label={t('nameRequired')} htmlFor="create-name" error={fieldErrors.name}>
+        <input
+          id="create-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={NAME_MAX}
+          placeholder={t('namePlaceholder')}
+          aria-invalid={!!fieldErrors.name}
+        />
+      </FormGroup>
+      <FormGroup label={t('description')} htmlFor="create-description">
+        <textarea
+          id="create-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('descriptionPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('creating') : tCommon('create')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/departments"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }
