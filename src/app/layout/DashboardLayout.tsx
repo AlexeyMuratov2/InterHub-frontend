@@ -10,6 +10,7 @@ const ADMIN_MENU = [
   { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true },
   { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
   { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
+  { path: '/dashboards/admin/groups', labelKey: 'menuGroups', end: false },
   { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false },
   { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
   { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false },
@@ -24,6 +25,7 @@ export function DashboardLayout() {
   const { t } = useTranslation('dashboard');
   const isDepartments = location.pathname.startsWith('/dashboards/admin/departments');
   const isPrograms = location.pathname.startsWith('/dashboards/admin/programs');
+  const isGroups = location.pathname.startsWith('/dashboards/admin/groups');
   const isSubjects = location.pathname.startsWith('/dashboards/admin/subjects');
   const isInvitations = location.pathname.startsWith('/dashboards/admin/invitations');
   const isAccounts = location.pathname.startsWith('/dashboards/admin/accounts');
@@ -35,17 +37,20 @@ export function DashboardLayout() {
     ? t('menuDepartments')
     : isPrograms
       ? t('menuProgramsAndCurricula')
-      : isSubjects
-        ? t('menuSubjects')
-        : isInvitations
-          ? t('menuInvitations')
-          : isAccounts
-            ? t('accountManagement')
-            : t('menuDashboard');
+      : isGroups
+        ? t('menuGroups')
+        : isSubjects
+          ? t('menuSubjects')
+          : isInvitations
+            ? t('menuInvitations')
+            : isAccounts
+              ? t('accountManagement')
+              : t('menuDashboard');
 
   const showHeaderCreate =
     (canEdit && isDepartments) ||
     (canEdit && isPrograms) ||
+    (canEdit && isGroups) ||
     (canEdit && isSubjects) ||
     (isInvitations && canManageInvitations);
 
@@ -53,9 +58,11 @@ export function DashboardLayout() {
     ? '/dashboards/admin/departments/new'
     : isPrograms
       ? '/dashboards/admin/programs/new'
-      : isSubjects
-        ? '/dashboards/admin/subjects/new'
-        : '/dashboards/admin/invitations/new';
+      : isGroups
+        ? '/dashboards/admin/groups/new'
+        : isSubjects
+          ? '/dashboards/admin/subjects/new'
+          : '/dashboards/admin/invitations/new';
 
   return (
     <div className="app-dashboard-layout">

@@ -217,6 +217,30 @@ export interface UpdateUserRequest {
   teacherProfile?: UpdateTeacherProfileRequest | null;
 }
 
+/** Учитель из GET /api/account/teachers (TeacherDto). userId передаётся в curatorUserId группы. */
+export interface TeacherDto {
+  id: string;
+  userId: string;
+  teacherId: string | null;
+  faculty: string | null;
+  englishName: string | null;
+  position: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Элемент списка учителей (TeacherProfileItem) */
+export interface TeacherProfileItem {
+  profile: TeacherDto;
+  displayName: string;
+}
+
+/** Постраничный список учителей (TeacherListPage) */
+export interface TeacherListPage {
+  items: TeacherProfileItem[];
+  nextCursor: string | null;
+}
+
 /** Запрос на создание приглашения (CreateInvitationRequest) */
 export interface CreateInvitationRequest {
   email: string;

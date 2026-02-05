@@ -21,6 +21,14 @@ export {
   CurriculumSubjectEditPage,
 } from './curriculum-subjects';
 
+/** Страницы админ-дашборда: модуль Groups (студенческие группы) */
+export {
+  GroupListPage,
+  GroupCreatePage,
+  GroupEditPage,
+  GroupViewPage,
+} from './groups';
+
 /** Страницы админ-дашборда: модуль Invitations (приглашения) */
 export { InvitationListPage, InvitationCreatePage, InvitationViewPage } from './invitations';
 

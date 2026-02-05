@@ -18,6 +18,10 @@ import {
   CurriculumSubjectsPage,
   CurriculumSubjectCreatePage,
   CurriculumSubjectEditPage,
+  GroupListPage,
+  GroupCreatePage,
+  GroupEditPage,
+  GroupViewPage,
   InvitationListPage,
   InvitationCreatePage,
   InvitationViewPage,
@@ -81,6 +85,10 @@ function App() {
             <Route path="subjects/assessment-types/:id/edit" element={<AssessmentTypeEditPage />} />
             <Route path="subjects/:id" element={<SubjectViewPage />} />
             <Route path="subjects/:id/edit" element={<SubjectEditPage />} />
+            <Route path="groups" element={<GroupListPage />} />
+            <Route path="groups/new" element={<GroupCreatePage />} />
+            <Route path="groups/:id" element={<GroupViewPage />} />
+            <Route path="groups/:id/edit" element={<GroupEditPage />} />
             <Route path="programs" element={<ProgramListPage />} />
             <Route path="programs/new" element={<ProgramCreatePage />} />
             <Route path="programs/curricula/:curriculumId/edit" element={<CurriculumEditPage />} />
