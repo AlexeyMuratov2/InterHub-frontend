@@ -1,20 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createCurriculum } from '../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../shared/i18n';
+import { parseFieldErrors } from '../../../shared/lib';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
 
 const VERSION_MAX = 50;
 const START_YEAR_MIN = 1900;
 const START_YEAR_MAX = 2100;
 const END_YEAR_MIN = 1900;
 const END_YEAR_MAX = 2100;
-
-function parseFieldErrors(details: Record<string, string> | string[] | undefined): Record<string, string> {
-  if (!details) return {};
-  if (Array.isArray(details)) return {};
-  return details as Record<string, string>;
-}
 
 export function CurriculumCreatePage() {
   const { programId } = useParams<{ programId: string }>();
@@ -109,111 +105,95 @@ export function CurriculumCreatePage() {
   const { t: tCommon } = useTranslation('common');
 
   if (!canEdit) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (!programId) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">{t('curriculumErrorProgramNotFound')}</div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {tCommon('back')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('curriculumErrorProgramNotFound')}
+        backTo="/dashboards/admin/programs"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('curriculumCreatePageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="curriculum-create-version">{t('curriculumVersionRequired')}</label>
+    <FormPageLayout
+      title={t('curriculumCreatePageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+      <FormGroup label={t('curriculumVersionRequired')} htmlFor="curriculum-create-version" error={fieldErrors.version}>
+        <input
+          id="curriculum-create-version"
+          type="text"
+          value={version}
+          onChange={(e) => setVersion(e.target.value)}
+          maxLength={VERSION_MAX}
+          placeholder={t('curriculumVersionPlaceholder')}
+          autoComplete="off"
+          aria-invalid={!!fieldErrors.version}
+        />
+      </FormGroup>
+      <FormGroup label={t('curriculumStartYearRequired')} htmlFor="curriculum-create-startYear" error={fieldErrors.startYear}>
+        <input
+          id="curriculum-create-startYear"
+          type="number"
+          min={START_YEAR_MIN}
+          max={START_YEAR_MAX}
+          value={startYear === '' ? '' : startYear}
+          onChange={(e) => {
+            const v = e.target.value;
+            setStartYear(v === '' ? '' : parseInt(v, 10));
+          }}
+          placeholder={`${START_YEAR_MIN}–${START_YEAR_MAX}`}
+          aria-invalid={!!fieldErrors.startYear}
+        />
+      </FormGroup>
+      <FormGroup label={t('curriculumEndYear')} htmlFor="curriculum-create-endYear" error={fieldErrors.endYear}>
+        <input
+          id="curriculum-create-endYear"
+          type="number"
+          min={END_YEAR_MIN}
+          max={END_YEAR_MAX}
+          value={endYear === '' ? '' : endYear}
+          onChange={(e) => {
+            const v = e.target.value;
+            setEndYear(v === '' ? '' : parseInt(v, 10));
+          }}
+          placeholder={t('curriculumEndYearPlaceholder')}
+          aria-invalid={!!fieldErrors.endYear}
+        />
+      </FormGroup>
+      <FormGroup label={t('curriculumIsActive')} htmlFor="curriculum-create-isActive">
+        <label className="form-check">
           <input
-            id="curriculum-create-version"
-            type="text"
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-            maxLength={VERSION_MAX}
-            placeholder={t('curriculumVersionPlaceholder')}
-            autoComplete="off"
-            aria-invalid={!!fieldErrors.version}
+            id="curriculum-create-isActive"
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            aria-label={t('curriculumIsActive')}
           />
-          {fieldErrors.version && <div className="field-error">{fieldErrors.version}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="curriculum-create-startYear">{t('curriculumStartYearRequired')}</label>
-          <input
-            id="curriculum-create-startYear"
-            type="number"
-            min={START_YEAR_MIN}
-            max={START_YEAR_MAX}
-            value={startYear === '' ? '' : startYear}
-            onChange={(e) => {
-              const v = e.target.value;
-              setStartYear(v === '' ? '' : parseInt(v, 10));
-            }}
-            placeholder={`${START_YEAR_MIN}–${START_YEAR_MAX}`}
-            aria-invalid={!!fieldErrors.startYear}
-          />
-          {fieldErrors.startYear && <div className="field-error">{fieldErrors.startYear}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="curriculum-create-endYear">{t('curriculumEndYear')}</label>
-          <input
-            id="curriculum-create-endYear"
-            type="number"
-            min={END_YEAR_MIN}
-            max={END_YEAR_MAX}
-            value={endYear === '' ? '' : endYear}
-            onChange={(e) => {
-              const v = e.target.value;
-              setEndYear(v === '' ? '' : parseInt(v, 10));
-            }}
-            placeholder={t('curriculumEndYearPlaceholder')}
-            aria-invalid={!!fieldErrors.endYear}
-          />
-          {fieldErrors.endYear && <div className="field-error">{fieldErrors.endYear}</div>}
-        </div>
-        <div className="form-group">
-          <label className="form-check">
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              aria-label={t('curriculumIsActive')}
-            />
-            <span>{t('curriculumIsActive')}</span>
-          </label>
-        </div>
-        <div className="form-group">
-          <label htmlFor="curriculum-create-notes">{t('curriculumNotes')}</label>
-          <textarea
-            id="curriculum-create-notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder={t('curriculumNotesPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('curriculumCreating') : tCommon('create')}
-          </button>
-          <Link to={`/dashboards/admin/programs/${programId}`} className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+          <span>{t('curriculumIsActive')}</span>
+        </label>
+      </FormGroup>
+      <FormGroup label={t('curriculumNotes')} htmlFor="curriculum-create-notes">
+        <textarea
+          id="curriculum-create-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={t('curriculumNotesPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('curriculumCreating') : tCommon('create')}
+        submitting={submitting}
+        cancelTo={`/dashboards/admin/programs/${programId}`}
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

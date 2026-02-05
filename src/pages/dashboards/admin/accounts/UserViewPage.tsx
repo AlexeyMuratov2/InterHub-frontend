@@ -12,7 +12,7 @@ import {
 import { useCanManageAccounts } from '../../../../app/hooks/useCanManageAccounts';
 import { useCanDeleteUser } from '../../../../app/hooks/useCanDeleteUser';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getDisplayName } from '../../../../shared/lib';
+import { getDisplayName, parseFieldErrors } from '../../../../shared/lib';
 import { Alert, ConfirmModal, FormActions, FormGroup } from '../../../../shared/ui';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
 import { getRoleLabelKey } from './utils';
@@ -204,8 +204,8 @@ export function UserViewPage() {
     if (err) {
       setSaving(false);
       setError(err.message ?? t('accountErrorUpdate'));
-      if (err.details && typeof err.details === 'object' && !Array.isArray(err.details)) {
-        setValidationDetails(err.details as Record<string, string>);
+      if (err.details) {
+        setValidationDetails(parseFieldErrors(err.details));
       }
       return;
     }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createInvitation } from '../../../../shared/api';
 import { useCanManageInvitations } from '../../../../app/hooks/useCanManageInvitations';
 import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
 import type { CreateInvitationRequest, CreateStudentRequest, CreateTeacherRequest } from '../../../../shared/api';
 import { FormActions, FormGroup, FormPageLayout, PageMessage } from '../../../../shared/ui';
 import {
@@ -142,8 +143,8 @@ export function InvitationCreatePage() {
     const { data, error: err } = await createInvitation(body);
     setSubmitting(false);
     if (err) {
-      if (err.details && typeof err.details === 'object') {
-        setFieldErrors(err.details as Record<string, string>);
+      if (err.details) {
+        setFieldErrors(parseFieldErrors(err.details));
       }
       setError(err.message ?? t('invitationErrorCreate'));
       return;

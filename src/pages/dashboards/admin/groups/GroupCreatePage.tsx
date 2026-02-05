@@ -7,16 +7,11 @@ import { listTeachers } from '../../../../shared/api';
 import type { TeacherProfileItem } from '../../../../shared/api';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
 import { FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
 const CODE_MAX = 50;
 const NAME_MAX = 255;
-
-function parseFieldErrors(details: Record<string, string> | string[] | undefined): Record<string, string> {
-  if (!details) return {};
-  if (Array.isArray(details)) return {};
-  return details as Record<string, string>;
-}
 
 export function GroupCreatePage() {
   const navigate = useNavigate();

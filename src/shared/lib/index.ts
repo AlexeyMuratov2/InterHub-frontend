@@ -6,3 +6,4 @@ export {
   KNOWN_ASSESSMENT_TYPE_CODES,
   type KnownAssessmentTypeCode,
 } from './assessmentTypeDisplayName';
+export { parseFieldErrors } from './parseFieldErrors';

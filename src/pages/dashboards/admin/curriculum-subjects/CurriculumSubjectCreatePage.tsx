@@ -9,7 +9,7 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
+import { getAssessmentTypeDisplayName, parseFieldErrors } from '../../../../shared/lib';
 import { PageMessage, FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
 type FormErrors = Partial<Record<keyof CreateCurriculumSubjectRequest, string>>;
@@ -166,11 +166,7 @@ export function CurriculumSubjectCreatePage() {
       if (err.code === 'CONFLICT') {
         setError(t('curriculumSubjectErrorConflict'));
       } else if (err.code === 'VALIDATION_FAILED' && err.details) {
-        const newErrors: FormErrors = {};
-        Object.entries(err.details).forEach(([field, msg]) => {
-          newErrors[field as keyof CreateCurriculumSubjectRequest] = msg;
-        });
-        setErrors(newErrors);
+        setErrors(parseFieldErrors(err.details) as FormErrors);
         setError(t('curriculumSubjectErrorValidation'));
       } else if (err.status === 403) {
         setError(t('programErrorForbidden'));

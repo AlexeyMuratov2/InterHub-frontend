@@ -4,8 +4,8 @@ import { createSubject } from '../../../../entities/subject';
 import { fetchDepartments, type DepartmentDto } from '../../../../entities/department';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
 import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
-import { parseFieldErrors } from './utils';
 
 const CODE_MAX = 50;
 

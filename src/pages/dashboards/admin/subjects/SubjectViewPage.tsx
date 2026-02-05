@@ -7,8 +7,8 @@ import { fetchCurriculaByProgramId } from '../../../../entities/curriculum';
 import { fetchCurriculumSubjects } from '../../../../entities/curriculum-subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
-import { getAssessmentTypeDisplayName } from './utils';
 
 type SubjectUsage = {
   curriculumId: string;
@@ -153,6 +153,7 @@ export function SubjectViewPage() {
       title={data ? t('subjectViewPageTitle', { name: data.chineseName }) : ''}
       onEditClick={canEdit && id ? () => navigate(`/dashboards/admin/subjects/${id}/edit`) : undefined}
       editLabel={t('editTitle')}
+      loadingMessage={t('loadingList')}
     >
       {data && (
         <>

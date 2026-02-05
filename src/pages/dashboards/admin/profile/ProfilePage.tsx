@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { getMe, patchMe } from '../../../../shared/api';
 import type { AccountUserDto, UpdateProfileRequest } from '../../../../shared/api';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getDisplayName } from '../../../../shared/lib';
+import { getDisplayName, parseFieldErrors } from '../../../../shared/lib';
+import { Alert, PageMessage } from '../../../../shared/ui';
 import { getRoleLabelKey } from '../accounts/utils';
 
 type EditableField = 'firstName' | 'lastName' | 'phone' | 'birthDate';
@@ -109,11 +110,9 @@ export function ProfilePage() {
     const { data: updated, error: err } = await patchMe(payload);
     setSaving(false);
     if (err) {
-      setFieldError(err.message ?? tRef.current('profileErrorUpdate'));
-      const details = err.details && typeof err.details === 'object' && !Array.isArray(err.details)
-        ? (err.details as Record<string, string>)[editingField]
-        : undefined;
-      if (details) setFieldError(details);
+      const fieldErrors = parseFieldErrors(err.details);
+      const detailsMsg = fieldErrors[editingField];
+      setFieldError(detailsMsg ?? err.message ?? tRef.current('profileErrorUpdate'));
       return;
     }
     if (updated) setProfile(updated);
@@ -137,7 +136,7 @@ export function ProfilePage() {
   if (loading) {
     return (
       <div className="profile-page">
-        <p className="profile-loading">{t('loadingList')}</p>
+        <PageMessage variant="loading" message={t('loadingList')} />
       </div>
     );
   }
@@ -145,10 +144,12 @@ export function ProfilePage() {
   if (error && !profile) {
     return (
       <div className="profile-page">
-        <div className="department-alert department-alert--error">{error}</div>
-        <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {tCommon('back')}
-        </Link>
+        <PageMessage
+          variant="error"
+          message={error}
+          backTo="/dashboards/admin/departments"
+          backLabel={tCommon('back')}
+        />
       </div>
     );
   }
@@ -218,14 +219,14 @@ export function ProfilePage() {
   return (
     <div className="profile-page">
       {error && (
-        <div className="department-alert department-alert--error" role="alert">
+        <Alert variant="error" role="alert">
           {error}
-        </div>
+        </Alert>
       )}
       {fieldError && (
-        <div className="department-alert department-alert--error" role="alert">
+        <Alert variant="error" role="alert">
           {fieldError}
-        </div>
+        </Alert>
       )}
       <header className="profile-header">
         <h1 className="profile-title">{t('profilePageTitle', { name: displayName })}</h1>

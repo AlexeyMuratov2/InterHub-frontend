@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchAssessmentTypeById, updateAssessmentType } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
 import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
-import { parseFieldErrors } from './utils';
 
 export function AssessmentTypeEditPage() {
   const { id } = useParams<{ id: string }>();

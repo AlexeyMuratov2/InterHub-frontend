@@ -12,8 +12,8 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjectById, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
-import { PageMessage, Alert, FormGroup, ConfirmModal } from '../../../../shared/ui';
+import { getAssessmentTypeDisplayName, parseFieldErrors } from '../../../../shared/lib';
+import { PageMessage, Alert, FormGroup, FormActions, ConfirmModal } from '../../../../shared/ui';
 
 type FormErrors = Partial<Record<keyof UpdateCurriculumSubjectRequest, string>>;
 
@@ -188,11 +188,7 @@ export function CurriculumSubjectEditPage() {
 
     if (err) {
       if (err.code === 'VALIDATION_FAILED' && err.details) {
-        const newErrors: FormErrors = {};
-        Object.entries(err.details).forEach(([field, msg]) => {
-          newErrors[field as keyof UpdateCurriculumSubjectRequest] = msg;
-        });
-        setErrors(newErrors);
+        setErrors(parseFieldErrors(err.details) as FormErrors);
         setError(t('curriculumSubjectErrorValidation'));
       } else if (err.status === 403) {
         setError(t('programErrorForbidden'));
@@ -235,25 +231,17 @@ export function CurriculumSubjectEditPage() {
   };
 
   if (loading) {
-    return (
-      <div className="department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">
-          {t('curriculumSubjectNotFoundOrDeleted')}
-        </div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {tCommon('back')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('curriculumSubjectNotFoundOrDeleted')}
+        backTo="/dashboards/admin/programs"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
@@ -496,25 +484,20 @@ export function CurriculumSubjectEditPage() {
 
         <div className="department-form-actions">
           {canEdit && (
-            <>
-              <button type="submit" className="btn-primary" disabled={submitting}>
-                {submitting ? tCommon('submitting') : tCommon('save')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                onClick={() => setShowDeleteModal(true)}
-              >
-                {t('deleteTitle')}
-              </button>
-            </>
+            <button
+              type="button"
+              className="btn-delete"
+              onClick={() => setShowDeleteModal(true)}
+            >
+              {t('deleteTitle')}
+            </button>
           )}
-          <Link
-            to={`/dashboards/admin/programs/curricula/${curriculumSubject?.curriculumId}/subjects`}
-            className="btn-secondary"
-          >
-            {t('curriculumBackToProgram')}
-          </Link>
+          <FormActions
+            submitLabel={submitting ? tCommon('submitting') : tCommon('save')}
+            submitting={submitting}
+            cancelTo={`/dashboards/admin/programs/curricula/${curriculumSubject?.curriculumId}/subjects`}
+            cancelLabel={t('curriculumBackToProgram')}
+          />
         </div>
       </form>
 

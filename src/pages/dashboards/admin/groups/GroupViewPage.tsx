@@ -17,13 +17,13 @@ import { getUser, listStudents } from '../../../../shared/api';
 import type { StudentProfileItem } from '../../../../shared/api';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { getDisplayName } from '../../../../shared/lib';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
-import { Alert, ConfirmModal, FormGroup, Modal } from '../../../../shared/ui';
+import { Alert, ConfirmModal, FormActions, FormGroup, Modal } from '../../../../shared/ui';
 
 function memberDisplayName(m: GroupMemberDto): string {
-  const u = m.user;
-  const name = u.firstName || u.lastName ? [u.firstName, u.lastName].filter(Boolean).join(' ').trim() : null;
-  return name ?? u.email ?? m.student.chineseName ?? '—';
+  const n = getDisplayName(m.user.firstName, m.user.lastName, m.user.email ?? '');
+  return (n || (m.student.chineseName ?? '—'));
 }
 
 export function GroupViewPage() {
@@ -94,8 +94,7 @@ export function GroupViewPage() {
         getUser(g.curatorUserId).then(({ data: u }) => {
           if (!cancelled && u?.user) {
             const user = u.user;
-            const name = user.firstName || user.lastName ? [user.firstName, user.lastName].filter(Boolean).join(' ').trim() : user.email;
-            setCuratorName(name || user.email);
+            setCuratorName(getDisplayName(user.firstName, user.lastName, user.email ?? ''));
           }
         });
       }
@@ -263,6 +262,7 @@ export function GroupViewPage() {
         title={title}
         onEditClick={canEdit && id ? () => navigate(`/dashboards/admin/groups/${id}/edit`) : undefined}
         editLabel={t('editTitle')}
+        loadingMessage={t('loadingList')}
       >
         {group && (
           <>
@@ -385,29 +385,19 @@ export function GroupViewPage() {
                   </FormGroup>
                   {selectedStudentIds.length > 0 && (
                     <p style={{ margin: '0.5rem 0', fontSize: '0.9rem', color: '#374151' }}>
-                      {selectedStudentIds.length} {selectedStudentIds.length === 1 ? 'student' : 'students'} selected
+                      {t('groupStudentsSelected', { count: selectedStudentIds.length })}
                     </p>
                   )}
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                    <button
-                      type="submit"
-                      className="btn-primary"
-                      disabled={addingStudents || selectedStudentIds.length === 0}
-                    >
-                      {addingStudents ? tCommon('submitting') : tCommon('save')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => {
-                        setAddStudentOpen(false);
-                        setAddStudentError(null);
-                        setSelectedStudentIds([]);
-                      }}
-                    >
-                      {tCommon('cancel')}
-                    </button>
-                  </div>
+                  <FormActions
+                    submitLabel={addingStudents ? tCommon('submitting') : tCommon('save')}
+                    submitting={addingStudents}
+                    cancelLabel={tCommon('cancel')}
+                    onCancel={() => {
+                      setAddStudentOpen(false);
+                      setAddStudentError(null);
+                      setSelectedStudentIds([]);
+                    }}
+                  />
                 </form>
               )}
               {members.length === 0 ? (
@@ -418,7 +408,7 @@ export function GroupViewPage() {
                     <thead>
                       <tr>
                         <th>{t('name')}</th>
-                        <th>Email / ID</th>
+                        <th>{t('groupEmailOrId')}</th>
                         <th>{t('groupRoleInGroup')}</th>
                         {canEdit && <th>{t('actions')}</th>}
                       </tr>
@@ -498,7 +488,7 @@ export function GroupViewPage() {
               <option value="deputy">{t('deputy')}</option>
             </select>
           </FormGroup>
-          <FormGroup label="From date" htmlFor="assign-leader-from">
+          <FormGroup label={t('groupLeaderFromDate')} htmlFor="assign-leader-from">
             <input
               id="assign-leader-from"
               type="date"
@@ -506,7 +496,7 @@ export function GroupViewPage() {
               onChange={(e) => setAssignLeaderFromDate(e.target.value)}
             />
           </FormGroup>
-          <FormGroup label="To date" htmlFor="assign-leader-to">
+          <FormGroup label={t('groupLeaderToDate')} htmlFor="assign-leader-to">
             <input
               id="assign-leader-to"
               type="date"
@@ -514,26 +504,15 @@ export function GroupViewPage() {
               onChange={(e) => setAssignLeaderToDate(e.target.value)}
             />
           </FormGroup>
-          <div className="department-modal-actions">
-            <button
-              type="button"
-              className="btn-cancel"
-              onClick={() => {
-                setAssignLeaderMember(null);
-                setAssignLeaderError(null);
-              }}
-              disabled={assignLeaderSubmitting}
-            >
-              {tCommon('cancel')}
-            </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={assignLeaderSubmitting}
-            >
-              {assignLeaderSubmitting ? tCommon('submitting') : tCommon('save')}
-            </button>
-          </div>
+          <FormActions
+            submitLabel={assignLeaderSubmitting ? tCommon('submitting') : tCommon('save')}
+            submitting={assignLeaderSubmitting}
+            cancelLabel={tCommon('cancel')}
+            onCancel={() => {
+              setAssignLeaderMember(null);
+              setAssignLeaderError(null);
+            }}
+          />
         </form>
       </Modal>
 

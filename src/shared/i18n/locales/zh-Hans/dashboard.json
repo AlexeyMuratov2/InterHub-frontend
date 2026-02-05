@@ -471,5 +471,9 @@
   "groupSuccessStudentRemoved": "学生已从小组移除",
   "groupNoStudentsToAdd": "没有可添加的学生",
   "groupLoadingStudents": "正在加载学生列表...",
-  "groupLoadMoreStudents": "加载更多"
+  "groupLoadMoreStudents": "加载更多",
+  "groupEmailOrId": "邮箱 / 学号",
+  "groupLeaderFromDate": "开始日期",
+  "groupLeaderToDate": "结束日期",
+  "groupStudentsSelected": "已选 {{count}} 项"
 }

@@ -13,7 +13,7 @@ import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { truncate } from '../../../../shared/lib';
 import { EntityListLayout } from '../../../../widgets/entity-list-layout';
 import { ConfirmModal } from '../../../../shared/ui';
-import { getAssessmentTypeDisplayName } from './utils';
+import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
 
 export function SubjectListPage() {
   const navigate = useNavigate();
