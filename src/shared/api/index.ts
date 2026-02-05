@@ -25,8 +25,9 @@ export {
   patchUser,
   deleteUser,
   listTeachers,
+  listStudents,
 } from './account';
-export type { ApiResult as AccountApiResult, ListUsersParams, ListTeachersParams } from './account';
+export type { ApiResult as AccountApiResult, ListUsersParams, ListTeachersParams, ListStudentsParams } from './account';
 export type {
   LoginRequest,
   AuthResult,
@@ -51,5 +52,8 @@ export type {
   TeacherDto,
   TeacherProfileItem,
   TeacherListPage,
+  StudentDto,
+  StudentProfileItem,
+  StudentListPage,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';

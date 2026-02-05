@@ -241,6 +241,34 @@ export interface TeacherListPage {
   nextCursor: string | null;
 }
 
+// --- Список студентов для добавления в группу (GET /api/account/students) ---
+
+/** Студент из GET /api/account/students (StudentDto). profile.id передаётся в studentId при добавлении в группу. */
+export interface StudentDto {
+  id: string;
+  userId: string;
+  studentId: string | null;
+  chineseName: string | null;
+  faculty: string | null;
+  course: string | null;
+  enrollmentYear: number | null;
+  groupName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Элемент списка студентов (StudentProfileItem) */
+export interface StudentProfileItem {
+  profile: StudentDto;
+  displayName: string;
+}
+
+/** Постраничный список студентов (StudentListPage) */
+export interface StudentListPage {
+  items: StudentProfileItem[];
+  nextCursor: string | null;
+}
+
 /** Запрос на создание приглашения (CreateInvitationRequest) */
 export interface CreateInvitationRequest {
   email: string;

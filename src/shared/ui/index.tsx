@@ -4,4 +4,5 @@ export { FormGroup } from './FormGroup';
 export { FormActions } from './FormActions';
 export { FormPageLayout } from './FormPageLayout';
 export { ConfirmModal } from './ConfirmModal';
+export { Modal } from './Modal';
 export { PageMessage } from './PageMessage';

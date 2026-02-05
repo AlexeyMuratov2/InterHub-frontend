@@ -7,6 +7,7 @@ import type {
   UpdateUserRequest,
   UserWithProfilesDto,
   TeacherListPage,
+  StudentListPage,
 } from './types';
 
 const BASE = '/api/account';
@@ -109,6 +110,26 @@ export async function listTeachers(
   search.set('limit', String(limit));
   const url = `${BASE}/teachers?${search.toString()}`;
   const result = await request<TeacherListPage>(url, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+  };
+}
+
+export type ListStudentsParams = {
+  cursor?: string;
+  limit?: number;
+};
+
+export async function listStudents(
+  params?: ListStudentsParams
+): Promise<ApiResult<StudentListPage>> {
+  const search = new URLSearchParams();
+  if (params?.cursor) search.set('cursor', params.cursor);
+  const limit = params?.limit != null ? Math.min(30, Math.max(1, params.limit)) : 30;
+  search.set('limit', String(limit));
+  const url = `${BASE}/students?${search.toString()}`;
+  const result = await request<StudentListPage>(url, { method: 'GET' });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

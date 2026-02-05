@@ -4,6 +4,7 @@ export type {
   UpdateGroupRequest,
   GroupMemberDto,
   GroupLeaderDto,
+  GroupLeaderDetailDto,
   AddGroupLeaderRequest,
   Group,
 } from './model';
@@ -19,5 +20,8 @@ export {
   fetchGroupLeaders,
   addGroupLeader,
   deleteGroupLeader,
+  addGroupMember,
+  addGroupMembersBulk,
+  removeGroupMember,
 } from './api';
 export type { GroupApiError } from './api';

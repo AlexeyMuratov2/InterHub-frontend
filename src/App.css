@@ -1382,6 +1382,68 @@ img.app-dashboard-sidebar-logo {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
 }
 
+.department-modal--form {
+  max-width: 420px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+}
+
+.department-modal-title,
+.department-modal h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  letter-spacing: -0.01em;
+}
+
+.department-modal-body {
+  margin: 0;
+}
+
+.department-modal--form .department-modal-body {
+  margin-top: 0.25rem;
+}
+
+.department-modal--form .department-modal-body .form-group {
+  margin-bottom: 1rem;
+}
+
+.department-modal--form .department-modal-body .form-group:last-of-type {
+  margin-bottom: 1.25rem;
+}
+
+.department-modal--form .department-modal-body .form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.department-modal--form .department-modal-body .form-group select,
+.department-modal--form .department-modal-body .form-group input[type="date"] {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1a202c;
+}
+
+.department-modal--form .department-modal-body .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+}
+
+.department-modal--form .department-modal-body .form-group select:focus,
+.department-modal--form .department-modal-body .form-group input[type="date"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
 .department-modal h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1.1rem;
@@ -1425,6 +1487,44 @@ img.app-dashboard-sidebar-logo {
 
 .department-modal-actions .btn-delete:hover {
   background: #b91c1c;
+}
+
+.department-modal-actions .btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.department-modal-actions .btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+/* Компактные кнопки в таблице (действия в строке) */
+.btn-action-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #4a5568;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.btn-action-sm:hover {
+  background: #f8fafc;
+  color: #1e40af;
+  border-color: #c7d2fe;
+}
+
+.department-table-btn.btn-action-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.department-table-btn--danger.btn-action-sm:hover {
+  color: #dc2626;
+  background: #fef2f2;
 }
 
 .department-alert {

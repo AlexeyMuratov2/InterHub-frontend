@@ -5,6 +5,7 @@ import type {
   UpdateGroupRequest,
   GroupMemberDto,
   GroupLeaderDto,
+  GroupLeaderDetailDto,
   AddGroupLeaderRequest,
 } from './model';
 
@@ -107,10 +108,10 @@ export async function fetchGroupMembers(groupId: string): Promise<{
 }
 
 export async function fetchGroupLeaders(groupId: string): Promise<{
-  data?: GroupLeaderDto[];
+  data?: GroupLeaderDetailDto[];
   error?: GroupApiError;
 }> {
-  const result = await request<GroupLeaderDto[]>(
+  const result = await request<GroupLeaderDetailDto[]>(
     `${BASE}/${encodeURIComponent(groupId)}/leaders`,
     { method: 'GET' }
   );
@@ -137,6 +138,50 @@ export async function addGroupLeader(
 export async function deleteGroupLeader(leaderId: string): Promise<{ error?: GroupApiError }> {
   const result = await request<unknown>(
     `${BASE}/leaders/${encodeURIComponent(leaderId)}`,
+    { method: 'DELETE' }
+  );
+  return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
+}
+
+// --- Group Members Management ---
+
+/** POST /api/groups/{groupId}/members — добавить студента в группу */
+export async function addGroupMember(
+  groupId: string,
+  studentId: string
+): Promise<{ error?: GroupApiError }> {
+  const result = await request<unknown>(
+    `${BASE}/${encodeURIComponent(groupId)}/members`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ studentId }),
+    }
+  );
+  return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
+}
+
+/** POST /api/groups/{groupId}/members/bulk — массовое добавление студентов в группу */
+export async function addGroupMembersBulk(
+  groupId: string,
+  studentIds: string[]
+): Promise<{ error?: GroupApiError }> {
+  const result = await request<unknown>(
+    `${BASE}/${encodeURIComponent(groupId)}/members/bulk`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ studentIds }),
+    }
+  );
+  return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
+}
+
+/** DELETE /api/groups/{groupId}/members/{studentId} — удалить студента из группы */
+export async function removeGroupMember(
+  groupId: string,
+  studentId: string
+): Promise<{ error?: GroupApiError }> {
+  const result = await request<unknown>(
+    `${BASE}/${encodeURIComponent(groupId)}/members/${encodeURIComponent(studentId)}`,
     { method: 'DELETE' }
   );
   return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };

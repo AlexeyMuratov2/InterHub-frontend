@@ -33,18 +33,16 @@ export interface UpdateGroupRequest {
   curatorUserId?: string | null;
 }
 
-/** Участник группы (профиль студента из GET /api/groups/{groupId}/members) */
+import type { AccountUserDto } from '../../shared/api/types';
+import type { StudentDto } from '../../shared/api/types';
+
+/** Участник группы (GET /api/groups/{groupId}/members): студент + пользователь для отображения имени и email */
 export interface GroupMemberDto {
-  id: string;
-  userId?: string;
-  studentId?: string | null;
-  chineseName?: string | null;
-  email?: string | null;
-  fullName?: string | null;
-  [key: string]: unknown;
+  student: StudentDto;
+  user: AccountUserDto;
 }
 
-/** Запись старосты (GroupLeaderDto) */
+/** Запись старосты (ответ POST /api/groups/{groupId}/leaders — без вложенных student/user) */
 export interface GroupLeaderDto {
   id: string;
   groupId: string;
@@ -53,6 +51,19 @@ export interface GroupLeaderDto {
   fromDate: string | null;
   toDate: string | null;
   createdAt: string;
+}
+
+/** Запись старосты с данными студента и пользователя (GET /api/groups/{groupId}/leaders) */
+export interface GroupLeaderDetailDto {
+  id: string;
+  groupId: string;
+  studentId: string;
+  role: 'headman' | 'deputy';
+  fromDate: string | null;
+  toDate: string | null;
+  createdAt: string;
+  student: StudentDto | null;
+  user: AccountUserDto | null;
 }
 
 /** Запрос на добавление старосты/заместителя */
