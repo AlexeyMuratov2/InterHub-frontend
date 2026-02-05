@@ -15,6 +15,10 @@ export interface EntityViewLayoutProps {
   title: string;
   onEditClick?: () => void;
   editLabel?: string;
+  /** Optional actions rendered between Edit and Back (e.g. Delete button). */
+  extraActions?: ReactNode;
+  /** Message shown in loading state (for i18n). Default "Loading…". */
+  loadingMessage?: string;
   children: ReactNode;
 }
 
@@ -31,13 +35,15 @@ export function EntityViewLayout({
   title,
   onEditClick,
   editLabel,
+  extraActions,
+  loadingMessage = 'Loading…',
   children,
 }: EntityViewLayoutProps) {
   if (loading) {
     return (
       <div className="entity-view-page department-form-page">
         <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>Loading…</p>
+          <p style={{ margin: 0, color: '#6b7280' }}>{loadingMessage}</p>
         </div>
       </div>
     );
@@ -74,6 +80,7 @@ export function EntityViewLayout({
               {editLabel}
             </button>
           )}
+          {extraActions}
           <Link to={backTo} className="btn-secondary">
             {backLabel}
           </Link>

@@ -148,7 +148,7 @@ export function ProgramEditPage() {
         variant="error"
         message={t('programNotFoundOrDeleted')}
         backTo="/dashboards/admin/programs"
-        backLabel={t('programBackToList')}
+        backLabel={tCommon('back')}
       />
     );
   }

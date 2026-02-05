@@ -5,44 +5,20 @@ import {
   resendInvitation,
   cancelInvitation,
   type InvitationDto,
+  type InvitationStatus,
 } from '../../../../shared/api';
-import { INVITATION_STATUS, type InvitationStatus } from '../../../../shared/api';
 import { useCanManageInvitations } from '../../../../app/hooks/useCanManageInvitations';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getRoleLabelKey } from './utils';
-
-const STATUS_ORDER: InvitationStatus[] = [
-  INVITATION_STATUS.PENDING,
-  INVITATION_STATUS.SENDING,
-  INVITATION_STATUS.SENT,
-  INVITATION_STATUS.FAILED,
-  INVITATION_STATUS.ACCEPTED,
-  INVITATION_STATUS.EXPIRED,
-  INVITATION_STATUS.CANCELLED,
-];
-
-const RESENDABLE: InvitationStatus[] = [
-  INVITATION_STATUS.PENDING,
-  INVITATION_STATUS.SENT,
-  INVITATION_STATUS.FAILED,
-];
-
-const CANCELLABLE: InvitationStatus[] = [
-  INVITATION_STATUS.PENDING,
-  INVITATION_STATUS.SENDING,
-  INVITATION_STATUS.SENT,
-  INVITATION_STATUS.FAILED,
-  INVITATION_STATUS.EXPIRED,
-];
-
-function statusKey(s: InvitationStatus): string {
-  return `invitationStatus${s.charAt(0) + s.slice(1).toLowerCase()}`;
-}
-
-function truncate(str: string | null, max: number): string {
-  if (!str) return '—';
-  return str.length <= max ? str : str.slice(0, max) + '…';
-}
+import { getDisplayName, truncate } from '../../../../shared/lib';
+import { EntityListLayout } from '../../../../widgets/entity-list-layout';
+import { ConfirmModal } from '../../../../shared/ui';
+import {
+  CANCELLABLE,
+  getInvitationStatusLabelKey,
+  getRoleLabelKey,
+  RESENDABLE,
+  STATUS_ORDER,
+} from './utils';
 
 export function InvitationListPage() {
   const navigate = useNavigate();
@@ -153,26 +129,19 @@ export function InvitationListPage() {
   const canCancelItem = (item: InvitationDto) => canManage && CANCELLABLE.includes(item.status);
 
   return (
-    <div className="department-page invitation-page">
-      <h1 className="department-page-title">{t('invitationManagement')}</h1>
-      <p className="department-page-subtitle">{t('invitationSubtitle')}</p>
-
-      {!canManage && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('invitationViewOnlyHint')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="department-alert department-alert--success" role="status">
-          {success}
-        </div>
-      )}
-
+    <EntityListLayout
+      title={t('invitationManagement')}
+      subtitle={t('invitationSubtitle')}
+      viewOnly={!canManage}
+      viewOnlyMessage={t('invitationViewOnlyHint')}
+      error={error}
+      success={success}
+      showToolbar={false}
+      searchValue=""
+      onSearchChange={() => {}}
+      searchPlaceholder=""
+      showCreate={false}
+    >
       <div className="department-page-toolbar">
         <div className="department-page-search-wrap">
           <input
@@ -192,7 +161,7 @@ export function InvitationListPage() {
             <option value="ALL">{t('invitationFilterAll')}</option>
             {STATUS_ORDER.map((s) => (
               <option key={s} value={s}>
-                {t(statusKey(s))}
+                {t(getInvitationStatusLabelKey(s))}
               </option>
             ))}
           </select>
@@ -258,22 +227,22 @@ export function InvitationListPage() {
                       ? '—'
                       : (item.roles ?? []).map((r) => t(getRoleLabelKey(r))).join(', ')}
                   </td>
-                  <td title={[item.firstName, item.lastName].filter(Boolean).join(' ') || undefined} onClick={(e) => e.stopPropagation()}>
+                  <td title={getDisplayName(item.firstName, item.lastName, item.email ?? '') || undefined} onClick={(e) => e.stopPropagation()}>
                     {item.userId ? (
                       <Link
                         to={`/dashboards/admin/accounts/${item.userId}`}
                         className="invitation-user-link"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {(truncate([item.firstName, item.lastName].filter(Boolean).join(' '), 30) || item.email) ?? '—'}
+                        {truncate(getDisplayName(item.firstName, item.lastName, item.email ?? ''), 30)}
                       </Link>
                     ) : (
-                      truncate([item.firstName, item.lastName].filter(Boolean).join(' '), 30) || '—'
+                      truncate(getDisplayName(item.firstName, item.lastName, item.email ?? ''), 30)
                     )}
                   </td>
                   <td>
                     <span className={`invitation-status-badge invitation-status-badge--${item.status.toLowerCase()}`}>
-                      {t(statusKey(item.status))}
+                      {t(getInvitationStatusLabelKey(item.status))}
                     </span>
                   </td>
                   <td>{formatDateTime(item.expiresAt, locale)}</td>
@@ -341,59 +310,28 @@ export function InvitationListPage() {
         </div>
       )}
 
-      {resendId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setResendId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('invitationResendConfirmTitle')}</h3>
-            <p>{t('invitationResendConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setResendId(null)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={resending}
-                onClick={() => handleResend(resendId)}
-              >
-                {resending ? tCommon('submitting') : t('invitationResend')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={resendId != null}
+        title={t('invitationResendConfirmTitle')}
+        message={t('invitationResendConfirmText')}
+        onCancel={() => setResendId(null)}
+        onConfirm={() => resendId != null && handleResend(resendId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={resending ? tCommon('submitting') : t('invitationResend')}
+        confirmDisabled={resending}
+      />
 
-      {cancelId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setCancelId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('invitationCancelConfirmTitle')}</h3>
-            <p>{t('invitationCancelConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setCancelId(null)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={cancelling}
-                onClick={() => handleCancel(cancelId)}
-              >
-                {cancelling ? tCommon('submitting') : t('invitationCancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmModal
+        open={cancelId != null}
+        title={t('invitationCancelConfirmTitle')}
+        message={t('invitationCancelConfirmText')}
+        onCancel={() => setCancelId(null)}
+        onConfirm={() => cancelId != null && handleCancel(cancelId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={cancelling ? tCommon('submitting') : t('invitationCancel')}
+        confirmDisabled={cancelling}
+        confirmVariant="danger"
+      />
+    </EntityListLayout>
   );
 }

@@ -148,7 +148,7 @@ export interface AccountUserPage {
 export interface TeacherProfileDto {
   id: string;
   userId: string;
-  teacherId: string;
+  teacherId: string | null;
   faculty: string;
   englishName: string | null;
   position: string | null;
@@ -160,7 +160,7 @@ export interface TeacherProfileDto {
 export interface StudentProfileDto {
   id: string;
   userId: string;
-  studentId: string;
+  studentId: string | null;
   chineseName: string | null;
   faculty: string;
   course: string | null;
@@ -169,6 +169,24 @@ export interface StudentProfileDto {
   groupId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Тело PATCH профиля студента (если бэкенд поддерживает). */
+export interface UpdateStudentProfileRequest {
+  studentId?: string | null;
+  chineseName?: string | null;
+  faculty?: string | null;
+  course?: string | null;
+  enrollmentYear?: number | null;
+  groupName?: string | null;
+}
+
+/** Тело PATCH профиля преподавателя (если бэкенд поддерживает). */
+export interface UpdateTeacherProfileRequest {
+  teacherId?: string | null;
+  faculty?: string | null;
+  englishName?: string | null;
+  position?: string | null;
 }
 
 /** Ответ GET /api/account/users/{id}: пользователь и профили по ролям. */
@@ -186,13 +204,17 @@ export interface UpdateProfileRequest {
   birthDate?: string | null;
 }
 
-/** Тело PATCH /api/account/users/{id} (UpdateUserRequest) */
+/** Тело PATCH /api/account/users/{id} (UpdateUserRequest). Профили передаются в том же запросе. */
 export interface UpdateUserRequest {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
   birthDate?: string | null;
   roles?: string[] | null;
+  /** Данные профиля студента — передавать при роли STUDENT (создание/обновление в одном PATCH). */
+  studentProfile?: UpdateStudentProfileRequest | null;
+  /** Данные профиля преподавателя — передавать при роли TEACHER (создание/обновление в одном PATCH). */
+  teacherProfile?: UpdateTeacherProfileRequest | null;
 }
 
 /** Запрос на создание приглашения (CreateInvitationRequest) */

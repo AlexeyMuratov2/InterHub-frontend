@@ -10,7 +10,8 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../subjects/utils';
+import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
+import { PageMessage, Alert, ConfirmModal } from '../../../../shared/ui';
 
 type CurriculumSubjectWithDetails = CurriculumSubjectDto & {
   subjectCode: string;
@@ -190,25 +191,17 @@ export function CurriculumSubjectsPage() {
   }, [curriculumSubjects]);
 
   if (loading) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">
-          {t('curriculumNotFoundOrDeleted')}
-        </div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('curriculumNotFoundOrDeleted')}
+        backTo="/dashboards/admin/programs"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
@@ -257,19 +250,19 @@ export function CurriculumSubjectsPage() {
       </div>
 
       {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
+        <Alert variant="info" role="status">
           {t('viewOnlyNotice')}
-        </div>
+        </Alert>
       )}
       {error && (
-        <div className="department-alert department-alert--error" role="alert">
+        <Alert variant="error" role="alert">
           {error}
-        </div>
+        </Alert>
       )}
       {success && (
-        <div className="department-alert department-alert--success" role="status">
+        <Alert variant="success" role="status">
           {success}
-        </div>
+        </Alert>
       )}
 
       {/* Панель инструментов */}
@@ -438,33 +431,16 @@ export function CurriculumSubjectsPage() {
         </div>
       )}
 
-      {/* Модальное окно удаления */}
-      {deleteId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('curriculumSubjectDeleteConfirmTitle')}</h3>
-            <p>{t('curriculumSubjectDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setDeleteId(null)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deleting}
-                onClick={() => handleDelete(deleteId)}
-              >
-                {deleting ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!deleteId}
+        title={t('curriculumSubjectDeleteConfirmTitle')}
+        message={t('curriculumSubjectDeleteConfirmText')}
+        onCancel={() => setDeleteId(null)}
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deleting ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deleting}
+      />
     </div>
   );
 }

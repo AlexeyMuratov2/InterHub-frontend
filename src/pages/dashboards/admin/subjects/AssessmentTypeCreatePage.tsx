@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createAssessmentType } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 import { parseFieldErrors } from './utils';
 
 const CODE_MAX = 50;
@@ -87,109 +88,86 @@ export function AssessmentTypeCreatePage() {
   const tCommon = useTranslation('common').t;
 
   if (!canEdit) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('subjectAssessmentTypeCreatePageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="at-create-code">{t('subjectCodeRequired')}</label>
-          <input
-            id="at-create-code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            maxLength={CODE_MAX}
-            placeholder={t('codePlaceholder')}
-            autoComplete="off"
-            aria-invalid={!!fieldErrors.code}
-          />
-          {fieldErrors.code && <div className="field-error">{fieldErrors.code}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="at-create-chineseName">{t('subjectChineseNameRequired')}</label>
-          <input
-            id="at-create-chineseName"
-            type="text"
-            value={chineseName}
-            onChange={(e) => setChineseName(e.target.value)}
-            placeholder={t('subjectChineseNamePlaceholder')}
-            aria-invalid={!!fieldErrors.chineseName}
-          />
-          {fieldErrors.chineseName && (
-            <div className="field-error">{fieldErrors.chineseName}</div>
-          )}
-        </div>
-        <div className="form-group">
-          <label htmlFor="at-create-englishName">{t('subjectEnglishName')}</label>
-          <input
-            id="at-create-englishName"
-            type="text"
-            value={englishName}
-            onChange={(e) => setEnglishName(e.target.value)}
-            placeholder={t('subjectEnglishNamePlaceholder')}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="at-create-isGraded">{t('subjectAssessmentTypeIsGraded')}</label>
-          <select
-            id="at-create-isGraded"
-            value={String(isGraded)}
-            onChange={(e) => setIsGraded(e.target.value === 'true')}
-          >
-            <option value="true">{t('curriculumActiveYes')}</option>
-            <option value="false">{t('curriculumActiveNo')}</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="at-create-isFinal">{t('subjectAssessmentTypeIsFinal')}</label>
-          <select
-            id="at-create-isFinal"
-            value={String(isFinal)}
-            onChange={(e) => setIsFinal(e.target.value === 'true')}
-          >
-            <option value="false">{t('curriculumActiveNo')}</option>
-            <option value="true">{t('curriculumActiveYes')}</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="at-create-sortOrder">{t('subjectAssessmentTypeSortOrder')}</label>
-          <input
-            id="at-create-sortOrder"
-            type="number"
-            value={sortOrder === '' ? '' : sortOrder}
-            onChange={(e) => {
-              const v = e.target.value;
-              setSortOrder(v === '' ? '' : parseInt(v, 10));
-            }}
-            min={0}
-            step={1}
-            aria-invalid={!!fieldErrors.sortOrder}
-          />
-          {fieldErrors.sortOrder && (
-            <div className="field-error">{fieldErrors.sortOrder}</div>
-          )}
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('creating') : tCommon('create')}
-          </button>
-          <Link to="/dashboards/admin/subjects" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout
+      title={t('subjectAssessmentTypeCreatePageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+      <FormGroup label={t('subjectCodeRequired')} htmlFor="at-create-code" error={fieldErrors.code}>
+        <input
+          id="at-create-code"
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          maxLength={CODE_MAX}
+          placeholder={t('codePlaceholder')}
+          autoComplete="off"
+          aria-invalid={!!fieldErrors.code}
+        />
+      </FormGroup>
+      <FormGroup label={t('subjectChineseNameRequired')} htmlFor="at-create-chineseName" error={fieldErrors.chineseName}>
+        <input
+          id="at-create-chineseName"
+          type="text"
+          value={chineseName}
+          onChange={(e) => setChineseName(e.target.value)}
+          placeholder={t('subjectChineseNamePlaceholder')}
+          aria-invalid={!!fieldErrors.chineseName}
+        />
+      </FormGroup>
+      <FormGroup label={t('subjectEnglishName')} htmlFor="at-create-englishName">
+        <input
+          id="at-create-englishName"
+          type="text"
+          value={englishName}
+          onChange={(e) => setEnglishName(e.target.value)}
+          placeholder={t('subjectEnglishNamePlaceholder')}
+        />
+      </FormGroup>
+      <FormGroup label={t('subjectAssessmentTypeIsGraded')} htmlFor="at-create-isGraded">
+        <select
+          id="at-create-isGraded"
+          value={String(isGraded)}
+          onChange={(e) => setIsGraded(e.target.value === 'true')}
+        >
+          <option value="true">{t('curriculumActiveYes')}</option>
+          <option value="false">{t('curriculumActiveNo')}</option>
+        </select>
+      </FormGroup>
+      <FormGroup label={t('subjectAssessmentTypeIsFinal')} htmlFor="at-create-isFinal">
+        <select
+          id="at-create-isFinal"
+          value={String(isFinal)}
+          onChange={(e) => setIsFinal(e.target.value === 'true')}
+        >
+          <option value="false">{t('curriculumActiveNo')}</option>
+          <option value="true">{t('curriculumActiveYes')}</option>
+        </select>
+      </FormGroup>
+      <FormGroup label={t('subjectAssessmentTypeSortOrder')} htmlFor="at-create-sortOrder" error={fieldErrors.sortOrder}>
+        <input
+          id="at-create-sortOrder"
+          type="number"
+          value={sortOrder === '' ? '' : sortOrder}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSortOrder(v === '' ? '' : parseInt(v, 10));
+          }}
+          min={0}
+          step={1}
+          aria-invalid={!!fieldErrors.sortOrder}
+        />
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('creating') : tCommon('create')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/subjects"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

@@ -132,7 +132,7 @@ export function ProgramViewPage() {
         notFoundMessage={t('programNotFoundOrDeleted')}
         errorMessage={error ?? t('dataNotLoaded')}
         backTo="/dashboards/admin/programs"
-        backLabel={t('programBackToList')}
+        backLabel={tCommon('back')}
         viewOnly={!canEdit}
         viewOnlyMessage={t('viewOnlyNotice')}
         title={data ? t('programViewPageTitle', { name: data.name }) : ''}

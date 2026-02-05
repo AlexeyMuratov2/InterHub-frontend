@@ -45,5 +45,7 @@ export type {
   UserWithProfilesDto,
   UpdateProfileRequest,
   UpdateUserRequest,
+  UpdateStudentProfileRequest,
+  UpdateTeacherProfileRequest,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';

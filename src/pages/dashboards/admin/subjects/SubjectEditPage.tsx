@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchSubjectById, updateSubject } from '../../../../entities/subject';
 import { fetchDepartments, type DepartmentDto } from '../../../../entities/department';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 import { parseFieldErrors } from './utils';
 
 export function SubjectEditPage() {
@@ -119,118 +120,90 @@ export function SubjectEditPage() {
   const tCommon = useTranslation('common').t;
 
   if (!canEdit) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (loading) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">{t('subjectNotFound')}</div>
-        <Link to="/dashboards/admin/subjects" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('subjectNotFound')}
+        backTo="/dashboards/admin/subjects"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
   return (
-    <div className="department-form-page">
-      <h1 className="department-form-title">{t('subjectEditPageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="subject-edit-code">{t('code')}</label>
-          <input
-            id="subject-edit-code"
-            type="text"
-            value={code}
-            readOnly
-            className="read-only"
-            aria-readonly="true"
-          />
-          <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('codeReadOnly')}</small>
-        </div>
-        <div className="form-group">
-          <label htmlFor="subject-edit-chineseName">{t('subjectChineseNameRequired')}</label>
-          <input
-            id="subject-edit-chineseName"
-            type="text"
-            value={chineseName}
-            onChange={(e) => setChineseName(e.target.value)}
-            placeholder={t('subjectChineseNamePlaceholder')}
-            aria-invalid={!!fieldErrors.chineseName}
-          />
-          {fieldErrors.chineseName && (
-            <div className="field-error">{fieldErrors.chineseName}</div>
-          )}
-        </div>
-        <div className="form-group">
-          <label htmlFor="subject-edit-englishName">{t('subjectEnglishName')}</label>
-          <input
-            id="subject-edit-englishName"
-            type="text"
-            value={englishName}
-            onChange={(e) => setEnglishName(e.target.value)}
-            placeholder={t('subjectEnglishNamePlaceholder')}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="subject-edit-description">{t('description')}</label>
-          <textarea
-            id="subject-edit-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('descriptionPlaceholder')}
-            rows={4}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="subject-edit-departmentId">{t('programDepartment')}</label>
-          <select
-            id="subject-edit-departmentId"
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            aria-invalid={!!fieldErrors.departmentId}
-          >
-            <option value="">{t('programDepartmentNone')}</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.code})
-              </option>
-            ))}
-          </select>
-          {departmentsLoading && (
-            <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('loadingList')}</small>
-          )}
-          {fieldErrors.departmentId && (
-            <div className="field-error">{fieldErrors.departmentId}</div>
-          )}
-        </div>
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('saving') : tCommon('save')}
-          </button>
-          <Link to="/dashboards/admin/subjects" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+    <FormPageLayout title={t('subjectEditPageTitle')} error={error} onSubmit={handleSubmit}>
+      <FormGroup label={t('code')} htmlFor="subject-edit-code" hint={t('codeReadOnly')}>
+        <input
+          id="subject-edit-code"
+          type="text"
+          value={code}
+          readOnly
+          className="read-only"
+          aria-readonly="true"
+        />
+      </FormGroup>
+      <FormGroup label={t('subjectChineseNameRequired')} htmlFor="subject-edit-chineseName" error={fieldErrors.chineseName}>
+        <input
+          id="subject-edit-chineseName"
+          type="text"
+          value={chineseName}
+          onChange={(e) => setChineseName(e.target.value)}
+          placeholder={t('subjectChineseNamePlaceholder')}
+          aria-invalid={!!fieldErrors.chineseName}
+        />
+      </FormGroup>
+      <FormGroup label={t('subjectEnglishName')} htmlFor="subject-edit-englishName">
+        <input
+          id="subject-edit-englishName"
+          type="text"
+          value={englishName}
+          onChange={(e) => setEnglishName(e.target.value)}
+          placeholder={t('subjectEnglishNamePlaceholder')}
+        />
+      </FormGroup>
+      <FormGroup label={t('description')} htmlFor="subject-edit-description">
+        <textarea
+          id="subject-edit-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('descriptionPlaceholder')}
+          rows={4}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('programDepartment')}
+        htmlFor="subject-edit-departmentId"
+        error={fieldErrors.departmentId}
+        hint={departmentsLoading ? t('loadingList') : undefined}
+      >
+        <select
+          id="subject-edit-departmentId"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+          aria-invalid={!!fieldErrors.departmentId}
+        >
+          <option value="">{t('programDepartmentNone')}</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({d.code})
+            </option>
+          ))}
+        </select>
+      </FormGroup>
+      <FormActions
+        submitLabel={submitting ? t('saving') : tCommon('save')}
+        submitting={submitting}
+        cancelTo="/dashboards/admin/subjects"
+        cancelLabel={tCommon('cancelButton')}
+      />
+    </FormPageLayout>
   );
 }

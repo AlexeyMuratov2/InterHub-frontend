@@ -12,7 +12,8 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjectById, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../subjects/utils';
+import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
+import { PageMessage, Alert, FormGroup, ConfirmModal } from '../../../../shared/ui';
 
 type FormErrors = Partial<Record<keyof UpdateCurriculumSubjectRequest, string>>;
 
@@ -250,7 +251,7 @@ export function CurriculumSubjectEditPage() {
           {t('curriculumSubjectNotFoundOrDeleted')}
         </div>
         <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
+          {tCommon('back')}
         </Link>
       </div>
     );
@@ -277,19 +278,19 @@ export function CurriculumSubjectEditPage() {
       <h1 className="department-form-title">{t('curriculumSubjectEditPageTitle')}</h1>
 
       {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
+        <Alert variant="info" role="status">
           {t('viewOnlyNotice')}
-        </div>
+        </Alert>
       )}
       {error && (
-        <div className="department-alert department-alert--error" role="alert">
+        <Alert variant="error" role="alert">
           {error}
-        </div>
+        </Alert>
       )}
       {success && (
-        <div className="department-alert department-alert--success" role="status">
+        <Alert variant="success" role="status">
           {success}
-        </div>
+        </Alert>
       )}
 
       {/* Информация о предмете (только для чтения) */}
@@ -333,11 +334,11 @@ export function CurriculumSubjectEditPage() {
         {/* Редактируемые параметры */}
         <section className="form-section">
           <h2 className="form-section-title">{t('curriculumSubjectSectionEditableParams')}</h2>
-          
+
           <div className="form-row form-row--3">
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectCourseYear')}</label>
+            <FormGroup label={t('curriculumSubjectCourseYear')} htmlFor="cs-edit-courseYear">
               <input
+                id="cs-edit-courseYear"
                 type="number"
                 min="1"
                 max="6"
@@ -347,15 +348,20 @@ export function CurriculumSubjectEditPage() {
                 placeholder={t('curriculumSubjectCourseYearPlaceholder')}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectAssessmentType')}</label>
+            <FormGroup
+              label={t('curriculumSubjectAssessmentType')}
+              htmlFor="cs-edit-assessmentTypeId"
+              error={errors.assessmentTypeId}
+            >
               <select
+                id="cs-edit-assessmentTypeId"
                 className="department-form-select"
                 value={assessmentTypeId}
                 onChange={(e) => setAssessmentTypeId(e.target.value)}
                 disabled={!canEdit}
+                aria-invalid={!!errors.assessmentTypeId}
               >
                 <option value="">{t('curriculumSubjectSelectAssessmentType')}</option>
                 {assessmentTypes.map((at) => (
@@ -364,12 +370,11 @@ export function CurriculumSubjectEditPage() {
                   </option>
                 ))}
               </select>
-              {errors.assessmentTypeId && <span className="field-error">{errors.assessmentTypeId}</span>}
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectCredits')}</label>
+            <FormGroup label={t('curriculumSubjectCredits')} htmlFor="cs-edit-credits">
               <input
+                id="cs-edit-credits"
                 type="number"
                 step="0.5"
                 min="0"
@@ -380,18 +385,18 @@ export function CurriculumSubjectEditPage() {
                 placeholder={t('curriculumSubjectCreditsPlaceholder')}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
           </div>
         </section>
 
         {/* Часы */}
         <section className="form-section">
           <h2 className="form-section-title">{t('curriculumSubjectSectionHours')}</h2>
-          
+
           <div className="form-row form-row--4">
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursTotal')}</label>
+            <FormGroup label={t('curriculumSubjectHoursTotal')} htmlFor="cs-edit-hoursTotal">
               <input
+                id="cs-edit-hoursTotal"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -399,11 +404,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursTotal(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursLecture')}</label>
+            <FormGroup label={t('curriculumSubjectHoursLecture')} htmlFor="cs-edit-hoursLecture">
               <input
+                id="cs-edit-hoursLecture"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -411,11 +416,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursLecture(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursPractice')}</label>
+            <FormGroup label={t('curriculumSubjectHoursPractice')} htmlFor="cs-edit-hoursPractice">
               <input
+                id="cs-edit-hoursPractice"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -423,11 +428,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursPractice(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursLab')}</label>
+            <FormGroup label={t('curriculumSubjectHoursLab')} htmlFor="cs-edit-hoursLab">
               <input
+                id="cs-edit-hoursLab"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -435,13 +440,13 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursLab(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
           </div>
 
           <div className="form-row form-row--4">
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursSeminar')}</label>
+            <FormGroup label={t('curriculumSubjectHoursSeminar')} htmlFor="cs-edit-hoursSeminar">
               <input
+                id="cs-edit-hoursSeminar"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -449,11 +454,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursSeminar(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursSelfStudy')}</label>
+            <FormGroup label={t('curriculumSubjectHoursSelfStudy')} htmlFor="cs-edit-hoursSelfStudy">
               <input
+                id="cs-edit-hoursSelfStudy"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -461,11 +466,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursSelfStudy(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursConsultation')}</label>
+            <FormGroup label={t('curriculumSubjectHoursConsultation')} htmlFor="cs-edit-hoursConsultation">
               <input
+                id="cs-edit-hoursConsultation"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -473,11 +478,11 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursConsultation(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursCourseWork')}</label>
+            <FormGroup label={t('curriculumSubjectHoursCourseWork')} htmlFor="cs-edit-hoursCourseWork">
               <input
+                id="cs-edit-hoursCourseWork"
                 type="number"
                 min="0"
                 className="department-form-input"
@@ -485,11 +490,10 @@ export function CurriculumSubjectEditPage() {
                 onChange={(e) => setHoursCourseWork(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={!canEdit}
               />
-            </div>
+            </FormGroup>
           </div>
         </section>
 
-        {/* Кнопки */}
         <div className="department-form-actions">
           {canEdit && (
             <>
@@ -514,33 +518,16 @@ export function CurriculumSubjectEditPage() {
         </div>
       </form>
 
-      {/* Модальное окно удаления */}
-      {showDeleteModal && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setShowDeleteModal(false)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('curriculumSubjectDeleteConfirmTitle')}</h3>
-            <p>{t('curriculumSubjectDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setShowDeleteModal(false)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deleting}
-                onClick={handleDelete}
-              >
-                {deleting ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={showDeleteModal}
+        title={t('curriculumSubjectDeleteConfirmTitle')}
+        message={t('curriculumSubjectDeleteConfirmText')}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deleting ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deleting}
+      />
     </div>
   );
 }

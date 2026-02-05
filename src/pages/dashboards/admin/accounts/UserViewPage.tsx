@@ -1,20 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   getUser,
   patchUser,
   deleteUser,
   type UserWithProfilesDto,
   type UpdateUserRequest,
+  type CreateStudentRequest,
+  type CreateTeacherRequest,
 } from '../../../../shared/api';
 import { useCanManageAccounts } from '../../../../app/hooks/useCanManageAccounts';
 import { useCanDeleteUser } from '../../../../app/hooks/useCanDeleteUser';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getRoleLabelKey, getDisplayName } from './utils';
+import { getDisplayName } from '../../../../shared/lib';
+import { Alert, ConfirmModal, FormActions, FormGroup } from '../../../../shared/ui';
+import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
+import { getRoleLabelKey } from './utils';
 import {
   ALL_ROLES_ORDER,
   MAX_ROLES,
   isManagingRole,
+  hasStudent,
+  hasTeacher,
 } from '../invitations/utils';
 
 export function UserViewPage() {
@@ -31,6 +38,9 @@ export function UserViewPage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<UpdateUserRequest>({});
+  const [studentData, setStudentData] = useState<CreateStudentRequest | null>(null);
+  const [teacherData, setTeacherData] = useState<CreateTeacherRequest | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [validationDetails, setValidationDetails] = useState<
@@ -81,6 +91,7 @@ export function UserViewPage() {
 
   useEffect(() => {
     if (data?.user && editing) {
+      setFieldErrors({});
       const u = data.user;
       setForm({
         firstName: u.firstName ?? undefined,
@@ -89,32 +100,124 @@ export function UserViewPage() {
         birthDate: u.birthDate ?? undefined,
         roles: u.roles?.length ? [...u.roles] : undefined,
       });
+      if (data.studentProfile) {
+        const s = data.studentProfile;
+        setStudentData({
+          studentId: s.studentId ?? '',
+          chineseName: s.chineseName ?? null,
+          faculty: s.faculty ?? '',
+          course: s.course ?? null,
+          enrollmentYear: s.enrollmentYear ?? null,
+          groupName: s.groupName ?? null,
+        });
+      } else if (hasStudent(u.roles ?? [])) {
+        setStudentData((prev) => prev ?? { studentId: '', faculty: '' });
+      } else {
+        setStudentData(null);
+      }
+      if (data.teacherProfile) {
+        const t = data.teacherProfile;
+        setTeacherData({
+          teacherId: t.teacherId ?? '',
+          faculty: t.faculty ?? '',
+          englishName: t.englishName ?? null,
+          position: t.position ?? null,
+        });
+      } else if (hasTeacher(u.roles ?? [])) {
+        setTeacherData((prev) => prev ?? { teacherId: '', faculty: '' });
+      } else {
+        setTeacherData(null);
+      }
     }
   }, [data, editing]);
 
+  useEffect(() => {
+    if (!editing || !form.roles) return;
+    if (hasStudent(form.roles)) {
+      setStudentData((prev) => prev ?? { studentId: '', faculty: '' });
+    } else {
+      setStudentData(null);
+    }
+  }, [editing, form.roles]);
+
+  useEffect(() => {
+    if (!editing || !form.roles) return;
+    if (hasTeacher(form.roles)) {
+      setTeacherData((prev) => prev ?? { teacherId: '', faculty: '' });
+    } else {
+      setTeacherData(null);
+    }
+  }, [editing, form.roles]);
+
+  const validate = (): boolean => {
+    const err: Record<string, string> = {};
+    const roles = form.roles ?? [];
+    if (roles.length === 0) err.roles = t('invitationAtLeastOneRole');
+    if (roles.length > MAX_ROLES) err.roles = t('invitationRolesMax');
+    if (hasStudent(roles) && studentData) {
+      if (!studentData.studentId?.trim()) err.studentId = t('invitationStudentId');
+      if (!studentData.faculty?.trim()) err.faculty = t('invitationFaculty');
+    }
+    if (hasTeacher(roles) && teacherData) {
+      if (!teacherData.teacherId?.trim()) err.teacherId = t('invitationTeacherId');
+      if (!teacherData.faculty?.trim()) err.faculty = t('invitationFaculty');
+    }
+    setFieldErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
   const handleSave = async () => {
     if (!id || !data) return;
-    setSaving(true);
     setError(null);
     setValidationDetails(null);
-    const payload: UpdateUserRequest = {};
-    if (form.firstName !== undefined) payload.firstName = form.firstName || null;
-    if (form.lastName !== undefined) payload.lastName = form.lastName || null;
-    if (form.phone !== undefined) payload.phone = form.phone || null;
-    if (form.birthDate !== undefined) payload.birthDate = form.birthDate || null;
-    if (form.roles !== undefined) payload.roles = form.roles?.length ? form.roles : null;
-    const { data: updated, error: err } = await patchUser(id, payload);
-    setSaving(false);
+    setFieldErrors({});
+    if (!validate()) return;
+    setSaving(true);
+    const roles = form.roles ?? [];
+    const payload: UpdateUserRequest = {
+      firstName: form.firstName ?? null,
+      lastName: form.lastName ?? null,
+      phone: form.phone ?? null,
+      birthDate: form.birthDate ?? null,
+      roles: roles.length > 0 ? [...roles] : null,
+    };
+    // Профили передаём в том же PATCH (контракт: PATCH /api/account/users/{id} с studentProfile/teacherProfile).
+    if (hasStudent(roles) && studentData) {
+      payload.studentProfile = {
+        studentId: studentData.studentId?.trim() || null,
+        chineseName: studentData.chineseName?.trim() || null,
+        faculty: studentData.faculty?.trim() || null,
+        course: studentData.course?.trim() || null,
+        enrollmentYear: studentData.enrollmentYear ?? null,
+        groupName: studentData.groupName?.trim() || null,
+      };
+    }
+    if (hasTeacher(roles) && teacherData) {
+      payload.teacherProfile = {
+        teacherId: teacherData.teacherId?.trim() || null,
+        faculty: teacherData.faculty?.trim() || null,
+        englishName: teacherData.englishName?.trim() || null,
+        position: teacherData.position?.trim() || null,
+      };
+    }
+    const { error: err } = await patchUser(id, payload);
     if (err) {
+      setSaving(false);
       setError(err.message ?? t('accountErrorUpdate'));
       if (err.details && typeof err.details === 'object' && !Array.isArray(err.details)) {
         setValidationDetails(err.details as Record<string, string>);
       }
       return;
     }
-    if (updated && data) {
-      setData({ ...data, user: updated });
+    // После успешного PATCH повторно запрашиваем пользователя с профилями (контракт, п. 4.3).
+    const { data: fresh, error: getErr } = await getUser(id);
+    if (getErr || !fresh) {
+      setSaving(false);
+      setError(getErr?.message ?? t('accountErrorLoad'));
+      return;
     }
+    setData(fresh);
+    setSaving(false);
     setEditing(false);
   };
 
@@ -164,102 +267,55 @@ export function UserViewPage() {
     return i - j;
   }
 
-  if (loading) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">
-          {t('accountUserNotFound')}
-        </div>
-        <Link to="/dashboards/admin/accounts" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (error && !data) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">{error}</div>
-        <Link to="/dashboards/admin/accounts" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (!data) return null;
-
-  const user = data.user;
-  const displayName = getDisplayName(user.firstName, user.lastName, user.email);
-  const teacherDisplayName = data.teacherProfile?.englishName ?? displayName;
-  const studentDisplayName = data.studentProfile?.chineseName ?? displayName;
+  const user = data?.user;
+  const displayName = user ? getDisplayName(user.firstName, user.lastName, user.email) : '';
+  const teacherDisplayName = data?.teacherProfile?.englishName ?? displayName;
+  const studentDisplayName = data?.studentProfile?.chineseName ?? displayName;
 
   return (
-    <div className="entity-view-page department-form-page account-view-page">
-      {!canManage && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('accountViewOnlyHint')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      {validationDetails && Object.keys(validationDetails).length > 0 && (
-        <ul className="department-alert department-alert--error" role="alert">
-          {Object.entries(validationDetails).map(([field, msg]) => (
-            <li key={field}>
-              {field}: {msg}
-            </li>
-          ))}
-        </ul>
-      )}
-      <header className="entity-view-header">
-        <h1 className="entity-view-title">
-          {editing ? t('accountEditPageTitle') : t('accountViewPageTitle', { name: displayName })}
-        </h1>
-        <div className="entity-view-actions department-form-actions">
-          {canManage && !editing && (
-            <button
-              type="button"
-              className="btn-primary btn-action-fixed"
-              onClick={() => setEditing(true)}
-            >
-              {t('editTitle')}
-            </button>
+    <EntityViewLayout
+      loading={loading}
+      notFound={notFound}
+      error={error != null && !data ? error : null}
+      notFoundMessage={t('accountUserNotFound')}
+      errorMessage={error ?? t('accountErrorLoad')}
+      backTo="/dashboards/admin/accounts"
+      backLabel={tCommon('back')}
+      viewOnly={!canManage}
+      viewOnlyMessage={t('accountViewOnlyHint')}
+      title={data ? (editing ? t('accountEditPageTitle') : t('accountViewPageTitle', { name: displayName })) : ''}
+      onEditClick={canManage && !editing && data ? () => setEditing(true) : undefined}
+      editLabel={t('editTitle')}
+      extraActions={canDeleteThis && !editing && data ? (
+        <button
+          type="button"
+          className="btn-delete btn-action-fixed"
+          onClick={() => setDeleteConfirm(true)}
+        >
+          {t('deleteTitle')}
+        </button>
+      ) : undefined}
+      loadingMessage={t('loadingList')}
+    >
+      {data && (
+        <>
+          {error != null && error !== '' && (
+            <Alert variant="error" role="alert">
+              {error}
+            </Alert>
           )}
-          {canManage && editing && (
-            <span className="entity-view-actions-hint">
-              {t('accountEditHint')}
-            </span>
+          {validationDetails != null && Object.keys(validationDetails).length > 0 && (
+            <Alert variant="error" role="alert">
+              <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                {Object.entries(validationDetails).map(([field, msg]) => (
+                  <li key={field}>
+                    {field}: {msg}
+                  </li>
+                ))}
+              </ul>
+            </Alert>
           )}
-          {canDeleteThis && !editing && (
-            <button
-              type="button"
-              className="btn-delete btn-action-fixed"
-              onClick={() => setDeleteConfirm(true)}
-            >
-              {t('deleteTitle')}
-            </button>
-          )}
-          <Link to="/dashboards/admin/accounts" className="btn-secondary">
-            {t('backToList')}
-          </Link>
-        </div>
-      </header>
-      <div className="entity-view-card">
+          <div className="entity-view-card account-view-page">
         {editing ? (
           <form
             id="account-edit-form"
@@ -269,8 +325,7 @@ export function UserViewPage() {
               handleSave();
             }}
           >
-            <div className="form-group">
-              <label htmlFor="account-firstName">{t('invitationFirstName')}</label>
+            <FormGroup label={t('invitationFirstName')} htmlFor="account-firstName">
               <input
                 id="account-firstName"
                 type="text"
@@ -280,9 +335,8 @@ export function UserViewPage() {
                 }
                 aria-label={t('invitationFirstName')}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="account-lastName">{t('invitationLastName')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationLastName')} htmlFor="account-lastName">
               <input
                 id="account-lastName"
                 type="text"
@@ -292,9 +346,8 @@ export function UserViewPage() {
                 }
                 aria-label={t('invitationLastName')}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="account-phone">{t('invitationPhone')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationPhone')} htmlFor="account-phone">
               <input
                 id="account-phone"
                 type="text"
@@ -304,9 +357,8 @@ export function UserViewPage() {
                 }
                 aria-label={t('invitationPhone')}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="account-birthDate">{t('invitationBirthDate')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationBirthDate')} htmlFor="account-birthDate">
               <input
                 id="account-birthDate"
                 type="date"
@@ -317,11 +369,9 @@ export function UserViewPage() {
                 aria-label={t('invitationBirthDate')}
                 title={t('invitationBirthDate')}
               />
-            </div>
-            <div className="form-group">
-              <label>{t('invitationRoles')}</label>
-              <p className="invitation-roles-hint">{t('accountRolesHint')}</p>
-              <div className="invitation-roles-chips">
+            </FormGroup>
+            <FormGroup label={t('invitationRoles')} htmlFor="account-add-role-btn" hint={t('accountRolesHint')} error={fieldErrors.roles}>
+            <div className="invitation-roles-chips">
                 {currentRoles.map((role) => (
                   <span key={role} className="invitation-role-chip">
                     <span className="invitation-role-chip-label">
@@ -342,6 +392,7 @@ export function UserViewPage() {
               {currentRoles.length < MAX_ROLES && availableRolesToAdd.length > 0 && (
                 <div className="invitation-add-role-wrap" ref={addRoleRef}>
                   <button
+                    id="account-add-role-btn"
                     type="button"
                     className="invitation-add-role-btn"
                     onClick={() => setAddRoleOpen((v) => !v)}
@@ -375,24 +426,115 @@ export function UserViewPage() {
                   )}
                 </div>
               )}
-            </div>
-            <div className="department-form-actions">
-              <button
-                type="submit"
-                className="btn-primary btn-action-fixed"
-                disabled={saving}
-              >
-                {saving ? tCommon('submitting') : t('accountSave')}
-              </button>
-              <button
-                type="button"
-                className="btn-cancel btn-action-fixed"
-                disabled={saving}
-                onClick={() => setEditing(false)}
-              >
-                {tCommon('cancel')}
-              </button>
-            </div>
+            </FormGroup>
+
+            {hasStudent(currentRoles) && studentData && (
+              <fieldset className="invitation-create-fieldset">
+                <legend>{t('invitationStudentData')}</legend>
+                <FormGroup label={t('invitationStudentId')} htmlFor="account-studentId" error={fieldErrors.studentId}>
+                  <input
+                    id="account-studentId"
+                    type="text"
+                    value={studentData.studentId}
+                    onChange={(e) => setStudentData({ ...studentData, studentId: e.target.value })}
+                    aria-invalid={!!fieldErrors.studentId}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationChineseName')} htmlFor="account-chineseName">
+                  <input
+                    id="account-chineseName"
+                    type="text"
+                    value={studentData.chineseName ?? ''}
+                    onChange={(e) => setStudentData({ ...studentData, chineseName: e.target.value || null })}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationFaculty')} htmlFor="account-studentFaculty" error={hasStudent(currentRoles) ? fieldErrors.faculty : undefined}>
+                  <input
+                    id="account-studentFaculty"
+                    type="text"
+                    value={studentData.faculty}
+                    onChange={(e) => setStudentData({ ...studentData, faculty: e.target.value })}
+                    aria-invalid={!!fieldErrors.faculty}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationCourse')} htmlFor="account-course">
+                  <input
+                    id="account-course"
+                    type="text"
+                    value={studentData.course ?? ''}
+                    onChange={(e) => setStudentData({ ...studentData, course: e.target.value || null })}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationEnrollmentYear')} htmlFor="account-enrollmentYear">
+                  <input
+                    id="account-enrollmentYear"
+                    type="number"
+                    value={studentData.enrollmentYear ?? ''}
+                    onChange={(e) =>
+                      setStudentData({
+                        ...studentData,
+                        enrollmentYear: e.target.value ? parseInt(e.target.value, 10) : null,
+                      })
+                    }
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationGroupName')} htmlFor="account-groupName">
+                  <input
+                    id="account-groupName"
+                    type="text"
+                    value={studentData.groupName ?? ''}
+                    onChange={(e) => setStudentData({ ...studentData, groupName: e.target.value || null })}
+                  />
+                </FormGroup>
+              </fieldset>
+            )}
+
+            {hasTeacher(currentRoles) && teacherData && (
+              <fieldset className="invitation-create-fieldset">
+                <legend>{t('invitationTeacherData')}</legend>
+                <FormGroup label={t('invitationTeacherId')} htmlFor="account-teacherId" error={fieldErrors.teacherId}>
+                  <input
+                    id="account-teacherId"
+                    type="text"
+                    value={teacherData.teacherId}
+                    onChange={(e) => setTeacherData({ ...teacherData, teacherId: e.target.value })}
+                    aria-invalid={!!fieldErrors.teacherId}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationFaculty')} htmlFor="account-teacherFaculty" error={hasTeacher(currentRoles) ? fieldErrors.faculty : undefined}>
+                  <input
+                    id="account-teacherFaculty"
+                    type="text"
+                    value={teacherData.faculty}
+                    onChange={(e) => setTeacherData({ ...teacherData, faculty: e.target.value })}
+                    aria-invalid={!!fieldErrors.faculty}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationEnglishName')} htmlFor="account-englishName">
+                  <input
+                    id="account-englishName"
+                    type="text"
+                    value={teacherData.englishName ?? ''}
+                    onChange={(e) => setTeacherData({ ...teacherData, englishName: e.target.value || null })}
+                  />
+                </FormGroup>
+                <FormGroup label={t('invitationPosition')} htmlFor="account-position">
+                  <input
+                    id="account-position"
+                    type="text"
+                    value={teacherData.position ?? ''}
+                    onChange={(e) => setTeacherData({ ...teacherData, position: e.target.value || null })}
+                  />
+                </FormGroup>
+              </fieldset>
+            )}
+
+            <FormActions
+              submitLabel={saving ? tCommon('submitting') : t('accountSave')}
+              submitting={saving}
+              cancelLabel={tCommon('cancel')}
+              onCancel={() => setEditing(false)}
+            />
           </form>
         ) : (
           <div className="account-view-sections">
@@ -489,11 +631,11 @@ export function UserViewPage() {
                 <div className="account-view-readonly">
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationTeacherId')}</span>
-                    <span className="account-view-value">{data.teacherProfile.teacherId}</span>
+                    <span className="account-view-value">{data.teacherProfile.teacherId ?? '—'}</span>
                   </div>
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationFaculty')}</span>
-                    <span className="account-view-value">{data.teacherProfile.faculty}</span>
+                    <span className="account-view-value">{data.teacherProfile.faculty ?? '—'}</span>
                   </div>
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationEnglishName')}</span>
@@ -531,11 +673,11 @@ export function UserViewPage() {
                 <div className="account-view-readonly">
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationStudentId')}</span>
-                    <span className="account-view-value">{data.studentProfile.studentId}</span>
+                    <span className="account-view-value">{data.studentProfile.studentId ?? '—'}</span>
                   </div>
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationFaculty')}</span>
-                    <span className="account-view-value">{data.studentProfile.faculty}</span>
+                    <span className="account-view-value">{data.studentProfile.faculty ?? '—'}</span>
                   </div>
                   <div className="account-view-row">
                     <span className="account-view-label">{t('invitationChineseName')}</span>
@@ -574,36 +716,19 @@ export function UserViewPage() {
         )}
       </div>
 
-      {deleteConfirm && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteConfirm(false)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('accountDeleteConfirmTitle')}</h3>
-            <p>{t('accountDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setDeleteConfirm(false)}
-              >
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deleting}
-                onClick={handleDelete}
-              >
-                {deleting ? tCommon('submitting') : t('deleteTitle')}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ConfirmModal
+        open={deleteConfirm}
+        title={t('accountDeleteConfirmTitle')}
+        message={t('accountDeleteConfirmText')}
+        onCancel={() => setDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deleting ? tCommon('submitting') : t('deleteTitle')}
+        confirmDisabled={deleting}
+        confirmVariant="danger"
+      />
+        </>
       )}
-    </div>
+    </EntityViewLayout>
   );
 }

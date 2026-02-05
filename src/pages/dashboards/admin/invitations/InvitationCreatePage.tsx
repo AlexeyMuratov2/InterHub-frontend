@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createInvitation } from '../../../../shared/api';
 import { useCanManageInvitations } from '../../../../app/hooks/useCanManageInvitations';
 import { useTranslation } from '../../../../shared/i18n';
 import type { CreateInvitationRequest, CreateStudentRequest, CreateTeacherRequest } from '../../../../shared/api';
+import { FormActions, FormGroup, FormPageLayout, PageMessage } from '../../../../shared/ui';
 import {
   ALL_ROLES_ORDER,
   MAX_ROLES,
@@ -99,11 +100,7 @@ export function InvitationCreatePage() {
   }
 
   if (!canManage) {
-    return (
-      <div className="department-form-page">
-        <p>{t('loadingList')}</p>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   const validate = (): boolean => {
@@ -142,9 +139,6 @@ export function InvitationCreatePage() {
       studentData: hasStudent(selectedRoles) && studentData ? studentData : null,
       teacherData: hasTeacher(selectedRoles) && teacherData ? teacherData : null,
     };
-    // Временный лог для отладки: что форма отправляет
-    console.log('[InvitationCreate] selectedRoles (что выбрали на форме):', selectedRoles);
-    console.log('[InvitationCreate] body.roles (что уходит в createInvitation):', body.roles);
     const { data, error: err } = await createInvitation(body);
     setSubmitting(false);
     if (err) {
@@ -162,16 +156,12 @@ export function InvitationCreatePage() {
   };
 
   return (
-    <div className="department-form-page invitation-create-page">
-      <h1 className="department-form-title">{t('invitationCreatePageTitle')}</h1>
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <form className="department-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="inv-email">{t('invitationEmailRequired')}</label>
+    <FormPageLayout
+      title={t('invitationCreatePageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+        <FormGroup label={t('invitationEmailRequired')} htmlFor="inv-email" error={fieldErrors.email}>
           <input
             id="inv-email"
             type="email"
@@ -184,12 +174,9 @@ export function InvitationCreatePage() {
             autoComplete="email"
             aria-invalid={!!fieldErrors.email}
           />
-          {fieldErrors.email && <div className="field-error">{fieldErrors.email}</div>}
-        </div>
+        </FormGroup>
 
-        <div className="form-group">
-          <label>{t('invitationRoles')} *</label>
-          <p className="invitation-roles-hint">{t('invitationRolesHint')}</p>
+        <FormGroup label={`${t('invitationRoles')} *`} htmlFor="inv-add-role-btn" hint={t('invitationRolesHint')} error={fieldErrors.roles}>
           <div className="invitation-roles-chips">
             {roles.map((role) => (
               <span key={role} className="invitation-role-chip">
@@ -209,6 +196,7 @@ export function InvitationCreatePage() {
           {roles.length < MAX_ROLES && availableRolesToAdd.length > 0 && (
             <div className="invitation-add-role-wrap" ref={addRoleRef}>
               <button
+                id="inv-add-role-btn"
                 type="button"
                 className="invitation-add-role-btn"
                 onClick={() => setAddRoleOpen((v) => !v)}
@@ -242,51 +230,45 @@ export function InvitationCreatePage() {
               )}
             </div>
           )}
-          {fieldErrors.roles && <div className="field-error">{fieldErrors.roles}</div>}
-        </div>
+        </FormGroup>
 
-        <div className="form-group">
-          <label htmlFor="inv-firstName">{t('invitationFirstName')}</label>
+        <FormGroup label={t('invitationFirstName')} htmlFor="inv-firstName">
           <input
             id="inv-firstName"
             type="text"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
-        </div>
-        <div className="form-group">
-          <label htmlFor="inv-lastName">{t('invitationLastName')}</label>
+        </FormGroup>
+        <FormGroup label={t('invitationLastName')} htmlFor="inv-lastName">
           <input
             id="inv-lastName"
             type="text"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
-        </div>
-        <div className="form-group">
-          <label htmlFor="inv-phone">{t('invitationPhone')}</label>
+        </FormGroup>
+        <FormGroup label={t('invitationPhone')} htmlFor="inv-phone">
           <input
             id="inv-phone"
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
-        </div>
-        <div className="form-group">
-          <label htmlFor="inv-birthDate">{t('invitationBirthDate')}</label>
+        </FormGroup>
+        <FormGroup label={t('invitationBirthDate')} htmlFor="inv-birthDate">
           <input
             id="inv-birthDate"
             type="date"
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
           />
-        </div>
+        </FormGroup>
 
         {hasStudent(roles) && studentData && (
           <fieldset className="invitation-create-fieldset">
             <legend>{t('invitationStudentData')}</legend>
-            <div className="form-group">
-              <label htmlFor="inv-studentId">{t('invitationStudentId')}</label>
+            <FormGroup label={t('invitationStudentId')} htmlFor="inv-studentId" error={fieldErrors.studentId}>
               <input
                 id="inv-studentId"
                 type="text"
@@ -294,19 +276,16 @@ export function InvitationCreatePage() {
                 onChange={(e) => setStudentData({ ...studentData, studentId: e.target.value })}
                 aria-invalid={!!fieldErrors.studentId}
               />
-              {fieldErrors.studentId && <div className="field-error">{fieldErrors.studentId}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-chineseName">{t('invitationChineseName')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationChineseName')} htmlFor="inv-chineseName">
               <input
                 id="inv-chineseName"
                 type="text"
                 value={studentData.chineseName ?? ''}
                 onChange={(e) => setStudentData({ ...studentData, chineseName: e.target.value || null })}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-studentFaculty">{t('invitationFaculty')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationFaculty')} htmlFor="inv-studentFaculty" error={hasStudent(roles) ? fieldErrors.faculty : undefined}>
               <input
                 id="inv-studentFaculty"
                 type="text"
@@ -314,21 +293,16 @@ export function InvitationCreatePage() {
                 onChange={(e) => setStudentData({ ...studentData, faculty: e.target.value })}
                 aria-invalid={!!fieldErrors.faculty}
               />
-              {fieldErrors.faculty && hasStudent(roles) && (
-                <div className="field-error">{fieldErrors.faculty}</div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-course">{t('invitationCourse')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationCourse')} htmlFor="inv-course">
               <input
                 id="inv-course"
                 type="text"
                 value={studentData.course ?? ''}
                 onChange={(e) => setStudentData({ ...studentData, course: e.target.value || null })}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-enrollmentYear">{t('invitationEnrollmentYear')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationEnrollmentYear')} htmlFor="inv-enrollmentYear">
               <input
                 id="inv-enrollmentYear"
                 type="number"
@@ -340,24 +314,22 @@ export function InvitationCreatePage() {
                   })
                 }
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-groupName">{t('invitationGroupName')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationGroupName')} htmlFor="inv-groupName">
               <input
                 id="inv-groupName"
                 type="text"
                 value={studentData.groupName ?? ''}
                 onChange={(e) => setStudentData({ ...studentData, groupName: e.target.value || null })}
               />
-            </div>
+            </FormGroup>
           </fieldset>
         )}
 
         {hasTeacher(roles) && teacherData && (
           <fieldset className="invitation-create-fieldset">
             <legend>{t('invitationTeacherData')}</legend>
-            <div className="form-group">
-              <label htmlFor="inv-teacherId">{t('invitationTeacherId')}</label>
+            <FormGroup label={t('invitationTeacherId')} htmlFor="inv-teacherId" error={fieldErrors.teacherId}>
               <input
                 id="inv-teacherId"
                 type="text"
@@ -365,10 +337,8 @@ export function InvitationCreatePage() {
                 onChange={(e) => setTeacherData({ ...teacherData, teacherId: e.target.value })}
                 aria-invalid={!!fieldErrors.teacherId}
               />
-              {fieldErrors.teacherId && <div className="field-error">{fieldErrors.teacherId}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-teacherFaculty">{t('invitationFaculty')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationFaculty')} htmlFor="inv-teacherFaculty" error={hasTeacher(roles) ? fieldErrors.faculty : undefined}>
               <input
                 id="inv-teacherFaculty"
                 type="text"
@@ -376,40 +346,32 @@ export function InvitationCreatePage() {
                 onChange={(e) => setTeacherData({ ...teacherData, faculty: e.target.value })}
                 aria-invalid={!!fieldErrors.faculty}
               />
-              {fieldErrors.faculty && hasTeacher(roles) && (
-                <div className="field-error">{fieldErrors.faculty}</div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-englishName">{t('invitationEnglishName')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationEnglishName')} htmlFor="inv-englishName">
               <input
                 id="inv-englishName"
                 type="text"
                 value={teacherData.englishName ?? ''}
                 onChange={(e) => setTeacherData({ ...teacherData, englishName: e.target.value || null })}
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inv-position">{t('invitationPosition')}</label>
+            </FormGroup>
+            <FormGroup label={t('invitationPosition')} htmlFor="inv-position">
               <input
                 id="inv-position"
                 type="text"
                 value={teacherData.position ?? ''}
                 onChange={(e) => setTeacherData({ ...teacherData, position: e.target.value || null })}
               />
-            </div>
+            </FormGroup>
           </fieldset>
         )}
 
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? t('invitationCreating') : tCommon('create')}
-          </button>
-          <Link to="/dashboards/admin/invitations" className="btn-secondary">
-            {tCommon('cancelButton')}
-          </Link>
-        </div>
-      </form>
-    </div>
+        <FormActions
+          submitLabel={submitting ? t('invitationCreating') : tCommon('create')}
+          submitting={submitting}
+          cancelTo="/dashboards/admin/invitations"
+          cancelLabel={tCommon('cancelButton')}
+        />
+    </FormPageLayout>
   );
 }

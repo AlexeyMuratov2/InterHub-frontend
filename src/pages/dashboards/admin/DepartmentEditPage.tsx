@@ -113,7 +113,7 @@ export function DepartmentEditPage() {
         variant="error"
         message={t('departmentNotFound')}
         backTo="/dashboards/admin/departments"
-        backLabel={t('backToList')}
+        backLabel={tCommon('back')}
       />
     );
   }

@@ -181,7 +181,7 @@ export function CurriculumEditPage() {
           </Link>
         ) : (
           <Link to="/dashboards/admin/programs" className="btn-secondary">
-            {t('programBackToList')}
+            {tCommon('back')}
           </Link>
         )}
       </div>

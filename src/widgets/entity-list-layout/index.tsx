@@ -11,6 +11,8 @@ export interface EntityListLayoutProps {
   actionUnavailableMessage?: string;
   error?: string | null;
   success?: string | null;
+  /** When false, the page-level toolbar (search + create link) is not rendered. Default true. */
+  showToolbar?: boolean;
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
@@ -30,6 +32,7 @@ export function EntityListLayout({
   actionUnavailableMessage,
   error,
   success,
+  showToolbar = true,
   searchValue,
   onSearchChange,
   searchPlaceholder,
@@ -65,6 +68,7 @@ export function EntityListLayout({
         </Alert>
       )}
 
+      {showToolbar && (
       <div className="department-page-toolbar">
         <div className="department-page-search-wrap">
           <input
@@ -83,6 +87,7 @@ export function EntityListLayout({
           </Link>
         )}
       </div>
+      )}
 
       {children}
     </div>

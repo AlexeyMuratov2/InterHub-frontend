@@ -1,27 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getInvitation, resendInvitation, cancelInvitation } from '../../../../shared/api';
-import { INVITATION_STATUS, type InvitationStatus, type InvitationDto } from '../../../../shared/api';
+import type { InvitationDto } from '../../../../shared/api';
 import { useCanManageInvitations } from '../../../../app/hooks/useCanManageInvitations';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getRoleLabelKey } from './utils';
-
-const RESENDABLE: InvitationStatus[] = [
-  INVITATION_STATUS.PENDING,
-  INVITATION_STATUS.SENT,
-  INVITATION_STATUS.FAILED,
-];
-const CANCELLABLE: InvitationStatus[] = [
-  INVITATION_STATUS.PENDING,
-  INVITATION_STATUS.SENDING,
-  INVITATION_STATUS.SENT,
-  INVITATION_STATUS.FAILED,
-  INVITATION_STATUS.EXPIRED,
-];
-
-function statusKey(s: InvitationStatus): string {
-  return `invitationStatus${s.charAt(0) + s.slice(1).toLowerCase()}`;
-}
+import { getDisplayName } from '../../../../shared/lib';
+import { Alert, ConfirmModal } from '../../../../shared/ui';
+import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
+import { CANCELLABLE, getInvitationStatusLabelKey, getRoleLabelKey, RESENDABLE } from './utils';
 
 export function InvitationViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -93,60 +79,26 @@ export function InvitationViewPage() {
     navigate('/dashboards/admin/invitations', { replace: true });
   };
 
-  if (loading) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">{t('invitationNotFound')}</div>
-        <Link to="/dashboards/admin/invitations" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (error && !data) {
-    return (
-      <div className="entity-view-page department-form-page">
-        <div className="department-alert department-alert--error">{error}</div>
-        <Link to="/dashboards/admin/invitations" className="btn-secondary">
-          {t('backToList')}
-        </Link>
-      </div>
-    );
-  }
-
-  if (!data) return null;
-
-  const canResend = canManage && RESENDABLE.includes(data.status);
-  const canCancelItem = canManage && CANCELLABLE.includes(data.status);
-  const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || '—';
+  const canResend = data && canManage && RESENDABLE.includes(data.status);
+  const canCancelItem = data && canManage && CANCELLABLE.includes(data.status);
+  const fullName = data ? getDisplayName(data.firstName, data.lastName, data.email ?? '') || '—' : '—';
 
   return (
-    <div className="entity-view-page department-form-page invitation-view-page">
-      {!canManage && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('invitationViewOnlyHint')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      <header className="entity-view-header">
-        <h1 className="entity-view-title">{t('invitationViewPageTitle')}</h1>
-        <div className="entity-view-actions department-form-actions">
-          {canResend ? (
+    <EntityViewLayout
+      loading={loading}
+      notFound={notFound}
+      error={error != null && !data ? error : null}
+      notFoundMessage={t('invitationNotFound')}
+      errorMessage={error ?? t('invitationErrorLoad')}
+      backTo="/dashboards/admin/invitations"
+      backLabel={tCommon('back')}
+      viewOnly={!canManage}
+      viewOnlyMessage={t('invitationViewOnlyHint')}
+      title={t('invitationViewPageTitle')}
+      loadingMessage={t('loadingList')}
+      extraActions={
+        <>
+          {data && (canResend ? (
             <button
               type="button"
               className="btn-primary"
@@ -154,12 +106,12 @@ export function InvitationViewPage() {
             >
               {t('invitationResend')}
             </button>
-          ) : RESENDABLE.includes(data.status) && !canManage ? (
+          ) : data && RESENDABLE.includes(data.status) && !canManage ? (
             <span className="invitation-no-permission" title={t('invitationNoPermissionResend')}>
               {t('invitationResend')} — {t('invitationNoPermissionResend')}
             </span>
-          ) : null}
-          {canCancelItem ? (
+          ) : null)}
+          {data && (canCancelItem ? (
             <button
               type="button"
               className="btn-delete"
@@ -167,103 +119,89 @@ export function InvitationViewPage() {
             >
               {t('invitationCancel')}
             </button>
-          ) : CANCELLABLE.includes(data.status) && !canManage ? (
+          ) : data && CANCELLABLE.includes(data.status) && !canManage ? (
             <span className="invitation-no-permission" title={t('invitationNoPermissionCancel')}>
               {t('invitationCancel')} — {t('invitationNoPermissionCancel')}
             </span>
-          ) : null}
-          <Link to="/dashboards/admin/invitations" className="btn-secondary">
-            {t('backToList')}
-          </Link>
-        </div>
-      </header>
-      <div className="entity-view-card">
-        <dl className="entity-view-dl entity-view-dl--two-cols">
-          <dt>{t('invitationEmail')}</dt>
-          <dd>{data.email ?? '—'}</dd>
-        <dt>{t('invitationRoles')}</dt>
-        <dd>
-          {(data.roles ?? []).length === 0
-            ? '—'
-            : (data.roles ?? []).map((r) => t(getRoleLabelKey(r))).join(', ')}
-        </dd>
-          <dt>{t('name')}</dt>
-          <dd>
-            {data.userId ? (
-              <Link
-                to={`/dashboards/admin/accounts/${data.userId}`}
-                className="invitation-user-link"
-              >
-                {fullName}
-              </Link>
-            ) : (
-              fullName
-            )}
-          </dd>
-          <dt>{t('invitationStatus')}</dt>
-          <dd>
-            <span className={`invitation-status-badge invitation-status-badge--${data.status.toLowerCase()}`}>
-              {t(statusKey(data.status))}
-            </span>
-          </dd>
-          <dt>{t('invitationExpiresAt')}</dt>
-          <dd>{formatDateTime(data.expiresAt, locale)}</dd>
-          <dt>{t('invitationCreatedAt')}</dt>
-          <dd>{formatDateTime(data.createdAt, locale)}</dd>
-          <dt>{t('invitationEmailSentAt')}</dt>
-          <dd>{data.emailSentAt ? formatDateTime(data.emailSentAt, locale) : '—'}</dd>
-          <dt>{t('invitationEmailAttempts')}</dt>
-          <dd>{data.emailAttempts}</dd>
-          <dt>{t('invitationAcceptedAt')}</dt>
-          <dd>{data.acceptedAt ? formatDateTime(data.acceptedAt, locale) : '—'}</dd>
-          <dt>{t('invitationInvitedBy')}</dt>
-          <dd>{data.invitedById ?? '—'}</dd>
-        </dl>
-      </div>
-
-      {resendConfirm && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setResendConfirm(false)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('invitationResendConfirmTitle')}</h3>
-            <p>{t('invitationResendConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setResendConfirm(false)}>
-                {tCommon('cancel')}
-              </button>
-              <button type="button" className="btn-primary" disabled={resending} onClick={handleResend}>
-                {resending ? tCommon('submitting') : t('invitationResend')}
-              </button>
-            </div>
+          ) : null)}
+        </>
+      }
+    >
+      {data && (
+        <>
+          {error != null && error !== '' && (
+            <Alert variant="error" role="alert">
+              {error}
+            </Alert>
+          )}
+          <div className="entity-view-card invitation-view-page">
+            <dl className="entity-view-dl entity-view-dl--two-cols">
+              <dt>{t('invitationEmail')}</dt>
+              <dd>{data.email ?? '—'}</dd>
+              <dt>{t('invitationRoles')}</dt>
+              <dd>
+                {(data.roles ?? []).length === 0
+                  ? '—'
+                  : (data.roles ?? []).map((r) => t(getRoleLabelKey(r))).join(', ')}
+              </dd>
+              <dt>{t('name')}</dt>
+              <dd>
+                {data.userId ? (
+                  <Link
+                    to={`/dashboards/admin/accounts/${data.userId}`}
+                    className="invitation-user-link"
+                  >
+                    {fullName}
+                  </Link>
+                ) : (
+                  fullName
+                )}
+              </dd>
+              <dt>{t('invitationStatus')}</dt>
+              <dd>
+                <span className={`invitation-status-badge invitation-status-badge--${data.status.toLowerCase()}`}>
+                  {t(getInvitationStatusLabelKey(data.status))}
+                </span>
+              </dd>
+              <dt>{t('invitationExpiresAt')}</dt>
+              <dd>{formatDateTime(data.expiresAt, locale)}</dd>
+              <dt>{t('invitationCreatedAt')}</dt>
+              <dd>{formatDateTime(data.createdAt, locale)}</dd>
+              <dt>{t('invitationEmailSentAt')}</dt>
+              <dd>{data.emailSentAt ? formatDateTime(data.emailSentAt, locale) : '—'}</dd>
+              <dt>{t('invitationEmailAttempts')}</dt>
+              <dd>{data.emailAttempts}</dd>
+              <dt>{t('invitationAcceptedAt')}</dt>
+              <dd>{data.acceptedAt ? formatDateTime(data.acceptedAt, locale) : '—'}</dd>
+              <dt>{t('invitationInvitedBy')}</dt>
+              <dd>{data.invitedById ?? '—'}</dd>
+            </dl>
           </div>
-        </div>
-      )}
 
-      {cancelConfirm && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setCancelConfirm(false)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('invitationCancelConfirmTitle')}</h3>
-            <p>{t('invitationCancelConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setCancelConfirm(false)}>
-                {tCommon('cancel')}
-              </button>
-              <button type="button" className="btn-delete" disabled={cancelling} onClick={handleCancel}>
-                {cancelling ? tCommon('submitting') : t('invitationCancel')}
-              </button>
-            </div>
-          </div>
-        </div>
+          <ConfirmModal
+            open={resendConfirm}
+            title={t('invitationResendConfirmTitle')}
+            message={t('invitationResendConfirmText')}
+            onCancel={() => setResendConfirm(false)}
+            onConfirm={handleResend}
+            cancelLabel={tCommon('cancel')}
+            confirmLabel={resending ? tCommon('submitting') : t('invitationResend')}
+            confirmDisabled={resending}
+          />
+
+          <ConfirmModal
+            open={cancelConfirm}
+            title={t('invitationCancelConfirmTitle')}
+            message={t('invitationCancelConfirmText')}
+            onCancel={() => setCancelConfirm(false)}
+            onConfirm={handleCancel}
+            cancelLabel={tCommon('cancel')}
+            confirmLabel={cancelling ? tCommon('submitting') : t('invitationCancel')}
+            confirmDisabled={cancelling}
+            confirmVariant="danger"
+          />
+        </>
       )}
-    </div>
+    </EntityViewLayout>
   );
 }

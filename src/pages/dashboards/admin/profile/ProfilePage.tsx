@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { getMe, patchMe } from '../../../../shared/api';
 import type { AccountUserDto, UpdateProfileRequest } from '../../../../shared/api';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getRoleLabelKey, getDisplayName } from '../accounts/utils';
+import { getDisplayName } from '../../../../shared/lib';
+import { getRoleLabelKey } from '../accounts/utils';
 
 type EditableField = 'firstName' | 'lastName' | 'phone' | 'birthDate';
 
@@ -146,7 +147,7 @@ export function ProfilePage() {
       <div className="profile-page">
         <div className="department-alert department-alert--error">{error}</div>
         <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
+          {tCommon('back')}
         </Link>
       </div>
     );
@@ -229,7 +230,7 @@ export function ProfilePage() {
       <header className="profile-header">
         <h1 className="profile-title">{t('profilePageTitle', { name: displayName })}</h1>
         <Link to="/dashboards/admin/departments" className="btn-secondary">
-          {t('backToList')}
+          {tCommon('back')}
         </Link>
       </header>
 

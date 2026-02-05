@@ -62,7 +62,7 @@ export function DepartmentViewPage() {
       notFoundMessage={t('departmentNotFound')}
       errorMessage={error ?? t('dataNotLoaded')}
       backTo="/dashboards/admin/departments"
-      backLabel={t('backToList')}
+      backLabel={tCommon('back')}
       viewOnly={!canEdit}
       viewOnlyMessage={t('viewOnlyNotice')}
       title={data ? t('viewPageTitle', { name: data.name }) : ''}

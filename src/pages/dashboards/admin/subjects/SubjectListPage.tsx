@@ -10,12 +10,10 @@ import {
 } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
+import { truncate } from '../../../../shared/lib';
+import { EntityListLayout } from '../../../../widgets/entity-list-layout';
+import { ConfirmModal } from '../../../../shared/ui';
 import { getAssessmentTypeDisplayName } from './utils';
-
-function truncate(str: string | null, max: number): string {
-  if (!str) return '—';
-  return str.length <= max ? str : str.slice(0, max) + '…';
-}
 
 export function SubjectListPage() {
   const navigate = useNavigate();
@@ -134,34 +132,26 @@ export function SubjectListPage() {
   const tCommon = useTranslation('common').t;
 
   return (
-    <div className="department-page subject-page">
-      <h1 className="department-page-title">{t('subjectManagement')}</h1>
-      <p className="department-page-subtitle">{t('subjectSubtitle')}</p>
-
-      {!canEdit && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('viewOnlyNotice')}
-        </div>
-      )}
-      {actionUnavailableNotice && (
-        <div className="department-alert department-alert--info" role="alert">
-          {t('actionUnavailableForRole')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="department-alert department-alert--success" role="status">
-          {success}
-        </div>
-      )}
-
-      {/* ——— Disciplines (Subjects) ——— */}
-      <section className="department-table-wrap" style={{ marginBottom: '2.5rem' }}>
-        <h2 className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+    <EntityListLayout
+      title={t('subjectManagement')}
+      subtitle={t('subjectSubtitle')}
+      viewOnly={!canEdit}
+      viewOnlyMessage={t('viewOnlyNotice')}
+      actionUnavailable={actionUnavailableNotice}
+      actionUnavailableMessage={t('actionUnavailableForRole')}
+      error={error}
+      success={success}
+      showToolbar={false}
+      searchValue=""
+      onSearchChange={() => {}}
+      searchPlaceholder=""
+      createTo="/dashboards/admin/subjects/new"
+      createLabel={t('subjectCreate')}
+      showCreate={false}
+    >
+      {/* Секция «Дисциплины»: заголовок и тулбар вне карточки */}
+      <section style={{ marginBottom: '2.5rem' }} aria-labelledby="subjects-section-title">
+        <h2 id="subjects-section-title" className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
           {t('subjectSectionDisciplines')}
         </h2>
         <p className="department-page-subtitle" style={{ marginBottom: '1rem' }}>
@@ -185,15 +175,14 @@ export function SubjectListPage() {
             </Link>
           )}
         </div>
+        <div className="department-table-wrap">
         {loadingSubjects ? (
           <div className="department-empty">
             <p>{t('loadingList')}</p>
           </div>
         ) : filteredSubjects.length === 0 ? (
           <div className="department-empty">
-            <p>
-              {subjects.length === 0 ? t('subjectNoItems') : t('noResults')}
-            </p>
+            <p>{subjects.length === 0 ? t('subjectNoItems') : t('noResults')}</p>
             {subjects.length === 0 && canEdit && (
               <Link to="/dashboards/admin/subjects/new" className="department-page-create">
                 {t('subjectAddFirst')}
@@ -273,11 +262,12 @@ export function SubjectListPage() {
             </tbody>
           </table>
         )}
+        </div>
       </section>
 
-      {/* ——— Assessment types ——— */}
-      <section className="department-table-wrap">
-        <h2 className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+      {/* Секция «Типы контроля»: заголовок и тулбар вне карточки */}
+      <section style={{ marginTop: '2.5rem' }} aria-labelledby="assessment-types-section-title">
+        <h2 id="assessment-types-section-title" className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
           {t('subjectSectionAssessmentTypes')}
         </h2>
         <p className="department-page-subtitle" style={{ marginBottom: '1rem' }}>
@@ -301,15 +291,14 @@ export function SubjectListPage() {
             </Link>
           )}
         </div>
+        <div className="department-table-wrap">
         {loadingTypes ? (
           <div className="department-empty">
             <p>{t('loadingList')}</p>
           </div>
         ) : filteredTypes.length === 0 ? (
           <div className="department-empty">
-            <p>
-              {assessmentTypes.length === 0 ? t('subjectAssessmentTypeNoItems') : t('noResults')}
-            </p>
+            <p>{assessmentTypes.length === 0 ? t('subjectAssessmentTypeNoItems') : t('noResults')}</p>
             {assessmentTypes.length === 0 && canEdit && (
               <Link to="/dashboards/admin/subjects/assessment-types/new" className="department-page-create">
                 {t('subjectAssessmentTypeAddFirst')}
@@ -376,63 +365,30 @@ export function SubjectListPage() {
             </tbody>
           </table>
         )}
+        </div>
       </section>
 
-      {/* Delete subject modal */}
-      {deleteSubjectId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteSubjectId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('subjectDeleteConfirmTitle')}</h3>
-            <p>{t('subjectDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setDeleteSubjectId(null)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deletingSubject}
-                onClick={() => handleDeleteSubject(deleteSubjectId)}
-              >
-                {deletingSubject ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={deleteSubjectId != null}
+        title={t('subjectDeleteConfirmTitle')}
+        message={t('subjectDeleteConfirmText')}
+        onCancel={() => setDeleteSubjectId(null)}
+        onConfirm={() => deleteSubjectId != null && handleDeleteSubject(deleteSubjectId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deletingSubject ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deletingSubject}
+      />
 
-      {/* Delete assessment type modal */}
-      {deleteTypeId && (
-        <div
-          className="department-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setDeleteTypeId(null)}
-        >
-          <div className="department-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('subjectAssessmentTypeDeleteConfirmTitle')}</h3>
-            <p>{t('subjectAssessmentTypeDeleteConfirmText')}</p>
-            <div className="department-modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setDeleteTypeId(null)}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                disabled={deletingType}
-                onClick={() => handleDeleteType(deleteTypeId)}
-              >
-                {deletingType ? tCommon('submitting') : tCommon('delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmModal
+        open={deleteTypeId != null}
+        title={t('subjectAssessmentTypeDeleteConfirmTitle')}
+        message={t('subjectAssessmentTypeDeleteConfirmText')}
+        onCancel={() => setDeleteTypeId(null)}
+        onConfirm={() => deleteTypeId != null && handleDeleteType(deleteTypeId)}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={deletingType ? tCommon('submitting') : tCommon('delete')}
+        confirmDisabled={deletingType}
+      />
+    </EntityListLayout>
   );
 }

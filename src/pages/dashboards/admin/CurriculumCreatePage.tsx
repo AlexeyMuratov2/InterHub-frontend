@@ -121,7 +121,7 @@ export function CurriculumCreatePage() {
       <div className="department-form-page">
         <div className="department-alert department-alert--error">{t('curriculumErrorProgramNotFound')}</div>
         <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
+          {tCommon('back')}
         </Link>
       </div>
     );

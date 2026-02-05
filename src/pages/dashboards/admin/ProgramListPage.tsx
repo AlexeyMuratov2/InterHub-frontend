@@ -12,15 +12,11 @@ import {
 } from '../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../shared/i18n';
+import { truncate } from '../../../shared/lib';
 import { EntityListLayout } from '../../../widgets/entity-list-layout';
 import { Alert, ConfirmModal } from '../../../shared/ui';
 
 type CurriculumWithProgram = CurriculumDto & { programName: string; programCode: string };
-
-function truncate(str: string | null, max: number): string {
-  if (!str) return '—';
-  return str.length <= max ? str : str.slice(0, max) + '…';
-}
 
 export function ProgramListPage() {
   const navigate = useNavigate();
@@ -210,7 +206,7 @@ export function ProgramListPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="department-empty">
-            <p>            {list.length === 0 ? t('programNoPrograms') : t('noResults')}</p>
+            <p>{list.length === 0 ? t('programNoPrograms') : t('noResults')}</p>
             {list.length === 0 && canEdit && (
               <Link to="/dashboards/admin/programs/new" className="department-page-create">
                 {t('programAdd')}
@@ -303,14 +299,15 @@ export function ProgramListPage() {
         confirmDisabled={deleting}
       />
 
-      <section className="department-table-wrap" style={{ marginTop: '2.5rem' }}>
-        <h2 className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+      {/* Секция «Учебные планы»: заголовок и тулбар вне карточки, как на странице программ */}
+      <section style={{ marginTop: '2.5rem' }} aria-labelledby="curriculum-section-title">
+        <h2 id="curriculum-section-title" className="department-page-title" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
           {t('curriculumSectionTitle')}
         </h2>
         <p className="department-page-subtitle" style={{ marginBottom: '1rem' }}>
           {t('curriculumSectionSubtitle')}
         </p>
-        {curriculaError && (
+        {curriculaError != null && curriculaError !== '' && (
           <div style={{ marginBottom: '1rem' }}>
             <Alert variant="error" role="alert">
               {curriculaError}
@@ -362,6 +359,7 @@ export function ProgramListPage() {
             )}
           </div>
         </div>
+        <div className="department-table-wrap">
         {curriculaLoading ? (
           <div className="department-empty">
             <p>{t('loadingList')}</p>
@@ -455,6 +453,7 @@ export function ProgramListPage() {
             </tbody>
           </table>
         )}
+        </div>
       </section>
 
       <ConfirmModal

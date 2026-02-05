@@ -9,7 +9,8 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../subjects/utils';
+import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
+import { PageMessage, FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
 type FormErrors = Partial<Record<keyof CreateCurriculumSubjectRequest, string>>;
 
@@ -186,42 +187,32 @@ export function CurriculumSubjectCreatePage() {
 
   if (!canEdit) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">
-          {t('actionUnavailableForRole')}
-        </div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('actionUnavailableForRole')}
+        backTo="/dashboards/admin/programs"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
   if (loading) {
-    return (
-      <div className="department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loadingList')}</p>
-        </div>
-      </div>
-    );
+    return <PageMessage variant="loading" message={t('loadingList')} />;
   }
 
   if (notFound) {
     return (
-      <div className="department-form-page">
-        <div className="department-alert department-alert--error">
-          {t('curriculumNotFoundOrDeleted')}
-        </div>
-        <Link to="/dashboards/admin/programs" className="btn-secondary">
-          {t('programBackToList')}
-        </Link>
-      </div>
+      <PageMessage
+        variant="error"
+        message={t('curriculumNotFoundOrDeleted')}
+        backTo="/dashboards/admin/programs"
+        backLabel={tCommon('back')}
+      />
     );
   }
 
   return (
-    <div className="department-form-page curriculum-subject-form-page">
+    <div className="curriculum-subject-form-page">
       <div className="curriculum-subjects-breadcrumb">
         <Link to="/dashboards/admin/programs">{t('menuProgramsAndCurricula')}</Link>
         <span className="breadcrumb-separator">/</span>
@@ -238,42 +229,43 @@ export function CurriculumSubjectCreatePage() {
         <span className="breadcrumb-current">{t('curriculumSubjectCreatePageTitle')}</span>
       </div>
 
-      <h1 className="department-form-title">{t('curriculumSubjectCreatePageTitle')}</h1>
-      <p className="department-page-subtitle">
-        {program?.name} • {curriculum?.version} ({curriculum?.startYear}–{curriculum?.endYear ?? '...'})
-      </p>
+      <FormPageLayout
+        title={t('curriculumSubjectCreatePageTitle')}
+        error={error}
+        onSubmit={handleSubmit}
+      >
+        <p className="department-page-subtitle">
+          {program?.name} • {curriculum?.version} ({curriculum?.startYear}–{curriculum?.endYear ?? '...'})
+        </p>
 
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-
-      <form className="department-form curriculum-subject-form" onSubmit={handleSubmit}>
         {/* Выбор предмета */}
         <section className="form-section">
           <h2 className="form-section-title">{t('curriculumSubjectSectionSelectSubject')}</h2>
-          
-          <div className="form-group">
-            <label className="form-label">{t('curriculumSubjectSubjectSearch')}</label>
+
+          <FormGroup label={t('curriculumSubjectSubjectSearch')} htmlFor="cs-create-subject-search">
             <input
+              id="cs-create-subject-search"
               type="search"
               className="department-page-search"
               placeholder={t('curriculumSubjectSubjectSearchPlaceholder')}
               value={subjectSearch}
               onChange={(e) => setSubjectSearch(e.target.value)}
             />
-          </div>
+          </FormGroup>
 
-          <div className="form-group">
-            <label className="form-label">
-              {t('curriculumSubjectSubject')} <span className="required">*</span>
-            </label>
+          <FormGroup
+            label={t('curriculumSubjectSubject')}
+            htmlFor="cs-create-subjectId"
+            error={errors.subjectId}
+            required
+          >
             <select
+              id="cs-create-subjectId"
               className="department-form-select"
               value={subjectId}
               onChange={(e) => setSubjectId(e.target.value)}
               required
+              aria-invalid={!!errors.subjectId}
             >
               <option value="">{t('curriculumSubjectSelectSubject')}</option>
               {filteredSubjects.map((s) => (
@@ -282,8 +274,7 @@ export function CurriculumSubjectCreatePage() {
                 </option>
               ))}
             </select>
-            {errors.subjectId && <span className="field-error">{errors.subjectId}</span>}
-          </div>
+          </FormGroup>
 
           {selectedSubject && (
             <div className="selected-subject-preview">
@@ -302,13 +293,16 @@ export function CurriculumSubjectCreatePage() {
         {/* Основные параметры */}
         <section className="form-section">
           <h2 className="form-section-title">{t('curriculumSubjectSectionBasicParams')}</h2>
-          
+
           <div className="form-row form-row--3">
-            <div className="form-group">
-              <label className="form-label">
-                {t('curriculumSubjectSemester')} <span className="required">*</span>
-              </label>
+            <FormGroup
+              label={t('curriculumSubjectSemester')}
+              htmlFor="cs-create-semesterNo"
+              error={errors.semesterNo}
+              required
+            >
               <input
+                id="cs-create-semesterNo"
                 type="number"
                 min="1"
                 max="12"
@@ -316,13 +310,13 @@ export function CurriculumSubjectCreatePage() {
                 value={semesterNo}
                 onChange={(e) => setSemesterNo(e.target.value === '' ? '' : Number(e.target.value))}
                 required
+                aria-invalid={!!errors.semesterNo}
               />
-              {errors.semesterNo && <span className="field-error">{errors.semesterNo}</span>}
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectCourseYear')}</label>
+            <FormGroup label={t('curriculumSubjectCourseYear')} htmlFor="cs-create-courseYear">
               <input
+                id="cs-create-courseYear"
                 type="number"
                 min="1"
                 max="6"
@@ -331,13 +325,16 @@ export function CurriculumSubjectCreatePage() {
                 onChange={(e) => setCourseYear(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder={t('curriculumSubjectCourseYearPlaceholder')}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">
-                {t('curriculumSubjectDurationWeeks')} <span className="required">*</span>
-              </label>
+            <FormGroup
+              label={t('curriculumSubjectDurationWeeks')}
+              htmlFor="cs-create-durationWeeks"
+              error={errors.durationWeeks}
+              required
+            >
               <input
+                id="cs-create-durationWeeks"
                 type="number"
                 min="1"
                 max="52"
@@ -345,21 +342,25 @@ export function CurriculumSubjectCreatePage() {
                 value={durationWeeks}
                 onChange={(e) => setDurationWeeks(e.target.value === '' ? '' : Number(e.target.value))}
                 required
+                aria-invalid={!!errors.durationWeeks}
               />
-              {errors.durationWeeks && <span className="field-error">{errors.durationWeeks}</span>}
-            </div>
+            </FormGroup>
           </div>
 
           <div className="form-row form-row--2">
-            <div className="form-group">
-              <label className="form-label">
-                {t('curriculumSubjectAssessmentType')} <span className="required">*</span>
-              </label>
+            <FormGroup
+              label={t('curriculumSubjectAssessmentType')}
+              htmlFor="cs-create-assessmentTypeId"
+              error={errors.assessmentTypeId}
+              required
+            >
               <select
+                id="cs-create-assessmentTypeId"
                 className="department-form-select"
                 value={assessmentTypeId}
                 onChange={(e) => setAssessmentTypeId(e.target.value)}
                 required
+                aria-invalid={!!errors.assessmentTypeId}
               >
                 <option value="">{t('curriculumSubjectSelectAssessmentType')}</option>
                 {assessmentTypes.map((at) => (
@@ -368,12 +369,11 @@ export function CurriculumSubjectCreatePage() {
                   </option>
                 ))}
               </select>
-              {errors.assessmentTypeId && <span className="field-error">{errors.assessmentTypeId}</span>}
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectCredits')}</label>
+            <FormGroup label={t('curriculumSubjectCredits')} htmlFor="cs-create-credits">
               <input
+                id="cs-create-credits"
                 type="number"
                 step="0.5"
                 min="0"
@@ -383,120 +383,114 @@ export function CurriculumSubjectCreatePage() {
                 onChange={(e) => setCredits(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder={t('curriculumSubjectCreditsPlaceholder')}
               />
-            </div>
+            </FormGroup>
           </div>
         </section>
 
         {/* Часы */}
         <section className="form-section">
           <h2 className="form-section-title">{t('curriculumSubjectSectionHours')}</h2>
-          
+
           <div className="form-row form-row--4">
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursTotal')}</label>
+            <FormGroup label={t('curriculumSubjectHoursTotal')} htmlFor="cs-create-hoursTotal">
               <input
+                id="cs-create-hoursTotal"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursTotal}
                 onChange={(e) => setHoursTotal(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursLecture')}</label>
+            <FormGroup label={t('curriculumSubjectHoursLecture')} htmlFor="cs-create-hoursLecture">
               <input
+                id="cs-create-hoursLecture"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursLecture}
                 onChange={(e) => setHoursLecture(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursPractice')}</label>
+            <FormGroup label={t('curriculumSubjectHoursPractice')} htmlFor="cs-create-hoursPractice">
               <input
+                id="cs-create-hoursPractice"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursPractice}
                 onChange={(e) => setHoursPractice(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursLab')}</label>
+            <FormGroup label={t('curriculumSubjectHoursLab')} htmlFor="cs-create-hoursLab">
               <input
+                id="cs-create-hoursLab"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursLab}
                 onChange={(e) => setHoursLab(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
           </div>
 
           <div className="form-row form-row--4">
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursSeminar')}</label>
+            <FormGroup label={t('curriculumSubjectHoursSeminar')} htmlFor="cs-create-hoursSeminar">
               <input
+                id="cs-create-hoursSeminar"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursSeminar}
                 onChange={(e) => setHoursSeminar(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursSelfStudy')}</label>
+            <FormGroup label={t('curriculumSubjectHoursSelfStudy')} htmlFor="cs-create-hoursSelfStudy">
               <input
+                id="cs-create-hoursSelfStudy"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursSelfStudy}
                 onChange={(e) => setHoursSelfStudy(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursConsultation')}</label>
+            <FormGroup label={t('curriculumSubjectHoursConsultation')} htmlFor="cs-create-hoursConsultation">
               <input
+                id="cs-create-hoursConsultation"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursConsultation}
                 onChange={(e) => setHoursConsultation(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label className="form-label">{t('curriculumSubjectHoursCourseWork')}</label>
+            <FormGroup label={t('curriculumSubjectHoursCourseWork')} htmlFor="cs-create-hoursCourseWork">
               <input
+                id="cs-create-hoursCourseWork"
                 type="number"
                 min="0"
                 className="department-form-input"
                 value={hoursCourseWork}
                 onChange={(e) => setHoursCourseWork(e.target.value === '' ? '' : Number(e.target.value))}
               />
-            </div>
+            </FormGroup>
           </div>
         </section>
 
-        {/* Кнопки */}
-        <div className="department-form-actions">
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? tCommon('submitting') : t('curriculumSubjectCreate')}
-          </button>
-          <Link
-            to={`/dashboards/admin/programs/curricula/${curriculumId}/subjects`}
-            className="btn-secondary"
-          >
-            {tCommon('cancel')}
-          </Link>
-        </div>
-      </form>
+        <FormActions
+          submitLabel={submitting ? tCommon('submitting') : t('curriculumSubjectCreate')}
+          submitting={submitting}
+          cancelLabel={tCommon('cancel')}
+          cancelTo={`/dashboards/admin/programs/curricula/${curriculumId}/subjects`}
+        />
+      </FormPageLayout>
     </div>
   );
 }

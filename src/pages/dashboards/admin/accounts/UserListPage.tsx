@@ -3,12 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { listUsers, type AccountUserDto } from '../../../../shared/api';
 import { useCanManageAccounts } from '../../../../app/hooks/useCanManageAccounts';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getRoleLabelKey, getDisplayName } from './utils';
-
-function truncate(str: string, max: number): string {
-  if (!str) return '—';
-  return str.length <= max ? str : str.slice(0, max) + '…';
-}
+import { getDisplayName, truncate } from '../../../../shared/lib';
+import { EntityListLayout } from '../../../../widgets/entity-list-layout';
+import { getRoleLabelKey } from './utils';
 
 export function UserListPage() {
   const navigate = useNavigate();
@@ -86,36 +83,22 @@ export function UserListPage() {
   }, [list, search]);
 
   return (
-    <div className="department-page invitation-page account-page">
-      <h1 className="department-page-title">{t('accountManagement')}</h1>
-      <p className="department-page-subtitle">{t('accountSubtitle')}</p>
-
-      {!canManage && (
-        <div className="department-alert department-alert--info" role="status">
-          {t('accountViewOnlyHint')}
-        </div>
-      )}
-      {error && (
-        <div className="department-alert department-alert--error" role="alert">
-          {error}
-        </div>
-      )}
-
+    <EntityListLayout
+      title={t('accountManagement')}
+      subtitle={t('accountSubtitle')}
+      viewOnly={!canManage}
+      viewOnlyMessage={t('accountViewOnlyHint')}
+      error={error}
+      success={null}
+      showToolbar={canManage}
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t('accountSearch')}
+      searchAriaLabel={t('accountSearch')}
+      showCreate={false}
+    >
       {canManage && (
         <>
-          <div className="department-page-toolbar">
-            <div className="department-page-search-wrap">
-              <input
-                type="search"
-                className="department-page-search"
-                placeholder={t('accountSearch')}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label={t('accountSearch')}
-              />
-            </div>
-          </div>
-
           <div className="department-table-wrap">
             {loading ? (
               <div className="department-empty">
@@ -236,6 +219,6 @@ export function UserListPage() {
           )}
         </>
       )}
-    </div>
+    </EntityListLayout>
   );
 }
