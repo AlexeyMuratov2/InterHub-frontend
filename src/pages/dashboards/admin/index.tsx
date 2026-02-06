@@ -48,6 +48,14 @@ export {
   AssessmentTypeEditPage,
 } from './subjects';
 
+/** Страницы админ-дашборда: модуль System settings (учебный календарь) */
+export {
+  SystemSettingsPage,
+  AcademicYearViewPage,
+  AcademicYearCreatePage,
+  AcademicYearEditPage,
+} from './system-settings';
+
 /** Для реестра дашбордов: редирект на список отделов (основной экран админки) */
 export function AdminDashboardPage() {
   return <Navigate to="/dashboards/admin/departments" replace />;

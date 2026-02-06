@@ -103,6 +103,14 @@ export function canEditInAdmin(roles: string[]): boolean {
   return roles.some((r) => ADMIN_EDIT_ROLES.includes(r as Role));
 }
 
+/** Роли, которым разрешено удалять сущности в админ-дашборде (только ADMIN, SUPER_ADMIN; MODERATOR не может удалять) */
+export const ADMIN_DELETE_ROLES: Role[] = [ROLES.SUPER_ADMIN, ROLES.ADMIN];
+
+/** Есть ли у пользователя право удалять в админ-дашборде (например академические годы, семестры) */
+export function canDeleteInAdmin(roles: string[]): boolean {
+  return roles.some((r) => ADMIN_DELETE_ROLES.includes(r as Role));
+}
+
 /** По списку ролей возвращает уникальный список доступных дашбордов */
 export function getAvailableDashboards(roles: string[]): DashboardKind[] {
   const set = new Set<DashboardKind>();

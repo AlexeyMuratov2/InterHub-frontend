@@ -34,6 +34,10 @@ import {
   SubjectEditPage,
   AssessmentTypeCreatePage,
   AssessmentTypeEditPage,
+  SystemSettingsPage,
+  AcademicYearViewPage,
+  AcademicYearCreatePage,
+  AcademicYearEditPage,
 } from './pages/dashboards/admin';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
@@ -69,6 +73,10 @@ function App() {
             }
           >
             <Route index element={<Navigate to="departments" replace />} />
+            <Route path="settings" element={<SystemSettingsPage />} />
+            <Route path="settings/years/new" element={<AcademicYearCreatePage />} />
+            <Route path="settings/years/:id" element={<AcademicYearViewPage />} />
+            <Route path="settings/years/:id/edit" element={<AcademicYearEditPage />} />
             <Route path="departments" element={<DepartmentListPage />} />
             <Route path="departments/new" element={<DepartmentCreatePage />} />
             <Route path="departments/:id" element={<DepartmentViewPage />} />

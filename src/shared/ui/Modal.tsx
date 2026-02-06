@@ -9,6 +9,8 @@ export interface ModalProps {
   children: ReactNode;
   /** 'form' – wider modal with form spacing */
   variant?: 'default' | 'form';
+  /** Optional extra class for the modal box (e.g. academic-semester-modal) */
+  modalClassName?: string;
 }
 
 export function Modal({
@@ -18,13 +20,16 @@ export function Modal({
   titleId = 'modal-title',
   children,
   variant = 'default',
+  modalClassName,
 }: ModalProps) {
   if (!open) return null;
 
-  const modalClass =
-    variant === 'form'
-      ? 'department-modal department-modal--form'
-      : 'department-modal';
+  const modalClass = [
+    variant === 'form' ? 'department-modal department-modal--form' : 'department-modal',
+    modalClassName,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div

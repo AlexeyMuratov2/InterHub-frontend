@@ -1371,6 +1371,9 @@ img.app-dashboard-sidebar-logo {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .department-modal {
@@ -1379,6 +1382,9 @@ img.app-dashboard-sidebar-logo {
   padding: 1.5rem 1.75rem;
   max-width: 400px;
   width: 90%;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  margin: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
 }
 
@@ -2720,4 +2726,162 @@ img.app-dashboard-sidebar-logo {
   .curriculum-subjects-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/* ——— System settings: academic summary ——— */
+.academic-summary-section {
+  margin-bottom: 2rem;
+}
+
+.academic-summary-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 0.75rem 0;
+}
+
+.academic-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.academic-summary-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.academic-summary-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.academic-summary-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.academic-summary-meta {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.academic-summary-muted {
+  font-size: 0.9375rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.academic-years-section {
+  margin-top: 1.5rem;
+}
+
+.academic-years-section .department-page-title {
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.academic-years-section .department-page-subtitle {
+  margin-bottom: 1rem;
+}
+
+.academic-semesters-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+}
+
+/* Страница просмотра года: информация о годе сверху, таблица семестров снизу, без вложенных блоков */
+.academic-view-message {
+  margin-bottom: 1rem;
+}
+
+.academic-year-info {
+  margin: 1rem 0 1.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+}
+
+.academic-year-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.academic-year-info-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.academic-year-info-value {
+  font-size: 0.9375rem;
+  color: #1e293b;
+}
+
+.academic-semesters-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.academic-semesters-toolbar {
+  margin-bottom: 1rem;
+}
+
+/* ——— Модалка создания/редактирования семестра: в стиле приложения ——— */
+.academic-semester-modal.department-modal--form {
+  max-width: 480px;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  margin: auto;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+.academic-semester-modal .department-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.academic-semester-modal .department-modal-body .department-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.academic-semester-modal .department-modal-body .form-group {
+  margin-bottom: 1rem;
+}
+
+.academic-semester-modal .department-modal-body .form-group:last-of-type {
+  margin-bottom: 1.25rem;
+}
+
+.academic-semester-modal .department-modal-body .form-row--2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.academic-semester-modal .department-form-actions {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }

@@ -14,6 +14,7 @@ const ADMIN_MENU = [
   { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false },
   { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
   { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false },
+  { path: '/dashboards/admin/settings', labelKey: 'menuSystemSettings', end: false },
 ] as const;
 
 /** Layout дашборда: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -30,6 +31,7 @@ export function DashboardLayout() {
   const isInvitations = location.pathname.startsWith('/dashboards/admin/invitations');
   const isAccounts = location.pathname.startsWith('/dashboards/admin/accounts');
   const isProfile = location.pathname.startsWith('/dashboards/admin/profile');
+  const isSettings = location.pathname.startsWith('/dashboards/admin/settings');
 
   const headerSectionTitle = isProfile
     ? t('profilePageTitleShort')
@@ -45,13 +47,16 @@ export function DashboardLayout() {
             ? t('menuInvitations')
             : isAccounts
               ? t('accountManagement')
-              : t('menuDashboard');
+              : isSettings
+                ? t('menuSystemSettings')
+                : t('menuDashboard');
 
   const showHeaderCreate =
     (canEdit && isDepartments) ||
     (canEdit && isPrograms) ||
     (canEdit && isGroups) ||
     (canEdit && isSubjects) ||
+    (canEdit && isSettings) ||
     (isInvitations && canManageInvitations);
 
   const headerCreateLink = isDepartments
@@ -62,7 +67,9 @@ export function DashboardLayout() {
         ? '/dashboards/admin/groups/new'
         : isSubjects
           ? '/dashboards/admin/subjects/new'
-          : '/dashboards/admin/invitations/new';
+          : isSettings
+            ? '/dashboards/admin/settings/years/new'
+            : '/dashboards/admin/invitations/new';
 
   return (
     <div className="app-dashboard-layout">
