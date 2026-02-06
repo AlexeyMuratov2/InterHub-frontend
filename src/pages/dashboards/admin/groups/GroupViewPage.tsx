@@ -5,6 +5,7 @@ import {
   fetchGroupMembers,
   fetchGroupLeaders,
   addGroupLeader,
+  deleteGroupLeader,
   addGroupMembersBulk,
   removeGroupMember,
   type StudentGroupDto,
@@ -44,7 +45,7 @@ export function GroupViewPage() {
 
   // Assign leader dialog (modal)
   const [assignLeaderMember, setAssignLeaderMember] = useState<GroupMemberDto | null>(null);
-  const [assignLeaderRole, setAssignLeaderRole] = useState<'headman' | 'deputy'>('headman');
+  const [assignLeaderRole, setAssignLeaderRole] = useState<'' | 'headman' | 'deputy'>('headman');
   const [assignLeaderFromDate, setAssignLeaderFromDate] = useState('');
   const [assignLeaderToDate, setAssignLeaderToDate] = useState('');
   const [assignLeaderSubmitting, setAssignLeaderSubmitting] = useState(false);
@@ -139,11 +140,48 @@ export function GroupViewPage() {
     return map;
   }, [leaders, t]);
 
+  // studentId -> leader records (for removal in modal)
+  const leadersByStudentId = useMemo(() => {
+    const map: Record<string, GroupLeaderDetailDto[]> = {};
+    leaders.forEach((l) => {
+      if (!map[l.studentId]) map[l.studentId] = [];
+      map[l.studentId].push(l);
+    });
+    return map;
+  }, [leaders]);
+
   const handleAssignLeader = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !assignLeaderMember) return;
     setAssignLeaderSubmitting(true);
     setAssignLeaderError(null);
+
+    if (assignLeaderRole === '') {
+      // Снять роль: удалить все записи старосты для этого студента
+      const records = leadersByStudentId[assignLeaderMember.student.id];
+      if (!records?.length) {
+        setAssignLeaderError(t('groupLeadersEmpty'));
+        setAssignLeaderSubmitting(false);
+        return;
+      }
+      for (const record of records) {
+        const { error: err } = await deleteGroupLeader(record.id);
+        if (err) {
+          setAssignLeaderError(err.message ?? t('groupErrorRemoveLeader'));
+          setAssignLeaderSubmitting(false);
+          return;
+        }
+      }
+      const { data: list } = await fetchGroupLeaders(id);
+      if (list) setLeaders(list);
+      setAssignLeaderMember(null);
+      setAssignLeaderRole('headman');
+      setAssignLeaderFromDate('');
+      setAssignLeaderToDate('');
+      setAssignLeaderSubmitting(false);
+      return;
+    }
+
     const { error: err } = await addGroupLeader(id, {
       studentId: assignLeaderMember.student.id,
       role: assignLeaderRole,
@@ -222,10 +260,13 @@ export function GroupViewPage() {
       setAddStudentError(err.message ?? t('groupErrorAddStudent'));
       return;
     }
-    // Reload members after adding
-    fetchGroupMembers(id).then(({ data }) => {
-      if (data) setMembers(data);
-    });
+    // Reload members and leaders from DB so the table shows actual roles
+    const [membersRes, leadersRes] = await Promise.all([
+      fetchGroupMembers(id),
+      fetchGroupLeaders(id),
+    ]);
+    if (membersRes.data) setMembers(membersRes.data);
+    if (leadersRes.data) setLeaders(leadersRes.data);
     setAddStudentOpen(false);
     setSelectedStudentIds([]);
   };
@@ -241,7 +282,13 @@ export function GroupViewPage() {
       setRemoveStudentId(null);
       return;
     }
-    setMembers((prev) => prev.filter((m) => m.student.id !== studentId));
+    // Reload members and leaders from DB so the table reflects actual state
+    const [membersRes, leadersRes] = await Promise.all([
+      fetchGroupMembers(id),
+      fetchGroupLeaders(id),
+    ]);
+    if (membersRes.data) setMembers(membersRes.data);
+    if (leadersRes.data) setLeaders(leadersRes.data);
     setRemoveStudentId(null);
   };
 
@@ -482,8 +529,9 @@ export function GroupViewPage() {
             <select
               id="assign-leader-role"
               value={assignLeaderRole}
-              onChange={(e) => setAssignLeaderRole(e.target.value as 'headman' | 'deputy')}
+              onChange={(e) => setAssignLeaderRole(e.target.value as '' | 'headman' | 'deputy')}
             >
+              <option value="">{t('groupRoleNone')}</option>
               <option value="headman">{t('headman')}</option>
               <option value="deputy">{t('deputy')}</option>
             </select>
