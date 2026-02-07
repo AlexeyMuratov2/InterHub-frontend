@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createAcademicYear } from '../../../../entities/academic';
-import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../../shared/i18n';
-import { FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
+import { createAcademicYear } from '../../../../../entities/academic';
+import { useCanEditInAdmin } from '../../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions } from '../../../../../shared/ui';
 
 export function AcademicYearCreatePage() {
   const navigate = useNavigate();

@@ -48,12 +48,15 @@ export {
   AssessmentTypeEditPage,
 } from './subjects';
 
-/** Страницы админ-дашборда: модуль System settings (учебный календарь) */
+/** Страницы админ-дашборда: модуль System settings (учебный календарь, здания и комнаты) */
 export {
   SystemSettingsPage,
   AcademicYearViewPage,
   AcademicYearCreatePage,
   AcademicYearEditPage,
+  BuildingViewPage,
+  BuildingCreatePage,
+  BuildingEditPage,
 } from './system-settings';
 
 /** Для реестра дашбордов: редирект на список отделов (основной экран админки) */

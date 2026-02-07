@@ -38,6 +38,9 @@ import {
   AcademicYearViewPage,
   AcademicYearCreatePage,
   AcademicYearEditPage,
+  BuildingViewPage,
+  BuildingCreatePage,
+  BuildingEditPage,
 } from './pages/dashboards/admin';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
@@ -77,6 +80,9 @@ function App() {
             <Route path="settings/years/new" element={<AcademicYearCreatePage />} />
             <Route path="settings/years/:id" element={<AcademicYearViewPage />} />
             <Route path="settings/years/:id/edit" element={<AcademicYearEditPage />} />
+            <Route path="settings/buildings/new" element={<BuildingCreatePage />} />
+            <Route path="settings/buildings/:id" element={<BuildingViewPage />} />
+            <Route path="settings/buildings/:id/edit" element={<BuildingEditPage />} />
             <Route path="departments" element={<DepartmentListPage />} />
             <Route path="departments/new" element={<DepartmentCreatePage />} />
             <Route path="departments/:id" element={<DepartmentViewPage />} />

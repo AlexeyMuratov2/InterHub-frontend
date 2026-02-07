@@ -7,3 +7,12 @@ export {
   type KnownAssessmentTypeCode,
 } from './assessmentTypeDisplayName';
 export { parseFieldErrors } from './parseFieldErrors';
+export {
+  timeToMinutes,
+  minutesToTime,
+  durationMinutes,
+  getTimeBoundaries,
+  getTimeSegments,
+  buildAxisRange,
+  buildTimeTicks,
+} from './timeUtils';

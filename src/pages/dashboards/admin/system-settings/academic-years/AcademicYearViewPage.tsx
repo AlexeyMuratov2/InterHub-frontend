@@ -9,14 +9,14 @@ import {
   deleteSemester,
   type AcademicYearDto,
   type SemesterDto,
-} from '../../../../entities/academic';
-import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
-import { useCanDeleteInAdmin } from '../../../../app/hooks/useCanDeleteInAdmin';
-import { useTranslation, formatDate } from '../../../../shared/i18n';
-import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
-import { Alert, ConfirmModal, FormGroup, FormActions, Modal } from '../../../../shared/ui';
-import { parseFieldErrors } from '../../../../shared/lib';
-import type { ErrorResponse } from '../../../../shared/api/types';
+} from '../../../../../entities/academic';
+import { useCanEditInAdmin } from '../../../../../app/hooks/useCanEditInAdmin';
+import { useCanDeleteInAdmin } from '../../../../../app/hooks/useCanDeleteInAdmin';
+import { useTranslation, formatDate } from '../../../../../shared/i18n';
+import { EntityViewLayout } from '../../../../../widgets/entity-view-layout';
+import { Alert, ConfirmModal, FormGroup, FormActions, Modal } from '../../../../../shared/ui';
+import { parseFieldErrors } from '../../../../../shared/lib';
+import type { ErrorResponse } from '../../../../../shared/api/types';
 
 export function AcademicYearViewPage() {
   const { id } = useParams<{ id: string }>();

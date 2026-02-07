@@ -1,4 +1,11 @@
 export { SystemSettingsPage } from './SystemSettingsPage';
-export { AcademicYearViewPage } from './AcademicYearViewPage';
-export { AcademicYearCreatePage } from './AcademicYearCreatePage';
-export { AcademicYearEditPage } from './AcademicYearEditPage';
+export {
+  AcademicYearViewPage,
+  AcademicYearCreatePage,
+  AcademicYearEditPage,
+} from './academic-years';
+export {
+  BuildingViewPage,
+  BuildingCreatePage,
+  BuildingEditPage,
+} from './buildings';

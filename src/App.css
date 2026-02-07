@@ -2885,3 +2885,221 @@ img.app-dashboard-sidebar-logo {
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+/* Buildings & rooms (system settings) */
+.buildings-section {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.building-view-message {
+  margin-bottom: 1rem;
+}
+
+.building-rooms-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.building-rooms-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.building-room-modal .department-form,
+.building-room-bulk-modal .department-form {
+  min-width: 20rem;
+}
+
+.building-bulk-textarea {
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.building-bulk-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Timeslots page */
+.timeslots-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.timeslots-page-header .department-page-back {
+  white-space: nowrap;
+}
+
+.timeslot-bulk-hint {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.timeslot-bulk-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.timeslot-bulk-row .form-group {
+  margin-bottom: 0;
+}
+
+.timeslot-bulk-row-actions {
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.5rem;
+}
+
+/* Timeslots section (on System settings page) */
+.timeslots-section {
+  margin-top: 2.5rem;
+}
+
+.timeslots-section-subtitle {
+  margin-bottom: 1rem;
+}
+
+.timeslots-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.timeslots-by-day {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.timeslots-day-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.timeslots-day-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.timeslots-day-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.timeslots-day-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.timeslots-day-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeslots-day-list li {
+  margin-bottom: 0.5rem;
+}
+
+.timeslots-day-list li:last-child {
+  margin-bottom: 0;
+}
+
+.timeslots-slot-button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #334155;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.timeslots-slot-button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.timeslots-slot-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.timeslots-slot-time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Timeslot detail modal */
+.timeslot-detail-modal .department-modal-body {
+  padding-bottom: 0.5rem;
+}
+
+.timeslot-detail-body {
+  margin-bottom: 1rem;
+}
+
+.timeslot-detail-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.timeslot-detail-dl dt {
+  margin: 0;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.timeslot-detail-dl dd {
+  margin: 0;
+  color: #334155;
+}
+
+.timeslot-detail-hint {
+  margin: 1rem 0 0 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.timeslot-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}

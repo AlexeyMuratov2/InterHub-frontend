@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchAcademicYearById, updateAcademicYear } from '../../../../entities/academic';
-import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../../shared/i18n';
-import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
+import { fetchAcademicYearById, updateAcademicYear } from '../../../../../entities/academic';
+import { useCanEditInAdmin } from '../../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../../shared/ui';
 
 export function AcademicYearEditPage() {
   const { id } = useParams<{ id: string }>();

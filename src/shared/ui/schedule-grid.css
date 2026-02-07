@@ -1,0 +1,217 @@
+.schedule-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Sticky header */
+.schedule-grid__header {
+  display: grid;
+  grid-template-columns: var(--schedule-grid-time-col-width, 110px) repeat(7, 1fr);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.schedule-grid__time-header,
+.schedule-grid__day-header {
+  padding: 0.9rem 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.schedule-grid__time-header {
+  border-right: 1px solid #e2e8f0;
+}
+
+.schedule-grid__body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Grid */
+.schedule-grid__grid {
+  display: grid;
+  grid-template-columns: var(--schedule-grid-time-col-width, 110px) repeat(7, 1fr);
+  min-width: 100%;
+}
+
+/* Time column: no vertical padding/transform so tick positions match slot scale */
+.schedule-grid__time-col {
+  position: relative;
+  border-right: 1px solid #e2e8f0;
+  background: #fafbfc;
+}
+
+.schedule-grid__time-axis {
+  position: relative;
+  height: 100%;
+}
+
+.schedule-grid__time-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* ВАЖНО: без translateY(-50%), иначе визуально появляется “съезд” */
+  transform: translateY(-0.5rem);
+  padding: 0 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.schedule-grid__time-empty {
+  height: 140px;
+}
+
+/* Day column */
+.schedule-grid__day-col {
+  position: relative;
+  background: #fff;
+  min-height: 100%;
+}
+
+/* Lines */
+.schedule-grid__grid-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.schedule-grid__grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+/* Slots layer: no vertical padding/transform so slots align with time axis */
+.schedule-grid__slots {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.schedule-grid__slots > * {
+  pointer-events: auto;
+}
+
+/* Slot */
+.schedule-grid__slot {
+  position: absolute;
+  border-radius: 12px;
+  overflow: hidden;
+
+  /* Визуальные “промежутки” без сдвига по времени */
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 1px 3px rgba(0,0,0,0.10);
+
+  background: #e0f2fe;
+  border-left: 5px solid #0284c7;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.schedule-grid__slot[role='button'] {
+  cursor: pointer;
+}
+
+.schedule-grid__slot:hover {
+  background: #bae6fd;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 2px 8px rgba(0,0,0,0.14);
+}
+
+.schedule-grid__slot--overlap {
+  background: #fef9c3;
+  border-left-color: #eab308;
+}
+
+.schedule-grid__slot--overlap:hover {
+  background: #fef08a;
+}
+
+.schedule-grid__slot-inner {
+  position: relative;
+  padding: 0.55rem 0.7rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #0c4a6e;
+  box-sizing: border-box;
+}
+
+.schedule-grid__slot--overlap .schedule-grid__slot-inner {
+  color: #713f12;
+}
+
+.schedule-grid__slot-time {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.schedule-grid__slot-duration {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: rgba(255,255,255,0.92);
+  color: #0369a1;
+  margin-top: 0.35rem;
+}
+
+.schedule-grid__slot--overlap .schedule-grid__slot-duration {
+  color: #a16207;
+}
+
+/* Delete button */
+.schedule-grid__slot-delete {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.92);
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: scale(0.98);
+}
+
+.schedule-grid__slot:hover .schedule-grid__slot-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.schedule-grid__slot-delete:hover {
+  background: rgba(220,38,38,0.14);
+  color: #b91c1c;
+}

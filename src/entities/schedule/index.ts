@@ -1,2 +1,31 @@
-export type { ScheduleItem } from './model';
+export type {
+  ScheduleItem,
+  BuildingDto,
+  RoomDto,
+  CreateBuildingRequest,
+  UpdateBuildingRequest,
+  CreateRoomRequest,
+  UpdateRoomRequest,
+  TimeslotDto,
+  CreateTimeslotRequest,
+} from './model';
 export { fetchSchedule } from './api';
+export {
+  fetchBuildings,
+  fetchBuildingById,
+  createBuilding,
+  updateBuilding,
+  deleteBuilding,
+  fetchRooms,
+  fetchRoomById,
+  createRoom,
+  createRoomsBulk,
+  updateRoom,
+  deleteRoom,
+  fetchTimeslots,
+  fetchTimeslotById,
+  createTimeslot,
+  createTimeslotsBulk,
+  deleteTimeslot,
+  deleteTimeslotsAll,
+} from './api';
