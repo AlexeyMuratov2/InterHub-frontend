@@ -1,0 +1,85 @@
+/* Lesson modal — view and edit, light admin style */
+.lesson-modal .department-modal-body {
+  min-width: 320px;
+  max-width: 560px;
+}
+
+.lesson-modal-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lesson-modal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.lesson-modal-badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.lesson-modal-badge--status {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+
+.lesson-modal-badge--type {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.lesson-modal-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1.25rem;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.lesson-modal-dl dt {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+
+.lesson-modal-dl dd {
+  margin: 0;
+  color: #0f172a;
+}
+
+.lesson-modal-details-muted {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.lesson-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lesson-modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .lesson-modal-form-row {
+    grid-template-columns: 1fr;
+  }
+}

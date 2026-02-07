@@ -9,5 +9,7 @@ export { PageMessage } from './PageMessage';
 export { Drawer } from './Drawer';
 export { ScheduleGrid } from './schedule-grid';
 export type { ScheduleGridProps, ScheduleEvent } from './schedule-grid';
+export { LessonModal } from './lesson-modal';
+export type { LessonModalProps } from './lesson-modal';
 export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
 export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';

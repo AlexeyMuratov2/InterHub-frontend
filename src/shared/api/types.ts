@@ -352,6 +352,27 @@ export interface LessonForScheduleDto {
   subjectName: string | null;
 }
 
+/** Аудитория (RoomDto). GET /api/schedule/rooms */
+export interface RoomDto {
+  id: string;
+  buildingId: string;
+  buildingName: string;
+  number: string;
+  capacity: number | null;
+  type: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Тело PUT /api/schedule/lessons/{id} */
+export interface UpdateLessonRequest {
+  startTime?: string;
+  endTime?: string;
+  roomId?: string | null;
+  topic?: string | null;
+  status?: 'PLANNED' | 'CANCELLED' | 'DONE';
+}
+
 // --- Academic module (GET /api/academic/semesters/by-date) ---
 
 /** Семестр по дате (SemesterDto from by-date endpoint) */

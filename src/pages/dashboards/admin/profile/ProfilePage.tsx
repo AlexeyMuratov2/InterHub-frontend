@@ -135,21 +135,25 @@ export function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="profile-page">
-        <PageMessage variant="loading" message={t('loadingList')} />
+      <div className="profile-page-bg">
+        <div className="profile-page">
+          <PageMessage variant="loading" message={t('loadingList')} />
+        </div>
       </div>
     );
   }
 
   if (error && !profile) {
     return (
-      <div className="profile-page">
-        <PageMessage
-          variant="error"
-          message={error}
-          backTo="/dashboards/admin/departments"
-          backLabel={tCommon('back')}
-        />
+      <div className="profile-page-bg">
+        <div className="profile-page">
+          <PageMessage
+            variant="error"
+            message={error}
+            backTo="/dashboards/admin/departments"
+            backLabel={tCommon('back')}
+          />
+        </div>
       </div>
     );
   }
@@ -217,7 +221,8 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="profile-page">
+    <div className="profile-page-bg">
+      <div className="profile-page">
       {error && (
         <Alert variant="error" role="alert">
           {error}
@@ -236,74 +241,75 @@ export function ProfilePage() {
       </header>
 
       <div className="profile-layout">
-        <div className="profile-column-left">
-          <section className="profile-summary">
-            <div className="profile-avatar" aria-hidden="true">
-              {(displayName || profile.email || 'A').charAt(0).toUpperCase()}
-            </div>
-            <h2 className="profile-summary-name">{displayName}</h2>
-            <p className="profile-summary-email">{profile.email}</p>
-            <div className="profile-summary-roles">
-              {(profile.roles ?? []).map((r) => (
-                <span key={r} className="profile-role-tag">
-                  {t(getRoleLabelKey(r))}
-                </span>
-              ))}
-            </div>
-            <p className="profile-summary-meta">
-              <span className="profile-summary-meta-label">{t('profileMemberSince')}</span>
-              {formatDateTime(profile.createdAt, locale)}
-            </p>
-          </section>
-
-          {managingRoles.length > 0 && (
-            <section className="profile-section profile-section--permissions">
-              <h3 className="profile-section-title profile-section-title--with-icon">
-                <span className="profile-section-title-icon" aria-hidden="true" />
-                {t('profilePermissionsTitle')}
-              </h3>
-              <ul className="profile-permissions-list">
-                {managingRoles.map((role) => (
-                  <li
-                    key={role}
-                    className={`profile-permission ${ROLE_COLOR_CLASS[role] ?? ''}`}
-                  >
-                    <div className="profile-permission-content">
-                      <span className="profile-permission-name">{t(getRoleLabelKey(role))}</span>
-                      <p className="profile-permission-desc">
-                        {t(ROLE_DESC_KEYS[role] ?? 'profilePermissionDefaultDesc')}
-                      </p>
-                    </div>
-                    <span className="profile-permission-badge">{t('profilePermissionActive')}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </div>
-
-        <div className="profile-column-right">
-          <section className="profile-section profile-section--personal">
-            <h3 className="profile-section-title">{t('profileCardPersonal')}</h3>
-            <p className="profile-section-hint">{t('profileDoubleClickToEdit')}</p>
-            <div className="profile-fields">
-              {renderEditableRow('firstName', t('invitationFirstName'), 'text')}
-              {renderEditableRow('lastName', t('invitationLastName'), 'text')}
-              <div className="profile-field">
-                <span className="profile-field-label">{t('invitationEmail')}</span>
-                <span className="profile-field-value profile-field-value--readonly">
-                  {profile.email ?? '—'}
-                </span>
+          <div className="profile-column-left">
+            <section className="profile-summary">
+              <div className="profile-avatar" aria-hidden="true">
+                {(displayName || profile.email || 'A').charAt(0).toUpperCase()}
               </div>
-              {renderEditableRow('phone', t('invitationPhone'), 'text')}
-              {renderEditableRow('birthDate', t('invitationBirthDate'), 'date')}
-            </div>
-            {saving && (
-              <p className="profile-saving" aria-live="polite">
-                {tCommon('submitting')}
+              <h2 className="profile-summary-name">{displayName}</h2>
+              <p className="profile-summary-email">{profile.email}</p>
+              <div className="profile-summary-roles">
+                {(profile.roles ?? []).map((r) => (
+                  <span key={r} className="profile-role-tag">
+                    {t(getRoleLabelKey(r))}
+                  </span>
+                ))}
+              </div>
+              <p className="profile-summary-meta">
+                <span className="profile-summary-meta-label">{t('profileMemberSince')}</span>
+                {formatDateTime(profile.createdAt, locale)}
               </p>
+            </section>
+
+            {managingRoles.length > 0 && (
+              <section className="profile-section profile-section--permissions">
+                <h3 className="profile-section-title profile-section-title--with-icon">
+                  <span className="profile-section-title-icon" aria-hidden="true" />
+                  {t('profilePermissionsTitle')}
+                </h3>
+                <ul className="profile-permissions-list">
+                  {managingRoles.map((role) => (
+                    <li
+                      key={role}
+                      className={`profile-permission ${ROLE_COLOR_CLASS[role] ?? ''}`}
+                    >
+                      <div className="profile-permission-content">
+                        <span className="profile-permission-name">{t(getRoleLabelKey(role))}</span>
+                        <p className="profile-permission-desc">
+                          {t(ROLE_DESC_KEYS[role] ?? 'profilePermissionDefaultDesc')}
+                        </p>
+                      </div>
+                      <span className="profile-permission-badge">{t('profilePermissionActive')}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
-          </section>
+          </div>
+
+          <div className="profile-column-right">
+            <section className="profile-section profile-section--personal">
+              <h3 className="profile-section-title">{t('profileCardPersonal')}</h3>
+              <p className="profile-section-hint">{t('profileDoubleClickToEdit')}</p>
+              <div className="profile-fields">
+                {renderEditableRow('firstName', t('invitationFirstName'), 'text')}
+                {renderEditableRow('lastName', t('invitationLastName'), 'text')}
+                <div className="profile-field">
+                  <span className="profile-field-label">{t('invitationEmail')}</span>
+                  <span className="profile-field-value profile-field-value--readonly">
+                    {profile.email ?? '—'}
+                  </span>
+                </div>
+                {renderEditableRow('phone', t('invitationPhone'), 'text')}
+                {renderEditableRow('birthDate', t('invitationBirthDate'), 'date')}
+              </div>
+              {saving && (
+                <p className="profile-saving" aria-live="polite">
+                  {tCommon('submitting')}
+                </p>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </div>

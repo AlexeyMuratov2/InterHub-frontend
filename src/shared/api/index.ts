@@ -62,9 +62,17 @@ export type {
   RoomSummaryDto,
   TeacherSummaryDto,
   LessonForScheduleDto,
+  RoomDto,
+  UpdateLessonRequest,
   SemesterByDateDto,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';
 
-export { getGroupLessonsWeek } from './schedule';
+export {
+  getGroupLessonsWeek,
+  getLesson,
+  updateLesson,
+  deleteLesson,
+  listRooms,
+} from './schedule';
 export { getSemesterByDate } from './academic';

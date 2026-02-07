@@ -23,6 +23,8 @@ export interface ScheduleGridProps {
   getLessonTypeLabel?: (lessonType: string | null) => string;
   /** Подпись для бейджа "Отменено" при status === CANCELLED */
   getCancelledLabel?: () => string;
+  /** Клик по карточке урока (event содержит meta: LessonForScheduleDto при маппинге из mapLessonsForScheduleToEvents) */
+  onEventClick?: (event: ScheduleEvent) => void;
   /** Минимальное время оси в минутах от полуночи при отсутствии событий (по умолчанию 8*60) */
   defaultAxisMin?: number;
   /** Максимальное время оси в минутах при отсутствии событий (по умолчанию 20*60) */
@@ -39,6 +41,7 @@ export function ScheduleGrid({
   formatTime = defaultFormatTime,
   getLessonTypeLabel,
   getCancelledLabel,
+  onEventClick,
   defaultAxisMin = 8 * 60,
   defaultAxisMax = 20 * 60, // 08:00–20:00 when no events
   height = '480px',
@@ -197,7 +200,9 @@ export function ScheduleGrid({
                     return (
                       <div
                         key={event.id}
-                        className={`schedule-grid__slot ${isOverlap ? 'schedule-grid__slot--overlap' : ''} ${isCancelled ? 'schedule-grid__slot--cancelled' : ''} ${isDone ? 'schedule-grid__slot--done' : ''}`}
+                        role={onEventClick ? 'button' : undefined}
+                        tabIndex={onEventClick ? 0 : undefined}
+                        className={`schedule-grid__slot ${isOverlap ? 'schedule-grid__slot--overlap' : ''} ${isCancelled ? 'schedule-grid__slot--cancelled' : ''} ${isDone ? 'schedule-grid__slot--done' : ''} ${onEventClick ? 'schedule-grid__slot--clickable' : ''}`}
                         style={{
                           top: `${topPct}%`,
                           left: `${leftPct}%`,
@@ -206,6 +211,17 @@ export function ScheduleGrid({
                           boxSizing: 'border-box',
                         }}
                         title={event.title}
+                        onClick={onEventClick ? () => onEventClick(event) : undefined}
+                        onKeyDown={
+                          onEventClick
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  onEventClick(event);
+                                }
+                              }
+                            : undefined
+                        }
                       >
                         <div className="schedule-grid__slot-inner">
                           <div className="schedule-grid__slot-chip-wrap">

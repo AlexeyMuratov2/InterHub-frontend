@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
-import { getGroupLessonsWeek, getSemesterByDate } from '../../../../shared/api';
-import { ScheduleGrid, Alert } from '../../../../shared/ui';
+import { getGroupLessonsWeek, getSemesterByDate, listRooms } from '../../../../shared/api';
+import type { LessonForScheduleDto } from '../../../../shared/api';
+import { ScheduleGrid, Alert, LessonModal } from '../../../../shared/ui';
 import { mapLessonsForScheduleToEvents } from '../../../../shared/lib';
 import { getIsoWeekStart, getIsoWeekEnd } from '../../../../shared/lib';
 
@@ -24,6 +25,9 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
   const [lessonsError, setLessonsError] = useState<string | null>(null);
   const [semesterError, setSemesterError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedLesson, setSelectedLesson] = useState<LessonForScheduleDto | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<Awaited<ReturnType<typeof listRooms>>['data']>(undefined);
   const cacheRef = useRef<Map<string, Awaited<ReturnType<typeof getGroupLessonsWeek>>['data']>>(new Map());
 
   const weekStart = getIsoWeekStart(anchorDate);
@@ -66,6 +70,18 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    listRooms().then((res) => {
+      if (res.data) setRooms(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedLesson || !lessons?.length) return;
+    const next = lessons.find((l) => l.lesson.id === selectedLesson.lesson.id);
+    if (next && next !== selectedLesson) setSelectedLesson(next);
+  }, [lessons, selectedLesson?.lesson.id]);
+
   const handleToday = () => setAnchorDate(todayString());
   const handlePrev = () => {
     const d = new Date(anchorDate + 'T12:00:00');
@@ -94,6 +110,25 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
   const getCancelledLabel = () => t('scheduleSlotCancelled');
 
   const events = lessons ? mapLessonsForScheduleToEvents(lessons) : [];
+
+  const handleEventClick = useCallback((event: { meta?: unknown }) => {
+    const item = event.meta as LessonForScheduleDto | undefined;
+    if (item) {
+      setSuccessMessage(null);
+      setSelectedLesson(item);
+    }
+  }, []);
+
+  const handleLessonUpdated = useCallback(() => {
+    setSuccessMessage(tRef.current('lessonModalSuccessSaved'));
+    loadData();
+  }, [loadData]);
+
+  const handleLessonDeleted = useCallback(() => {
+    setSuccessMessage(tRef.current('lessonModalSuccessDeleted'));
+    setSelectedLesson(null);
+    loadData();
+  }, [loadData]);
 
   return (
     <section className="entity-view-card" style={{ marginTop: '1rem' }}>
@@ -139,6 +174,14 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
         </div>
       )}
 
+      {successMessage && (
+        <div style={{ marginBottom: '1rem' }}>
+          <Alert variant="success" role="status">
+            {successMessage}
+          </Alert>
+        </div>
+      )}
+
       {lessonsError && (
         <div style={{ marginBottom: '1rem' }}>
           <Alert variant="error" role="alert">
@@ -158,7 +201,23 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
           formatTime={formatTime}
           getLessonTypeLabel={getLessonTypeLabel}
           getCancelledLabel={getCancelledLabel}
+          onEventClick={handleEventClick}
           height="520px"
+        />
+      )}
+
+      {selectedLesson && (
+        <LessonModal
+          open={!!selectedLesson}
+          onClose={() => {
+            setSelectedLesson(null);
+            setSuccessMessage(null);
+          }}
+          item={selectedLesson}
+          rooms={rooms ?? []}
+          getLessonTypeLabel={getLessonTypeLabel}
+          onUpdated={handleLessonUpdated}
+          onDeleted={handleLessonDeleted}
         />
       )}
     </section>

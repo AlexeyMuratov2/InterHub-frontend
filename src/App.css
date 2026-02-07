@@ -1860,11 +1860,18 @@ img.app-dashboard-sidebar-logo {
   padding: 0 0 2rem 0;
 }
 
-.app-dashboard-main .profile-page {
+/* Обёртка с фоном на всю ширину экрана */
+.app-dashboard-main .profile-page-bg {
   background: #f1f5f9;
   margin: -1.5rem;
   padding: 1.5rem;
-  min-height: calc(100% + 1.5rem);
+  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
+}
+
+/* Контент профиля по центру с ограничением ширины */
+.profile-page-bg .profile-page {
+  padding-bottom: 2rem;
 }
 
 .profile-header {

@@ -130,6 +130,10 @@
   padding: 0;
 }
 
+.schedule-grid__slot--clickable {
+  cursor: pointer;
+}
+
 .schedule-grid__slot:hover {
   background: #e0f2fe;
   border-color: #bae6fd;
