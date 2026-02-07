@@ -55,5 +55,16 @@ export type {
   StudentDto,
   StudentProfileItem,
   StudentListPage,
+  LessonDto,
+  OfferingSummaryDto,
+  SlotSummaryDto,
+  TeacherRoleDto,
+  RoomSummaryDto,
+  TeacherSummaryDto,
+  LessonForScheduleDto,
+  SemesterByDateDto,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';
+
+export { getGroupLessonsWeek } from './schedule';
+export { getSemesterByDate } from './academic';

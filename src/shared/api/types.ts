@@ -281,3 +281,90 @@ export interface CreateInvitationRequest {
   studentData?: CreateStudentRequest | null;
   teacherData?: CreateTeacherRequest | null;
 }
+
+// --- Schedule module (GET /api/schedule/lessons/week/group/{groupId}, etc.) ---
+
+/** Занятие (LessonDto) */
+export interface LessonDto {
+  id: string;
+  offeringId: string;
+  offeringSlotId: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  roomId: string | null;
+  topic: string | null;
+  status: 'PLANNED' | 'CANCELLED' | 'DONE';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Краткие данные офферинга (OfferingSummaryDto) */
+export interface OfferingSummaryDto {
+  id: string;
+  groupId: string;
+  curriculumSubjectId: string;
+  teacherId: string | null;
+}
+
+/** Слот офферинга (SlotSummaryDto) */
+export interface SlotSummaryDto {
+  id: string;
+  offeringId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  lessonType: string;
+  roomId: string | null;
+  teacherId: string | null;
+  createdAt: string;
+}
+
+/** Учитель с ролью (TeacherRoleDto) */
+export interface TeacherRoleDto {
+  teacherId: string;
+  role: string;
+}
+
+/** Аудитория для отображения (RoomSummaryDto) */
+export interface RoomSummaryDto {
+  id: string;
+  number: string;
+  buildingName: string | null;
+}
+
+/** Преподаватель для отображения (TeacherSummaryDto) */
+export interface TeacherSummaryDto {
+  id: string;
+  displayName: string;
+}
+
+/** Занятие с контекстом для расписания (LessonForScheduleDto) */
+export interface LessonForScheduleDto {
+  lesson: LessonDto;
+  offering: OfferingSummaryDto | null;
+  slot: SlotSummaryDto | null;
+  teachers: TeacherRoleDto[];
+  room: RoomSummaryDto | null;
+  mainTeacher: TeacherSummaryDto | null;
+  subjectName: string | null;
+}
+
+// --- Academic module (GET /api/academic/semesters/by-date) ---
+
+/** Семестр по дате (SemesterDto from by-date endpoint) */
+export interface SemesterByDateDto {
+  id: string;
+  academicYearId: string;
+  number: number;
+  name: string | null;
+  startDate: string;
+  endDate: string;
+  examStartDate: string | null;
+  examEndDate: string | null;
+  weekCount: number | null;
+  isCurrent: boolean;
+  createdAt: string;
+}

@@ -16,3 +16,10 @@ export {
   buildAxisRange,
   buildTimeTicks,
 } from './timeUtils';
+export {
+  mapLessonsForScheduleToEvents,
+  getDisplayTeacher,
+  formatRoomLine,
+  type ScheduleEvent,
+} from './schedule';
+export { getIsoWeekStart, getIsoWeekEnd } from './weekUtils';

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   fetchGroupById,
   fetchGroupMembers,
@@ -21,15 +21,22 @@ import { useTranslation, formatDateTime } from '../../../../shared/i18n';
 import { getDisplayName } from '../../../../shared/lib';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
 import { Alert, ConfirmModal, FormActions, FormGroup, Modal } from '../../../../shared/ui';
+import { GroupScheduleTab } from './GroupScheduleTab';
 
 function memberDisplayName(m: GroupMemberDto): string {
   const n = getDisplayName(m.user.firstName, m.user.lastName, m.user.email ?? '');
   return (n || (m.student.chineseName ?? '—'));
 }
 
+const TAB_MEMBERS = 'members';
+const TAB_SCHEDULE = 'schedule';
+
 export function GroupViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') ?? TAB_MEMBERS;
+  const setTab = (value: string) => setSearchParams({ tab: value });
   const canEdit = useCanEditInAdmin();
   const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
@@ -358,7 +365,52 @@ export function GroupViewPage() {
               </dl>
             </div>
 
-            <section className="entity-view-card">
+            <div className="entity-view-tabs" style={{ marginTop: '1rem' }}>
+              <div role="tablist" className="entity-view-tablist" style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === TAB_MEMBERS}
+                  aria-controls="panel-members"
+                  id="tab-members"
+                  className="entity-view-tab"
+                  style={{
+                    padding: '0.75rem 1.25rem',
+                    border: 'none',
+                    borderBottom: tab === TAB_MEMBERS ? '2px solid #0284c7' : '2px solid transparent',
+                    background: 'none',
+                    cursor: 'pointer',
+                    fontWeight: tab === TAB_MEMBERS ? 600 : 400,
+                    color: tab === TAB_MEMBERS ? '#0284c7' : '#64748b',
+                  }}
+                  onClick={() => setTab(TAB_MEMBERS)}
+                >
+                  {t('groupTabMembers')}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === TAB_SCHEDULE}
+                  aria-controls="panel-schedule"
+                  id="tab-schedule"
+                  className="entity-view-tab"
+                  style={{
+                    padding: '0.75rem 1.25rem',
+                    border: 'none',
+                    borderBottom: tab === TAB_SCHEDULE ? '2px solid #0284c7' : '2px solid transparent',
+                    background: 'none',
+                    cursor: 'pointer',
+                    fontWeight: tab === TAB_SCHEDULE ? 600 : 400,
+                    color: tab === TAB_SCHEDULE ? '#0284c7' : '#64748b',
+                  }}
+                  onClick={() => setTab(TAB_SCHEDULE)}
+                >
+                  {t('groupTabSchedule')}
+                </button>
+              </div>
+              <div id="panel-members" role="tabpanel" aria-labelledby="tab-members" hidden={tab !== TAB_MEMBERS}>
+                {tab === TAB_MEMBERS && (
+            <section className="entity-view-card" style={{ marginTop: 0 }}>
               <h2 className="entity-view-card-title">{t('groupStudentsSection')}</h2>
               {canEdit && (
                 <div style={{ marginBottom: '0.75rem' }}>
@@ -509,6 +561,12 @@ export function GroupViewPage() {
                 </div>
               )}
             </section>
+                )}
+              </div>
+              <div id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule" hidden={tab !== TAB_SCHEDULE}>
+                {tab === TAB_SCHEDULE && id && <GroupScheduleTab groupId={id} />}
+              </div>
+            </div>
           </>
         )}
       </EntityViewLayout>

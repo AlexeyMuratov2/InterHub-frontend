@@ -2680,6 +2680,105 @@ img.app-dashboard-sidebar-logo {
   margin: 0.25rem 0 1rem 0;
 }
 
+/* Вкладка «Расписание» группы: тулбар и блок семестра */
+.schedule-tab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-tab-toolbar input[type="date"] {
+  width: 150px;
+  max-width: 160px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8125rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+}
+
+.schedule-tab-toolbar input[type="date"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.schedule-tab-week-range {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.schedule-tab-toolbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedule-tab-toolbar .btn-schedule-primary {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  transition: background-color 0.15s ease;
+}
+
+.schedule-tab-toolbar .btn-schedule-primary:hover {
+  background: #1d4ed8;
+}
+
+.schedule-tab-toolbar .btn-schedule-secondary {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.schedule-tab-toolbar .btn-schedule-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.schedule-tab-semester {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.schedule-tab-semester strong {
+  font-weight: 600;
+  color: #374151;
+}
+
+.schedule-tab-semester .schedule-tab-semester-muted {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.schedule-tab-empty {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
 .subject-usages-empty {
   padding: 2rem;
   text-align: center;
