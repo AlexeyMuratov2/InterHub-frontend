@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   fetchTimeslots,
   createTimeslot,
@@ -10,18 +10,12 @@ import {
 } from '../../../../../entities/schedule';
 import { useCanEditInAdmin } from '../../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../../shared/i18n';
-import { Alert } from '../../../../../shared/ui';
+import { Alert, TimeslotsByDayGrid } from '../../../../../shared/ui';
 import { SlotDetailModal } from './SlotDetailModal';
 import { AddOneSlotModal } from './AddOneSlotModal';
 import { TimeslotBulkModal } from './TimeslotBulkModal';
 import { DeleteAllSlotsModal } from './DeleteAllSlotsModal';
 import { ConfirmModal } from '../../../../../shared/ui';
-
-/** "HH:mm:ss" or "HH:mm" → "HH:mm" */
-function timeDisplay(s: string): string {
-  if (!s) return '';
-  return s.length > 5 ? s.slice(0, 5) : s;
-}
 
 const DAY_KEYS = ['timeslotDay1', 'timeslotDay2', 'timeslotDay3', 'timeslotDay4', 'timeslotDay5', 'timeslotDay6', 'timeslotDay7'] as const;
 
@@ -61,22 +55,6 @@ export function TimeslotsSection() {
   useEffect(() => {
     loadSlots();
   }, [loadSlots]);
-
-  const slotsByDay = useMemo(() => {
-    const map = new Map<number, TimeslotDto[]>();
-    for (let d = 1; d <= 7; d++) {
-      map.set(d, []);
-    }
-    for (const s of slots) {
-      const list = map.get(s.dayOfWeek) ?? [];
-      list.push(s);
-      map.set(s.dayOfWeek, list);
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => (a.startTime < b.startTime ? -1 : a.startTime > b.startTime ? 1 : 0));
-    }
-    return map;
-  }, [slots]);
 
   const handleCreateOne = async (body: CreateTimeslotRequest) => {
     return createTimeslot(body);
@@ -192,37 +170,13 @@ export function TimeslotsSection() {
       {loading ? (
         <p style={{ color: '#6b7280' }}>{t('loadingList')}</p>
       ) : (
-        <div className="timeslots-by-day">
-          {([1, 2, 3, 4, 5, 6, 7] as const).map((day) => {
-            const daySlots = slotsByDay.get(day) ?? [];
-            const dayLabel = t(DAY_KEYS[day - 1]);
-            return (
-              <div key={day} className="timeslots-day-card">
-                <h3 className="timeslots-day-title">{dayLabel}</h3>
-                {daySlots.length === 0 ? (
-                  <p className="timeslots-day-empty">{t('timeslotNoSlots')}</p>
-                ) : (
-                  <ul className="timeslots-day-list" role="list">
-                    {daySlots.map((slot) => (
-                      <li key={slot.id}>
-                        <button
-                          type="button"
-                          className="timeslots-slot-button"
-                          onClick={() => setDetailSlot(slot)}
-                          aria-label={t('timeslotSlotDetailTitle')}
-                        >
-                          <span className="timeslots-slot-time">
-                            {timeDisplay(slot.startTime)} – {timeDisplay(slot.endTime)}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <TimeslotsByDayGrid
+          slots={slots}
+          getDayLabel={(day) => t(DAY_KEYS[day - 1])}
+          emptyMessage={t('timeslotNoSlots')}
+          onSlotClick={setDetailSlot}
+          ariaLabelForSlot={t('timeslotSlotDetailTitle')}
+        />
       )}
 
       <SlotDetailModal

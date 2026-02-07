@@ -22,6 +22,9 @@ export {
   GroupViewPage,
 } from './groups';
 
+/** Страницы админ-дашборда: Реализация учебного плана (офферинги, слоты, генерация уроков) */
+export { ImplementationPage } from './implementation';
+
 /** Страницы админ-дашборда: модуль Invitations (приглашения) */
 export { InvitationListPage, InvitationCreatePage, InvitationViewPage } from './invitations';
 

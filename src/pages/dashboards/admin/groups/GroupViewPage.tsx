@@ -338,6 +338,15 @@ export function GroupViewPage() {
                     {curriculumLabel ?? group.curriculumId}
                   </Link>
                 </dd>
+                <dt>{t('implementationLinkFromGroup')}</dt>
+                <dd>
+                  <Link
+                    to={`/dashboards/admin/implementation?groupId=${group.id}`}
+                    className="department-table-link"
+                  >
+                    {t('implementationLinkFromGroup')}
+                  </Link>
+                </dd>
                 <dt>{t('groupStartYear')}</dt>
                 <dd>{group.startYear}</dd>
                 <dt>{t('groupGraduationYear')}</dt>

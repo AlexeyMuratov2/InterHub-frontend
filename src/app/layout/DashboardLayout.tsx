@@ -11,6 +11,7 @@ const ADMIN_MENU = [
   { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
   { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
   { path: '/dashboards/admin/groups', labelKey: 'menuGroups', end: false },
+  { path: '/dashboards/admin/implementation', labelKey: 'menuImplementation', end: false },
   { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false },
   { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
   { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false },
@@ -32,6 +33,7 @@ export function DashboardLayout() {
   const isAccounts = location.pathname.startsWith('/dashboards/admin/accounts');
   const isProfile = location.pathname.startsWith('/dashboards/admin/profile');
   const isSettings = location.pathname.startsWith('/dashboards/admin/settings');
+  const isImplementation = location.pathname.startsWith('/dashboards/admin/implementation');
 
   const headerSectionTitle = isProfile
     ? t('profilePageTitleShort')
@@ -47,8 +49,10 @@ export function DashboardLayout() {
             ? t('menuInvitations')
             : isAccounts
               ? t('accountManagement')
-              : isSettings
+                : isSettings
                 ? t('menuSystemSettings')
+                : isImplementation
+                ? t('menuImplementation')
                 : t('menuDashboard');
 
   const showHeaderCreate =

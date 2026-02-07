@@ -872,6 +872,33 @@ img.app-dashboard-sidebar-logo {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.implementation-slots-table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.implementation-generate-all-wrap .btn-primary {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.implementation-generate-all-wrap .btn-primary:not(:disabled) {
+  background: #2563eb;
+  color: #fff;
+}
+.implementation-generate-all-wrap .btn-primary:not(:disabled):hover {
+  background: #1d4ed8;
+}
+.implementation-generate-all-wrap .btn-primary:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
 .department-table {
   width: 100%;
   border-collapse: collapse;
@@ -3057,6 +3084,17 @@ img.app-dashboard-sidebar-logo {
   outline-offset: 2px;
 }
 
+.timeslots-slot-button--selected {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.timeslots-slot-button--selected:hover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
 .timeslots-slot-time {
   font-variant-numeric: tabular-nums;
 }
@@ -3102,4 +3140,74 @@ img.app-dashboard-sidebar-logo {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e2e8f0;
+}
+
+/* Drawer (right panel) */
+.app-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  animation: app-drawer-overlay-in 0.2s ease-out;
+}
+
+.app-drawer-panel {
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  animation: app-drawer-panel-in 0.25s ease-out;
+}
+
+.app-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.app-drawer-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.app-drawer-close {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.app-drawer-close:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.app-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+}
+
+@keyframes app-drawer-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes app-drawer-panel-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }

@@ -41,6 +41,7 @@ import {
   BuildingViewPage,
   BuildingCreatePage,
   BuildingEditPage,
+  ImplementationPage,
 } from './pages/dashboards/admin';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
@@ -103,6 +104,7 @@ function App() {
             <Route path="groups/new" element={<GroupCreatePage />} />
             <Route path="groups/:id" element={<GroupViewPage />} />
             <Route path="groups/:id/edit" element={<GroupEditPage />} />
+            <Route path="implementation" element={<ImplementationPage />} />
             <Route path="programs" element={<ProgramListPage />} />
             <Route path="programs/new" element={<ProgramCreatePage />} />
             <Route path="programs/curricula/:curriculumId/edit" element={<CurriculumEditPage />} />

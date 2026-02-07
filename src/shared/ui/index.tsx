@@ -6,5 +6,8 @@ export { FormPageLayout } from './FormPageLayout';
 export { ConfirmModal } from './ConfirmModal';
 export { Modal } from './Modal';
 export { PageMessage } from './PageMessage';
+export { Drawer } from './Drawer';
 export { ScheduleGrid } from './ScheduleGrid';
 export type { ScheduleGridSlot, ScheduleGridProps } from './ScheduleGrid';
+export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
+export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';
