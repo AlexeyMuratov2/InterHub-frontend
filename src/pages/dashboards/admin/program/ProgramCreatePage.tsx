@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { fetchProgramById, updateProgram } from '../../../entities/program';
-import { fetchDepartments, type DepartmentDto } from '../../../entities/department';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../shared/i18n';
-import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
+import { useNavigate } from 'react-router-dom';
+import { createProgram } from '../../../../entities/program';
+import { fetchDepartments, type DepartmentDto } from '../../../../entities/department';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
+const CODE_MAX = 50;
 const NAME_MAX = 255;
 const DEGREE_LEVEL_MAX = 50;
 
@@ -15,8 +16,7 @@ function parseFieldErrors(details: Record<string, string> | string[] | undefined
   return details as Record<string, string>;
 }
 
-export function ProgramEditPage() {
-  const { id } = useParams<{ id: string }>();
+export function ProgramCreatePage() {
   const navigate = useNavigate();
   const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
@@ -27,11 +27,9 @@ export function ProgramEditPage() {
   const [departmentId, setDepartmentId] = useState('');
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
   const [departmentsLoading, setDepartmentsLoading] = useState(true);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!canEdit) {
@@ -46,41 +44,12 @@ export function ProgramEditPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      setNotFound(true);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetchProgramById(id).then(({ data, error: err }) => {
-      if (cancelled) return;
-      setLoading(false);
-      if (err) {
-        if (err.status === 404) setNotFound(true);
-        else setError(err.status === 403 ? t('programErrorForbidden') : err.message ?? t('programErrorLoad'));
-        return;
-      }
-      if (data) {
-        setCode(data.code);
-        setName(data.name);
-        setDescription(data.description ?? '');
-        setDegreeLevel(data.degreeLevel ?? '');
-        setDepartmentId(data.departmentId ?? '');
-      } else {
-        setNotFound(true);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
   const validate = (): boolean => {
     const err: Record<string, string> = {};
+    const codeTrim = code.trim();
     const nameTrim = name.trim();
+    if (!codeTrim) err.code = t('programErrorCodeRequired');
+    else if (codeTrim.length > CODE_MAX) err.code = t('errorCodeMax', { max: CODE_MAX });
     if (!nameTrim) err.name = t('programErrorNameRequired');
     else if (nameTrim.length > NAME_MAX) err.name = t('errorNameMax', { max: NAME_MAX });
     if (degreeLevel.trim().length > DEGREE_LEVEL_MAX)
@@ -91,37 +60,34 @@ export function ProgramEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
     setError(null);
     setFieldErrors({});
     if (!validate()) return;
     setSubmitting(true);
     const body = {
+      code: code.trim(),
       name: name.trim(),
       description: description.trim() || undefined,
       degreeLevel: degreeLevel.trim() || undefined,
-      departmentId: departmentId.trim() || null,
+      departmentId: departmentId.trim() || undefined,
     };
-    const { data, error: err } = await updateProgram(id, body);
+    const { data, error: err } = await createProgram(body);
     setSubmitting(false);
     if (err) {
-      if (err.status === 404) {
-        if (err.message?.toLowerCase().includes('department')) {
-          setError(t('programErrorDepartmentNotFound'));
-        } else {
-          setNotFound(true);
-        }
-        return;
-      }
       if (err.code === 'VALIDATION_FAILED' && err.details) {
         setFieldErrors(parseFieldErrors(err.details));
         setError(err.message ?? t('programErrorValidation'));
+      } else if (err.status === 409) {
+        setFieldErrors((prev) => ({ ...prev, code: t('programErrorCodeExists') }));
+        setError(t('programErrorCodeExists'));
+      } else if (err.status === 404 && err.message?.toLowerCase().includes('department')) {
+        setError(t('programErrorDepartmentNotFound'));
       } else if (err.status === 403) {
         setError(t('programErrorForbidden'));
       } else if (err.status === 400) {
         setError(err.message ?? t('programErrorInvalidData'));
       } else {
-        setError(err.message ?? t('programErrorUpdate'));
+        setError(err.message ?? t('programErrorCreate'));
       }
       return;
     }
@@ -135,39 +101,34 @@ export function ProgramEditPage() {
   const { t: tCommon } = useTranslation('common');
 
   if (!canEdit) {
-    return <PageMessage variant="loading" message={t('loadingList')} />;
-  }
-
-  if (loading) {
-    return <PageMessage variant="loading" message={t('loadingList')} />;
-  }
-
-  if (notFound) {
     return (
-      <PageMessage
-        variant="error"
-        message={t('programNotFoundOrDeleted')}
-        backTo="/dashboards/admin/programs"
-        backLabel={tCommon('back')}
-      />
+      <div className="department-form-page">
+        <p>{t('loadingList')}</p>
+      </div>
     );
   }
 
   return (
-    <FormPageLayout title={t('programEditPageTitle')} error={error} onSubmit={handleSubmit}>
-      <FormGroup label={t('code')} htmlFor="program-edit-code" hint={t('codeReadOnly')}>
+    <FormPageLayout
+      title={t('programCreatePageTitle')}
+      error={error}
+      onSubmit={handleSubmit}
+    >
+      <FormGroup label={t('programCodeRequired')} htmlFor="program-create-code" error={fieldErrors.code}>
         <input
-          id="program-edit-code"
+          id="program-create-code"
           type="text"
           value={code}
-          readOnly
-          className="read-only"
-          aria-readonly="true"
+          onChange={(e) => setCode(e.target.value)}
+          maxLength={CODE_MAX}
+          placeholder={t('programCodePlaceholder')}
+          autoComplete="off"
+          aria-invalid={!!fieldErrors.code}
         />
       </FormGroup>
-      <FormGroup label={t('programNameRequired')} htmlFor="program-edit-name" error={fieldErrors.name}>
+      <FormGroup label={t('programNameRequired')} htmlFor="program-create-name" error={fieldErrors.name}>
         <input
-          id="program-edit-name"
+          id="program-create-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -176,9 +137,9 @@ export function ProgramEditPage() {
           aria-invalid={!!fieldErrors.name}
         />
       </FormGroup>
-      <FormGroup label={t('description')} htmlFor="program-edit-description">
+      <FormGroup label={t('description')} htmlFor="program-create-description">
         <textarea
-          id="program-edit-description"
+          id="program-create-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t('descriptionPlaceholder')}
@@ -187,11 +148,11 @@ export function ProgramEditPage() {
       </FormGroup>
       <FormGroup
         label={t('programDegreeLevel')}
-        htmlFor="program-edit-degreeLevel"
+        htmlFor="program-create-degreeLevel"
         error={fieldErrors.degreeLevel}
       >
         <input
-          id="program-edit-degreeLevel"
+          id="program-create-degreeLevel"
           type="text"
           value={degreeLevel}
           onChange={(e) => setDegreeLevel(e.target.value)}
@@ -202,12 +163,11 @@ export function ProgramEditPage() {
       </FormGroup>
       <FormGroup
         label={t('programDepartment')}
-        htmlFor="program-edit-departmentId"
+        htmlFor="program-create-departmentId"
         error={fieldErrors.departmentId}
-        hint={departmentsLoading ? t('loadingList') : undefined}
       >
         <select
-          id="program-edit-departmentId"
+          id="program-create-departmentId"
           value={departmentId}
           onChange={(e) => setDepartmentId(e.target.value)}
           aria-invalid={!!fieldErrors.departmentId}
@@ -219,9 +179,12 @@ export function ProgramEditPage() {
             </option>
           ))}
         </select>
+        {departmentsLoading && (
+          <small style={{ color: '#718096', fontSize: '0.8rem' }}>{t('loadingList')}</small>
+        )}
       </FormGroup>
       <FormActions
-        submitLabel={submitting ? t('saving') : tCommon('save')}
+        submitLabel={submitting ? t('programCreating') : tCommon('create')}
         submitting={submitting}
         cancelTo="/dashboards/admin/programs"
         cancelLabel={tCommon('cancelButton')}

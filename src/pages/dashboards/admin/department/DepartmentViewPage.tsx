@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchDepartmentById } from '../../../entities/department';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation, formatDateTime } from '../../../shared/i18n';
-import { EntityViewLayout } from '../../../widgets/entity-view-layout';
+import { fetchDepartmentById } from '../../../../entities/department';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
 
 export function DepartmentViewPage() {
   const { id } = useParams<{ id: string }>();

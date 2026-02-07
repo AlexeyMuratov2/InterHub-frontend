@@ -4,11 +4,11 @@ import {
   fetchDepartments,
   deleteDepartment,
   type DepartmentDto,
-} from '../../../entities/department';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation, formatDate } from '../../../shared/i18n';
-import { EntityListLayout } from '../../../widgets/entity-list-layout';
-import { ConfirmModal } from '../../../shared/ui';
+} from '../../../../entities/department';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation, formatDate } from '../../../../shared/i18n';
+import { EntityListLayout } from '../../../../widgets/entity-list-layout';
+import { ConfirmModal } from '../../../../shared/ui';
 
 function truncate(str: string | null, max: number): string {
   if (!str) return '—';

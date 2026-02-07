@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchDepartmentById, updateDepartment } from '../../../entities/department';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../shared/i18n';
-import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
+import { fetchDepartmentById, updateDepartment } from '../../../../entities/department';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../shared/i18n';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 
 const NAME_MAX = 255;
 

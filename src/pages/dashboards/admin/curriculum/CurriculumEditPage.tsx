@@ -6,11 +6,11 @@ import {
   updateCurriculum,
   type CurriculumStatus,
   type UpdateCurriculumRequest,
-} from '../../../entities/curriculum';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../shared/i18n';
-import { parseFieldErrors } from '../../../shared/lib';
-import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
+} from '../../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 
 const VERSION_MAX = 50;
 const START_YEAR_MIN = 1900;

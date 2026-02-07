@@ -4,17 +4,17 @@ import {
   fetchPrograms,
   deleteProgram,
   type ProgramDto,
-} from '../../../entities/program';
+} from '../../../../entities/program';
 import {
   fetchCurriculaByProgramId,
   deleteCurriculum,
   type CurriculumDto,
-} from '../../../entities/curriculum';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation, formatDate } from '../../../shared/i18n';
-import { truncate } from '../../../shared/lib';
-import { EntityListLayout } from '../../../widgets/entity-list-layout';
-import { Alert, ConfirmModal } from '../../../shared/ui';
+} from '../../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation, formatDate } from '../../../../shared/i18n';
+import { truncate } from '../../../../shared/lib';
+import { EntityListLayout } from '../../../../widgets/entity-list-layout';
+import { Alert, ConfirmModal } from '../../../../shared/ui';
 
 type CurriculumWithProgram = CurriculumDto & { programName: string; programCode: string };
 

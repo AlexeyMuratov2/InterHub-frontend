@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createCurriculum } from '../../../entities/curriculum';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation } from '../../../shared/i18n';
-import { parseFieldErrors } from '../../../shared/lib';
-import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../shared/ui';
+import { createCurriculum } from '../../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation } from '../../../../shared/i18n';
+import { parseFieldErrors } from '../../../../shared/lib';
+import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 
 const VERSION_MAX = 50;
 const START_YEAR_MIN = 1900;

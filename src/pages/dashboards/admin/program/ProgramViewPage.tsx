@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fetchProgramById } from '../../../entities/program';
-import { fetchDepartments } from '../../../entities/department';
-import { fetchCurriculaByProgramId, deleteCurriculum, type CurriculumDto } from '../../../entities/curriculum';
-import { useCanEditInAdmin } from '../../../app/hooks/useCanEditInAdmin';
-import { useTranslation, formatDateTime } from '../../../shared/i18n';
-import { EntityViewLayout } from '../../../widgets/entity-view-layout';
-import { Alert, ConfirmModal } from '../../../shared/ui';
+import { fetchProgramById } from '../../../../entities/program';
+import { fetchDepartments } from '../../../../entities/department';
+import { fetchCurriculaByProgramId, deleteCurriculum, type CurriculumDto } from '../../../../entities/curriculum';
+import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
+import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
+import { Alert, ConfirmModal } from '../../../../shared/ui';
 
 export function ProgramViewPage() {
   const { id } = useParams<{ id: string }>();
