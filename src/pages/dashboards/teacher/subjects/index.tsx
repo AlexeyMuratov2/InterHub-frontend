@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
 import {
@@ -193,7 +194,12 @@ export function SubjectsPage() {
       ) : (
         <div className="teacher-subjects-grid">
           {filteredSubjects.map((item) => (
-            <div key={item.curriculumSubjectId} className="teacher-subject-card">
+            <Link
+              key={item.curriculumSubjectId}
+              to={`/dashboards/teacher/subjects/${item.curriculumSubjectId}`}
+              className="teacher-subject-card"
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+            >
               <h3 className="teacher-subject-card-title">
                 {subjectDisplayNameByLocale(item, locale)}
               </h3>
@@ -216,7 +222,7 @@ export function SubjectsPage() {
                   {groupDisplayList(item.groups)}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

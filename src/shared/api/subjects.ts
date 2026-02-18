@@ -1,6 +1,9 @@
-import { request } from './client';
+import { request, API_BASE } from './client';
 import type { ErrorResponse } from './types';
-import type { TeacherSubjectListItemDto } from './types';
+import type {
+  TeacherSubjectListItemDto,
+  TeacherSubjectDetailDto,
+} from './types';
 
 export type SubjectsApiResult<T> = {
   data?: T;
@@ -24,6 +27,21 @@ export async function getTeacherMySubjects(
   const query = search.toString();
   const url = query ? `/api/subjects/teacher/my?${query}` : '/api/subjects/teacher/my';
   const result = await request<TeacherSubjectListItemDto[]>(url, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+  };
+}
+
+/**
+ * Детальная информация по предмету преподавателя.
+ * GET /api/subjects/teacher/my/{curriculumSubjectId}
+ */
+export async function getTeacherSubjectDetail(
+  curriculumSubjectId: string
+): Promise<SubjectsApiResult<TeacherSubjectDetailDto>> {
+  const url = `/api/subjects/teacher/my/${encodeURIComponent(curriculumSubjectId)}`;
+  const result = await request<TeacherSubjectDetailDto>(url, { method: 'GET' });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

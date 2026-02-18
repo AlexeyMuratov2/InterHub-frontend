@@ -438,3 +438,133 @@ export interface TeacherSubjectListItemDto {
   credits: number | null;
   groups: GroupInfoDto[];
 }
+
+// --- Teacher subject details (GET /api/subjects/teacher/my/{curriculumSubjectId}) ---
+
+/** Данные предмета из каталога (SubjectInfoDto) */
+export interface SubjectInfoDto {
+  id: string;
+  code: string;
+  chineseName: string | null;
+  englishName: string | null;
+  description: string | null;
+  departmentId: string | null;
+  departmentName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Предмет в учебном плане (CurriculumSubjectInfoDto) */
+export interface CurriculumSubjectInfoDto {
+  id: string;
+  curriculumId: string;
+  subjectId: string;
+  semesterNo: number;
+  courseYear: number | null;
+  durationWeeks: number;
+  hoursTotal: number | null;
+  hoursLecture: number | null;
+  hoursPractice: number | null;
+  hoursLab: number | null;
+  hoursSeminar: number | null;
+  hoursSelfStudy: number | null;
+  hoursConsultation: number | null;
+  hoursCourseWork: number | null;
+  assessmentTypeId: string;
+  assessmentTypeName: string | null;
+  credits: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Элемент контроля (CurriculumSubjectAssessmentInfoDto) */
+export interface CurriculumSubjectAssessmentInfoDto {
+  id: string;
+  assessmentTypeId: string;
+  assessmentTypeName: string | null;
+  weekNumber: number | null;
+  isFinal: boolean;
+  weight: number | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+/** Файл в хранилище (StoredFileInfoDto) */
+export interface StoredFileInfoDto {
+  id: string;
+  originalName: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+/** Материал курса (CourseMaterialInfoDto) */
+export interface CourseMaterialInfoDto {
+  id: string;
+  title: string;
+  description: string | null;
+  authorId: string;
+  authorName: string | null;
+  uploadedAt: string;
+  file: StoredFileInfoDto;
+}
+
+/** Реализация предмета для группы (GroupSubjectOfferingInfoDto) */
+export interface GroupSubjectOfferingInfoDto {
+  id: string;
+  groupId: string;
+  groupCode: string | null;
+  groupName: string | null;
+  teacherId: string | null;
+  roomId: string | null;
+  roomName: string | null;
+  format: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  materials: CourseMaterialInfoDto[];
+}
+
+/** Детальная информация по предмету преподавателя (TeacherSubjectDetailDto) */
+export interface TeacherSubjectDetailDto {
+  subject: SubjectInfoDto;
+  curriculumSubject: CurriculumSubjectInfoDto;
+  assessments: CurriculumSubjectAssessmentInfoDto[];
+  offerings: GroupSubjectOfferingInfoDto[];
+}
+
+// --- Course materials (POST /api/offerings/{offeringId}/materials, etc.) ---
+
+/** Файл в хранилище (StoredFileDto) */
+export interface StoredFileDto {
+  id: string;
+  size: number;
+  contentType: string;
+  originalName: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+/** Материал курса (CourseMaterialDto) */
+export interface CourseMaterialDto {
+  id: string;
+  offeringId: string;
+  title: string;
+  description: string | null;
+  authorId: string;
+  uploadedAt: string;
+  file: StoredFileDto;
+}
+
+/** Запрос на создание материала (AddCourseMaterialRequest) */
+export interface AddCourseMaterialRequest {
+  storedFileId: string;
+  title: string;
+  description?: string | null;
+}
+
+/** Ответ с presigned URL для скачивания/просмотра */
+export interface PresignedUrlResponse {
+  url: string;
+}

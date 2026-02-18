@@ -45,6 +45,7 @@ import {
 } from './pages/dashboards/admin';
 import { SchedulePage as StudentSchedulePage } from './pages/dashboards/student';
 import { SchedulePage as TeacherSchedulePage, SubjectsPage as TeacherSubjectsPage } from './pages/dashboards/teacher';
+import { SubjectDetailPage } from './pages/dashboards/teacher/subjects/[id]';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
 import { HomePage } from './pages/home';
@@ -130,6 +131,7 @@ function App() {
             <Route index element={<Navigate to="schedule" replace />} />
             <Route path="schedule" element={<TeacherSchedulePage />} />
             <Route path="subjects" element={<TeacherSubjectsPage />} />
+            <Route path="subjects/:id" element={<SubjectDetailPage />} />
           </Route>
           <Route
             path="/dashboards/student"

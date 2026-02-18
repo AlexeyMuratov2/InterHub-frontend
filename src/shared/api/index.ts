@@ -88,5 +88,28 @@ export {
   getCurrentSemester,
 } from './academic';
 export type { AcademicApiResult } from './academic';
-export { getTeacherMySubjects } from './subjects';
+export { getTeacherMySubjects, getTeacherSubjectDetail } from './subjects';
 export type { SubjectsApiResult, GetTeacherMySubjectsParams } from './subjects';
+export {
+  uploadFile,
+  addCourseMaterial,
+  getOfferingMaterials,
+  getMaterial,
+  deleteMaterial,
+  getFileDownloadUrl,
+  getFilePreviewUrl,
+} from './materials';
+export type { MaterialsApiResult } from './materials';
+export type {
+  TeacherSubjectDetailDto,
+  SubjectInfoDto,
+  CurriculumSubjectInfoDto,
+  CurriculumSubjectAssessmentInfoDto,
+  StoredFileInfoDto,
+  CourseMaterialInfoDto,
+  GroupSubjectOfferingInfoDto,
+  StoredFileDto,
+  CourseMaterialDto,
+  AddCourseMaterialRequest,
+  PresignedUrlResponse,
+} from './types';
