@@ -1,21 +1,41 @@
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Building2,
+  BookOpen,
+  Users,
+  Calendar,
+  BookMarked,
+  UserPlus,
+  UserCog,
+  Settings,
+  GraduationCap,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
 import { useCanEditInAdmin } from '../hooks/useCanEditInAdmin';
 import { useCanManageInvitations } from '../hooks/useCanManageInvitations';
 import { useTranslation } from '../../shared/i18n';
 import { LanguageSwitcher } from '../../shared/i18n';
+import { getRolesFromUser, getAvailableDashboards } from '../../shared/config';
 
-const ADMIN_MENU = [
-  { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true },
-  { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false },
-  { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false },
-  { path: '/dashboards/admin/groups', labelKey: 'menuGroups', end: false },
-  { path: '/dashboards/admin/implementation', labelKey: 'menuImplementation', end: false },
-  { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false },
-  { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false },
-  { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false },
-  { path: '/dashboards/admin/settings', labelKey: 'menuSystemSettings', end: false },
+const ADMIN_MENU: Array<{
+  path: string;
+  labelKey: string;
+  end: boolean;
+  icon: LucideIcon;
+}> = [
+  { path: '/dashboards/admin', labelKey: 'menuDashboard', end: true, icon: LayoutDashboard },
+  { path: '/dashboards/admin/departments', labelKey: 'menuDepartments', end: false, icon: Building2 },
+  { path: '/dashboards/admin/programs', labelKey: 'menuProgramsAndCurricula', end: false, icon: BookOpen },
+  { path: '/dashboards/admin/groups', labelKey: 'menuGroups', end: false, icon: Users },
+  { path: '/dashboards/admin/implementation', labelKey: 'menuImplementation', end: false, icon: Calendar },
+  { path: '/dashboards/admin/subjects', labelKey: 'menuSubjects', end: false, icon: BookMarked },
+  { path: '/dashboards/admin/invitations', labelKey: 'menuInvitations', end: false, icon: UserPlus },
+  { path: '/dashboards/admin/accounts', labelKey: 'menuAccounts', end: false, icon: UserCog },
+  { path: '/dashboards/admin/settings', labelKey: 'menuSystemSettings', end: false, icon: Settings },
 ] as const;
 
 /** Layout дашборда: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -25,6 +45,26 @@ export function DashboardLayout() {
   const canEdit = useCanEditInAdmin();
   const canManageInvitations = useCanManageInvitations();
   const { t } = useTranslation('dashboard');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const roles = user ? getRolesFromUser(user) : [];
+  const dashboards = getAvailableDashboards(roles);
+  const hasMultipleRoles = dashboards.length > 1;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [userMenuOpen]);
   const isDepartments = location.pathname.startsWith('/dashboards/admin/departments');
   const isPrograms = location.pathname.startsWith('/dashboards/admin/programs');
   const isGroups = location.pathname.startsWith('/dashboards/admin/groups');
@@ -79,12 +119,14 @@ export function DashboardLayout() {
     <div className="app-dashboard-layout">
       <aside className="app-dashboard-sidebar">
         <div className="app-dashboard-sidebar-brand">
-          <img src={universityLogo} alt="" className="app-dashboard-sidebar-logo" />
-          <span className="app-dashboard-sidebar-title">{t('sidebarBrand')}</span>
+          <div className="app-dashboard-sidebar-brand-logo-wrapper">
+            <img src={universityLogo} alt="" className="app-dashboard-sidebar-logo" />
+            <span className="app-dashboard-sidebar-title">{t('sidebarBrand')}</span>
+          </div>
           <span className="app-dashboard-sidebar-subtitle">{t('sidebarSubtitle')}</span>
         </div>
         <nav className="app-dashboard-sidebar-nav">
-          {ADMIN_MENU.map(({ path, labelKey, end }) => (
+          {ADMIN_MENU.map(({ path, labelKey, end, icon: Icon }) => (
             <NavLink
               key={path}
               to={path}
@@ -93,7 +135,8 @@ export function DashboardLayout() {
                 'app-dashboard-sidebar-link' + (isActive ? ' app-dashboard-sidebar-link--active' : '')
               }
             >
-              {t(labelKey)}
+              <Icon className="app-dashboard-sidebar-link-icon" />
+              <span>{t(labelKey)}</span>
             </NavLink>
           ))}
         </nav>
@@ -108,7 +151,7 @@ export function DashboardLayout() {
             {showHeaderCreate && (
               <Link to={headerCreateLink} className="app-dashboard-header-create">
                 <span className="app-dashboard-header-create-icon">+</span>
-                {t('headerCreate')}
+                <span>{t('headerCreate')}</span>
               </Link>
             )}
           </div>
@@ -120,22 +163,55 @@ export function DashboardLayout() {
               aria-label="Search"
             />
             <LanguageSwitcher className="app-dashboard-header-lang" variant="select" />
-            <Link
-              to="/dashboards/admin/profile"
-              className="app-dashboard-header-profile-link"
-              title={t('profilePageTitleShort')}
-              aria-label={t('profilePageTitleShort')}
-            >
-              <span className="app-dashboard-header-avatar" aria-hidden="true">
-                {(user?.fullName ?? user?.email ?? 'A').charAt(0).toUpperCase()}
-              </span>
-              <span className="app-dashboard-header-user-name">
-                {user?.fullName ?? user?.email ?? 'Admin'}
-              </span>
-            </Link>
-            <button type="button" onClick={() => logout()} className="app-dashboard-header-logout">
-              ({t('logout')})
-            </button>
+            <div className="app-dashboard-header-user-menu" ref={userMenuRef}>
+              <button
+                type="button"
+                className="app-dashboard-header-user-menu-trigger"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
+              >
+                <span className="app-dashboard-header-avatar" aria-hidden="true">
+                  {(user?.fullName ?? user?.email ?? 'A').charAt(0).toUpperCase()}
+                </span>
+                <span className="app-dashboard-header-user-name">
+                  {user?.fullName ?? user?.email ?? 'Admin'}
+                </span>
+                <span className="app-dashboard-header-user-menu-arrow" aria-hidden="true">
+                  ▼
+                </span>
+              </button>
+              {userMenuOpen && (
+                <div className="app-dashboard-header-user-menu-dropdown">
+                  <Link
+                    to="/dashboards/admin/profile"
+                    className="app-dashboard-header-user-menu-item"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    {t('profilePageTitleShort')}
+                  </Link>
+                  {hasMultipleRoles && (
+                    <Link
+                      to="/dashboards/selector"
+                      className="app-dashboard-header-user-menu-item"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      {t('selectTitle')}
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    className="app-dashboard-header-user-menu-item app-dashboard-header-user-menu-item--logout"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      logout();
+                    }}
+                  >
+                    {t('logout')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main className="app-dashboard-main">

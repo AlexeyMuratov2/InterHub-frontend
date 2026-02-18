@@ -16,6 +16,12 @@ const DASHBOARD_KEYS: Record<DashboardKind, string> = {
   student: 'studentDashboard',
 };
 
+const DASHBOARD_ICONS: Record<DashboardKind, string> = {
+  admin: '⚙️',
+  teacher: '👨‍🏫',
+  student: '🎓',
+};
+
 /** Страница выбора дашборда — показывается при нескольких ролях. При одной роли — редирект на дашборд. */
 export function DashboardSelectorPage() {
   const { user, loading } = useAuth();
@@ -35,9 +41,14 @@ export function DashboardSelectorPage() {
 
   if (loading) {
     return (
-      <div className="dashboard-selector">
-        <LanguageSwitcher className="dashboard-selector-lang" variant="buttons" />
-        <p>{t('loading')}</p>
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+            <div className="auth-card-icon">⏳</div>
+            <h2 className="auth-card-title">{t('loading')}</h2>
+          </div>
+        </div>
       </div>
     );
   }
@@ -48,27 +59,57 @@ export function DashboardSelectorPage() {
 
   if (defaultPath) {
     return (
-      <div className="dashboard-selector">
-        <LanguageSwitcher className="dashboard-selector-lang" variant="buttons" />
-        <p>{t('redirecting')}</p>
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+            <div className="auth-card-icon">↻</div>
+            <h2 className="auth-card-title">{t('redirecting')}</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (dashboards.length === 0) {
+    return (
+      <div className="auth-card-page">
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <LanguageSwitcher className="auth-card-lang" variant="select" />
+            <div className="auth-card-icon">⚠️</div>
+            <h2 className="auth-card-title">Нет доступных дашбордов</h2>
+            <p className="auth-card-subtitle">У вас нет ролей, которые дают доступ к дашбордам.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-selector">
-      <div className="dashboard-selector-header">
-        <h1>{t('selectTitle')}</h1>
-        <LanguageSwitcher className="dashboard-selector-lang" variant="buttons" />
+    <div className="auth-card-page">
+      <div className="auth-card">
+        <div className="auth-card-header">
+          <LanguageSwitcher className="auth-card-lang" variant="select" />
+          <div className="auth-card-icon">📊</div>
+          <h2 className="auth-card-title">{t('selectTitle')}</h2>
+          <p className="auth-card-subtitle">{t('selectDescription')}</p>
+        </div>
+        <div className="auth-card-body">
+          <div className="dashboard-selector-grid">
+            {dashboards.map((kind) => (
+              <Link
+                key={kind}
+                to={`/dashboards/${kind}`}
+                className="dashboard-selector-card"
+              >
+                <div className="dashboard-selector-card-icon">{DASHBOARD_ICONS[kind]}</div>
+                <div className="dashboard-selector-card-title">{t(DASHBOARD_KEYS[kind])}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
-      <p>{t('selectDescription')}</p>
-      <ul>
-        {dashboards.map((kind) => (
-          <li key={kind}>
-            <Link to={`/dashboards/${kind}`}>{t(DASHBOARD_KEYS[kind])}</Link>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
