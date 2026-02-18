@@ -71,3 +71,40 @@ export function mapLessonsForScheduleToEvents(lessons: LessonForScheduleDto[]): 
     };
   });
 }
+
+/**
+ * Форматирует группу для подписи: "code" или "code (name)" если есть name
+ */
+export function formatGroupLine(group: LessonForScheduleDto['group']): string {
+  if (!group) return '';
+  if (group.name) return `${group.code} (${group.name})`;
+  return group.code;
+}
+
+/**
+ * Маппинг LessonForScheduleDto[] в ScheduleEvent[] для сетки расписания преподавателя.
+ * Показывает группу вместо преподавателя.
+ */
+export function mapLessonsForScheduleToEventsForTeacher(lessons: LessonForScheduleDto[]): ScheduleEvent[] {
+  return lessons.map((item) => {
+    const { lesson, room, subjectName, group } = item;
+    const groupLine = formatGroupLine(group);
+    const roomStr = formatRoomLine(room);
+    const subtitleLines: string[] = [];
+    if (groupLine) subtitleLines.push(groupLine);
+    if (roomStr) subtitleLines.push(roomStr);
+    if (lesson.topic?.trim()) subtitleLines.push(lesson.topic.trim());
+
+    return {
+      id: lesson.id,
+      date: lesson.date,
+      startTime: lesson.startTime,
+      endTime: lesson.endTime,
+      title: subjectName?.trim() ?? '—',
+      subtitleLines: subtitleLines.length ? subtitleLines : undefined,
+      status: lesson.status,
+      lessonType: item.slot?.lessonType ?? null,
+      meta: item,
+    };
+  });
+}

@@ -29,6 +29,20 @@ export async function getGroupLessonsWeek(
 }
 
 /**
+ * Занятия преподавателя на неделю (ISO: понедельник–воскресенье).
+ * GET /api/schedule/lessons/week/teacher?date=YYYY-MM-DD
+ */
+export async function getTeacherLessonsWeek(
+  date: string
+): Promise<{ data?: LessonForScheduleDto[]; error?: { message?: string; code?: string }; status?: number }> {
+  const result = await request<LessonForScheduleDto[]>(
+    `/api/schedule/lessons/week/teacher?date=${encodeURIComponent(date)}`,
+    { method: 'GET' }
+  );
+  return wrapResult(result);
+}
+
+/**
  * Занятие по id. GET /api/schedule/lessons/{id}
  */
 export async function getLesson(

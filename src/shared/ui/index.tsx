@@ -11,5 +11,7 @@ export { ScheduleGrid } from './schedule-grid';
 export type { ScheduleGridProps, ScheduleEvent } from './schedule-grid';
 export { LessonModal } from './lesson-modal';
 export type { LessonModalProps } from './lesson-modal';
+export { TeacherLessonModal } from './teacher-lesson-modal';
+export type { TeacherLessonModalProps } from './teacher-lesson-modal';
 export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
 export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';

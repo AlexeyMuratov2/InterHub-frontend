@@ -1,9 +1,9 @@
-/** Дашборд преподавателя (TEACHER) */
+import { Navigate } from 'react-router-dom';
+
+/** Страницы дашборда преподавателя: модуль Schedule (расписание) */
+export { SchedulePage } from './schedule';
+
+/** Для реестра дашбордов: редирект на расписание (основной экран преподавателя) */
 export function TeacherDashboardPage() {
-  return (
-    <div className="dashboard-teacher">
-      <h1>Дашборд преподавателя</h1>
-      <p>Здесь будут материалы курсов, оценки и т.д.</p>
-    </div>
-  );
+  return <Navigate to="/dashboards/teacher/schedule" replace />;
 }

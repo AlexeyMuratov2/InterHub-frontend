@@ -341,6 +341,13 @@ export interface TeacherSummaryDto {
   displayName: string;
 }
 
+/** Группа для отображения (GroupSummaryDto) */
+export interface GroupSummaryDto {
+  id: string;
+  code: string;
+  name: string | null;
+}
+
 /** Занятие с контекстом для расписания (LessonForScheduleDto) */
 export interface LessonForScheduleDto {
   lesson: LessonDto;
@@ -350,6 +357,7 @@ export interface LessonForScheduleDto {
   room: RoomSummaryDto | null;
   mainTeacher: TeacherSummaryDto | null;
   subjectName: string | null;
+  group: GroupSummaryDto | null;
 }
 
 /** Аудитория (RoomDto). GET /api/schedule/rooms */

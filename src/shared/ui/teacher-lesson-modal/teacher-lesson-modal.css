@@ -1,0 +1,5 @@
+/* Teacher lesson modal — view only, reuses lesson-modal styles */
+.teacher-lesson-modal .department-modal-body {
+  min-width: 320px;
+  max-width: 560px;
+}

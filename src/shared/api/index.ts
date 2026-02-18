@@ -61,6 +61,7 @@ export type {
   TeacherRoleDto,
   RoomSummaryDto,
   TeacherSummaryDto,
+  GroupSummaryDto,
   LessonForScheduleDto,
   RoomDto,
   UpdateLessonRequest,
@@ -70,6 +71,7 @@ export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';
 
 export {
   getGroupLessonsWeek,
+  getTeacherLessonsWeek,
   getLesson,
   updateLesson,
   deleteLesson,

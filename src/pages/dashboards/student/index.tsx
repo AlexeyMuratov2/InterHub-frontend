@@ -1,9 +1,9 @@
-/** Дашборд студента (STUDENT) */
+import { Navigate } from 'react-router-dom';
+
+/** Страницы студентского дашборда: модуль Schedule (расписание) */
+export { SchedulePage } from './schedule';
+
+/** Для реестра дашбордов: редирект на расписание (основной экран студента) */
 export function StudentDashboardPage() {
-  return (
-    <div className="dashboard-student">
-      <h1>Дашборд студента</h1>
-      <p>Здесь будут курсы, расписание и т.д.</p>
-    </div>
-  );
+  return <Navigate to="/dashboards/student/schedule" replace />;
 }

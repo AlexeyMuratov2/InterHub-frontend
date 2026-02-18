@@ -18,8 +18,10 @@ export {
 } from './timeUtils';
 export {
   mapLessonsForScheduleToEvents,
+  mapLessonsForScheduleToEventsForTeacher,
   getDisplayTeacher,
   formatRoomLine,
+  formatGroupLine,
   type ScheduleEvent,
 } from './schedule';
 export { getIsoWeekStart, getIsoWeekEnd } from './weekUtils';

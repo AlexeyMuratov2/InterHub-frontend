@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './app/providers';
 import { RequireAuth, RequireDashboardRole } from './app/routes';
-import { DashboardLayout } from './app/layout';
+import { DashboardLayout, StudentDashboardLayout, TeacherDashboardLayout } from './app/layout';
 import { DashboardSelectorPage } from './pages/dashboards/selector';
 import { dashboardRegistry } from './app/routes/dashboardRegistry';
 import {
@@ -43,6 +43,8 @@ import {
   BuildingEditPage,
   ImplementationPage,
 } from './pages/dashboards/admin';
+import { SchedulePage as StudentSchedulePage } from './pages/dashboards/student';
+import { SchedulePage as TeacherSchedulePage } from './pages/dashboards/teacher';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
 import { HomePage } from './pages/home';
@@ -120,21 +122,27 @@ function App() {
             element={
               <RequireAuth>
                 <RequireDashboardRole dashboard="teacher">
-                  <LazyDashboard name="teacher" />
+                  <TeacherDashboardLayout />
                 </RequireDashboardRole>
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<Navigate to="schedule" replace />} />
+            <Route path="schedule" element={<TeacherSchedulePage />} />
+          </Route>
           <Route
             path="/dashboards/student"
             element={
               <RequireAuth>
                 <RequireDashboardRole dashboard="student">
-                  <LazyDashboard name="student" />
+                  <StudentDashboardLayout />
                 </RequireDashboardRole>
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<Navigate to="schedule" replace />} />
+            <Route path="schedule" element={<StudentSchedulePage />} />
+          </Route>
           <Route path="*" element={<RequireAuth><Navigate to="/" replace /></RequireAuth>} />
         </Routes>
         </AuthProvider>
