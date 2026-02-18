@@ -2837,6 +2837,83 @@ img.app-dashboard-sidebar-logo {
   margin: 0.25rem 0 1rem 0;
 }
 
+/* Страница предметов преподавателя: сетка карточек */
+.teacher-subjects-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.teacher-subjects-semester-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.teacher-subjects-semester-row label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.teacher-subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.teacher-subject-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.teacher-subject-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-subject-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.35;
+}
+
+.teacher-subject-card-code {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+}
+
+.teacher-subject-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.teacher-subject-card-row:last-child {
+  margin-bottom: 0;
+}
+
+.teacher-subject-card-label {
+  flex-shrink: 0;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.teacher-subject-card-value {
+  color: #334155;
+  word-break: break-word;
+}
+
 /* Вкладка «Расписание» группы: тулбар и блок семестра */
 .schedule-tab-toolbar {
   display: flex;

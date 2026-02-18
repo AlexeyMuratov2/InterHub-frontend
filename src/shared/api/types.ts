@@ -381,7 +381,7 @@ export interface UpdateLessonRequest {
   status?: 'PLANNED' | 'CANCELLED' | 'DONE';
 }
 
-// --- Academic module (GET /api/academic/semesters/by-date) ---
+// --- Academic module (GET /api/academic/semesters/by-date, years, semesters) ---
 
 /** Семестр по дате (SemesterDto from by-date endpoint) */
 export interface SemesterByDateDto {
@@ -396,4 +396,45 @@ export interface SemesterByDateDto {
   weekCount: number | null;
   isCurrent: boolean;
   createdAt: string;
+}
+
+/** Учебный год (AcademicYearDto). GET /api/academic/years */
+export interface AcademicYearDto {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  createdAt: string;
+}
+
+/** Семестр (SemesterDto). GET /api/academic/years/{id}/semesters, GET /api/academic/semesters/current */
+export type SemesterDto = SemesterByDateDto;
+
+// --- Teacher subjects (GET /api/subjects/teacher/my, ...) ---
+
+/** Группа в списке предметов (GroupInfoDto) */
+export interface GroupInfoDto {
+  id: string;
+  code: string | null;
+  name: string | null;
+}
+
+/** Элемент списка предметов преподавателя (TeacherSubjectListItemDto) */
+export interface TeacherSubjectListItemDto {
+  curriculumSubjectId: string;
+  subjectId: string;
+  subjectCode: string;
+  subjectChineseName: string | null;
+  subjectEnglishName: string | null;
+  subjectDescription: string | null;
+  departmentId: string | null;
+  departmentName: string | null;
+  semesterNo: number;
+  courseYear: number | null;
+  durationWeeks: number;
+  assessmentTypeId: string;
+  assessmentTypeName: string | null;
+  credits: number | null;
+  groups: GroupInfoDto[];
 }

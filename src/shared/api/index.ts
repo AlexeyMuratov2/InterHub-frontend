@@ -66,6 +66,10 @@ export type {
   RoomDto,
   UpdateLessonRequest,
   SemesterByDateDto,
+  AcademicYearDto,
+  SemesterDto,
+  GroupInfoDto,
+  TeacherSubjectListItemDto,
 } from './types';
 export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';
 
@@ -77,4 +81,12 @@ export {
   deleteLesson,
   listRooms,
 } from './schedule';
-export { getSemesterByDate } from './academic';
+export {
+  getSemesterByDate,
+  getAcademicYears,
+  getSemestersByYear,
+  getCurrentSemester,
+} from './academic';
+export type { AcademicApiResult } from './academic';
+export { getTeacherMySubjects } from './subjects';
+export type { SubjectsApiResult, GetTeacherMySubjectsParams } from './subjects';
