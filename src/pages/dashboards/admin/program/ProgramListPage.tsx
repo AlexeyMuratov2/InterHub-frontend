@@ -12,7 +12,7 @@ import {
 } from '../../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
-import { truncate } from '../../../../shared/lib';
+import { truncate, formatDurationYears } from '../../../../shared/lib';
 import { EntityListLayout } from '../../../../widgets/entity-list-layout';
 import { Alert, ConfirmModal } from '../../../../shared/ui';
 
@@ -379,8 +379,7 @@ export function ProgramListPage() {
               <tr>
                 <th>{t('curriculumProgram')}</th>
                 <th>{t('curriculumVersion')}</th>
-                <th>{t('curriculumStartYear')}</th>
-                <th>{t('curriculumEndYear')}</th>
+                <th>{t('curriculumDurationYearsLabel')}</th>
                 <th>{t('curriculumIsActive')}</th>
                 <th>{t('curriculumStatus')}</th>
                 <th>{t('curriculumNotes')}</th>
@@ -414,8 +413,7 @@ export function ProgramListPage() {
                     </Link>
                   </td>
                   <td>{c.version}</td>
-                  <td>{c.startYear}</td>
-                  <td>{c.endYear ?? '—'}</td>
+                  <td>{formatDurationYears(c.durationYears, t, locale)}</td>
                   <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
                   <td>{c.status}</td>
                   <td title={c.notes ?? undefined}>

@@ -7,6 +7,7 @@ export {
   type KnownAssessmentTypeCode,
 } from './assessmentTypeDisplayName';
 export { parseFieldErrors } from './parseFieldErrors';
+export { formatDurationYears } from './formatDurationYears';
 export {
   timeToMinutes,
   minutesToTime,

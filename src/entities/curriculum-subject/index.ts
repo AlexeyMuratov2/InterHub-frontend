@@ -4,9 +4,7 @@ export {
   createCurriculumSubject,
   updateCurriculumSubject,
   deleteCurriculumSubject,
-  getSemesterIdByCurriculum,
   type CurriculumSubjectApiResult,
-  type SemesterIdResponse,
 } from './api';
 
 export type {

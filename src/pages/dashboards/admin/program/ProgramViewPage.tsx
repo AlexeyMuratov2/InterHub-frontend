@@ -5,6 +5,7 @@ import { fetchDepartments } from '../../../../entities/department';
 import { fetchCurriculaByProgramId, deleteCurriculum, type CurriculumDto } from '../../../../entities/curriculum';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { formatDurationYears } from '../../../../shared/lib';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
 import { Alert, ConfirmModal } from '../../../../shared/ui';
 
@@ -200,8 +201,7 @@ export function ProgramViewPage() {
                     <thead>
                       <tr>
                         <th>{t('curriculumVersion')}</th>
-                        <th>{t('curriculumStartYear')}</th>
-                        <th>{t('curriculumEndYear')}</th>
+                        <th>{t('curriculumDurationYearsLabel')}</th>
                         <th>{t('curriculumIsActive')}</th>
                         <th>{t('curriculumStatus')}</th>
                         <th>{t('curriculumNotes')}</th>
@@ -226,8 +226,7 @@ export function ProgramViewPage() {
                           aria-label={t('curriculumSubjectsViewTitle')}
                         >
                           <td>{c.version}</td>
-                          <td>{c.startYear}</td>
-                          <td>{c.endYear ?? '—'}</td>
+                          <td>{formatDurationYears(c.durationYears, t, locale)}</td>
                           <td>{c.isActive ? t('curriculumActiveYes') : t('curriculumActiveNo')}</td>
                           <td>{c.status}</td>
                           <td title={c.notes ?? undefined}>

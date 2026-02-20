@@ -11,12 +11,19 @@ function todayString(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+const SESSION_STORAGE_KEY = 'teacher-schedule-anchor-date';
+
+function getInitialAnchorDate(): string {
+  const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+  return saved || todayString();
+}
+
 export function SchedulePage() {
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
 
-  const [anchorDate, setAnchorDate] = useState(todayString);
+  const [anchorDate, setAnchorDate] = useState(getInitialAnchorDate);
   const [lessons, setLessons] = useState<Awaited<ReturnType<typeof getTeacherLessonsWeek>>['data']>(undefined);
   const [semester, setSemester] = useState<Awaited<ReturnType<typeof getSemesterByDate>>['data']>(undefined);
   const [lessonsError, setLessonsError] = useState<string | null>(null);
@@ -64,6 +71,10 @@ export function SchedulePage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, anchorDate);
+  }, [anchorDate]);
 
   useEffect(() => {
     if (!selectedLesson || !lessons?.length) return;

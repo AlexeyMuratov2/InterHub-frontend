@@ -7,7 +7,7 @@ import { listTeachers } from '../../../../shared/api';
 import type { TeacherProfileItem } from '../../../../shared/api';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
-import { parseFieldErrors } from '../../../../shared/lib';
+import { parseFieldErrors, formatDurationYears } from '../../../../shared/lib';
 import { FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
 const CODE_MAX = 50;
@@ -16,7 +16,7 @@ const NAME_MAX = 255;
 export function GroupCreatePage() {
   const navigate = useNavigate();
   const canEdit = useCanEditInAdmin();
-  const { t } = useTranslation('dashboard');
+  const { t, locale } = useTranslation('dashboard');
   const [programId, setProgramId] = useState('');
   const [curriculumId, setCurriculumId] = useState('');
   const [code, setCode] = useState('');
@@ -184,7 +184,7 @@ export function GroupCreatePage() {
           <option value="">— {t('groupCurriculum')} —</option>
           {curricula.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.version} ({c.startYear}–{c.endYear ?? '…'})
+              {c.version} ({formatDurationYears(c.durationYears, t, locale)})
             </option>
           ))}
         </select>

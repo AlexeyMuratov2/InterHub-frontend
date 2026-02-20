@@ -7,10 +7,8 @@ import { parseFieldErrors } from '../../../../shared/lib';
 import { FormPageLayout, FormGroup, FormActions, PageMessage } from '../../../../shared/ui';
 
 const VERSION_MAX = 50;
-const START_YEAR_MIN = 1900;
-const START_YEAR_MAX = 2100;
-const END_YEAR_MIN = 1900;
-const END_YEAR_MAX = 2100;
+const DURATION_YEARS_MIN = 1;
+const DURATION_YEARS_MAX = 10;
 
 export function CurriculumCreatePage() {
   const { programId } = useParams<{ programId: string }>();
@@ -18,8 +16,7 @@ export function CurriculumCreatePage() {
   const canEdit = useCanEditInAdmin();
   const { t } = useTranslation('dashboard');
   const [version, setVersion] = useState('');
-  const [startYear, setStartYear] = useState<number | ''>(new Date().getFullYear());
-  const [endYear, setEndYear] = useState<number | ''>('');
+  const [durationYears, setDurationYears] = useState<number | ''>(4);
   const [isActive, setIsActive] = useState(true);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,17 +34,11 @@ export function CurriculumCreatePage() {
     const versionTrim = version.trim();
     if (!versionTrim) err.version = t('curriculumErrorVersionRequired');
     else if (versionTrim.length > VERSION_MAX) err.version = t('errorCodeMax', { max: VERSION_MAX });
-    const year = typeof startYear === 'number' ? startYear : parseInt(String(startYear), 10);
-    if (Number.isNaN(year)) err.startYear = t('curriculumErrorStartYearRange');
-    else if (year < START_YEAR_MIN || year > START_YEAR_MAX)
-      err.startYear = t('curriculumErrorStartYearRange');
-
-    const end = typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
-    if (end !== null) {
-      if (Number.isNaN(end)) err.endYear = t('curriculumErrorEndYearRange');
-      else if (end < END_YEAR_MIN || end > END_YEAR_MAX) err.endYear = t('curriculumErrorEndYearRange');
-      else if (!Number.isNaN(year) && end < year) err.endYear = t('curriculumErrorEndYearGteStartYear');
-    }
+    
+    const duration = typeof durationYears === 'number' ? durationYears : parseInt(String(durationYears), 10);
+    if (Number.isNaN(duration)) err.durationYears = t('curriculumErrorDurationYearsRange');
+    else if (duration < DURATION_YEARS_MIN || duration > DURATION_YEARS_MAX)
+      err.durationYears = t('curriculumErrorDurationYearsRange');
 
     setFieldErrors(err);
     return Object.keys(err).length === 0;
@@ -59,19 +50,12 @@ export function CurriculumCreatePage() {
     setError(null);
     setFieldErrors({});
     if (!validate()) return;
-    const year = typeof startYear === 'number' ? startYear : parseInt(String(startYear), 10);
-    if (Number.isNaN(year) || year < START_YEAR_MIN || year > START_YEAR_MAX) return;
-    const end =
-      typeof endYear === 'number' ? endYear : endYear === '' ? null : parseInt(String(endYear), 10);
-    if (end !== null) {
-      if (Number.isNaN(end) || end < END_YEAR_MIN || end > END_YEAR_MAX) return;
-      if (end < year) return;
-    }
+    const duration = typeof durationYears === 'number' ? durationYears : parseInt(String(durationYears), 10);
+    if (Number.isNaN(duration) || duration < DURATION_YEARS_MIN || duration > DURATION_YEARS_MAX) return;
     setSubmitting(true);
     const body = {
       version: version.trim(),
-      startYear: year,
-      endYear: end,
+      durationYears: duration,
       isActive,
       notes: notes.trim() || null,
     };
@@ -137,34 +121,20 @@ export function CurriculumCreatePage() {
           aria-invalid={!!fieldErrors.version}
         />
       </FormGroup>
-      <FormGroup label={t('curriculumStartYearRequired')} htmlFor="curriculum-create-startYear" error={fieldErrors.startYear}>
+      <FormGroup label={t('curriculumDurationYearsRequired')} htmlFor="curriculum-create-durationYears" error={fieldErrors.durationYears}>
         <input
-          id="curriculum-create-startYear"
+          id="curriculum-create-durationYears"
           type="number"
-          min={START_YEAR_MIN}
-          max={START_YEAR_MAX}
-          value={startYear === '' ? '' : startYear}
+          min={DURATION_YEARS_MIN}
+          max={DURATION_YEARS_MAX}
+          value={durationYears === '' ? '' : durationYears}
           onChange={(e) => {
             const v = e.target.value;
-            setStartYear(v === '' ? '' : parseInt(v, 10));
+            setDurationYears(v === '' ? '' : parseInt(v, 10));
           }}
-          placeholder={`${START_YEAR_MIN}–${START_YEAR_MAX}`}
-          aria-invalid={!!fieldErrors.startYear}
-        />
-      </FormGroup>
-      <FormGroup label={t('curriculumEndYear')} htmlFor="curriculum-create-endYear" error={fieldErrors.endYear}>
-        <input
-          id="curriculum-create-endYear"
-          type="number"
-          min={END_YEAR_MIN}
-          max={END_YEAR_MAX}
-          value={endYear === '' ? '' : endYear}
-          onChange={(e) => {
-            const v = e.target.value;
-            setEndYear(v === '' ? '' : parseInt(v, 10));
-          }}
-          placeholder={t('curriculumEndYearPlaceholder')}
-          aria-invalid={!!fieldErrors.endYear}
+          placeholder={`${DURATION_YEARS_MIN}–${DURATION_YEARS_MAX}`}
+          required
+          aria-invalid={!!fieldErrors.durationYears}
         />
       </FormGroup>
       <FormGroup label={t('curriculumIsActive')} htmlFor="curriculum-create-isActive">

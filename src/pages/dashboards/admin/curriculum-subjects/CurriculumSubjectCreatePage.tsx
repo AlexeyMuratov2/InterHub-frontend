@@ -9,7 +9,7 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName, parseFieldErrors } from '../../../../shared/lib';
+import { getAssessmentTypeDisplayName, parseFieldErrors, formatDurationYears } from '../../../../shared/lib';
 import { PageMessage, FormPageLayout, FormGroup, FormActions } from '../../../../shared/ui';
 
 type FormErrors = Partial<Record<keyof CreateCurriculumSubjectRequest, string>>;
@@ -18,7 +18,7 @@ export function CurriculumSubjectCreatePage() {
   const { curriculumId } = useParams<{ curriculumId: string }>();
   const navigate = useNavigate();
   const canEdit = useCanEditInAdmin();
-  const { t } = useTranslation('dashboard');
+  const { t, locale } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
 
   const [loading, setLoading] = useState(true);
@@ -231,7 +231,7 @@ export function CurriculumSubjectCreatePage() {
         onSubmit={handleSubmit}
       >
         <p className="department-page-subtitle">
-          {program?.name} • {curriculum?.version} ({curriculum?.startYear}–{curriculum?.endYear ?? '...'})
+          {program?.name} • {curriculum?.version} ({curriculum?.durationYears ? formatDurationYears(curriculum.durationYears, t, locale) : '...'})
         </p>
 
         {/* Выбор предмета */}

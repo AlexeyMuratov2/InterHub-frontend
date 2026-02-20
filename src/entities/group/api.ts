@@ -186,3 +186,38 @@ export async function removeGroupMember(
   );
   return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
 }
+
+export interface SemesterIdResponse {
+  semesterId: string;
+}
+
+/**
+ * Получить ID календарного семестра по группе, курсу и номеру семестра (1 или 2).
+ * Определяет ID календарного семестра для позиции учебного плана группы (курс + номер семестра).
+ * Используется для привязки занятий и событий к конкретному семестру академического календаря.
+ * 
+ * GET /api/groups/{groupId}/semester-id?courseYear={courseYear}&semesterNo={semesterNo}
+ * 
+ * @param groupId - ID группы (UUID)
+ * @param courseYear - Курс обучения (1-based): 1 = первый курс (год начала группы), 2 = второй курс (год начала + 1), и т.д. Минимум: 1
+ * @param semesterNo - Номер семестра в учебном году: 1 (осенний) или 2 (весенний). Допустимые значения: 1 или 2
+ * @returns Promise с объектом { semesterId: UUID } или ошибкой
+ */
+export async function getSemesterIdByGroup(
+  groupId: string,
+  courseYear: number,
+  semesterNo: 1 | 2
+): Promise<{
+  data?: SemesterIdResponse;
+  error?: GroupApiError;
+}> {
+  const params = new URLSearchParams({
+    courseYear: String(courseYear),
+    semesterNo: String(semesterNo),
+  });
+  const result = await request<SemesterIdResponse>(
+    `${BASE}/${encodeURIComponent(groupId)}/semester-id?${params.toString()}`,
+    { method: 'GET' }
+  );
+  return toResult(result);
+}

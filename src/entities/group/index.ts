@@ -23,5 +23,6 @@ export {
   addGroupMember,
   addGroupMembersBulk,
   removeGroupMember,
+  getSemesterIdByGroup,
 } from './api';
-export type { GroupApiError } from './api';
+export type { GroupApiError, SemesterIdResponse } from './api';

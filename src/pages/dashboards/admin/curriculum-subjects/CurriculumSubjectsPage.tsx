@@ -10,7 +10,7 @@ import { fetchProgramById, type ProgramDto } from '../../../../entities/program'
 import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getAssessmentTypeDisplayName } from '../../../../shared/lib';
+import { getAssessmentTypeDisplayName, formatDurationYears } from '../../../../shared/lib';
 import { PageMessage, Alert, ConfirmModal } from '../../../../shared/ui';
 
 type CurriculumSubjectWithDetails = CurriculumSubjectDto & {
@@ -237,7 +237,7 @@ export function CurriculumSubjectsPage() {
           {t('curriculumSubjectsPageTitle', { version: curriculum?.version ?? '' })}
         </h1>
         <p className="department-page-subtitle">
-          {program?.name} • {curriculum?.startYear}–{curriculum?.endYear ?? '...'} • {t(`curriculumStatus${curriculum?.status}`)}
+          {program?.name} • {curriculum?.durationYears ? formatDurationYears(curriculum.durationYears, t, locale) : '...'} • {t(`curriculumStatus${curriculum?.status}`)}
         </p>
       </div>
 

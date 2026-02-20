@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchGroupById } from '../../../../entities/group';
-import { fetchCurriculumSubjects, getSemesterIdByCurriculum } from '../../../../entities/curriculum-subject';
+import { fetchGroupById, getSemesterIdByGroup } from '../../../../entities/group';
+import { fetchCurriculumSubjects } from '../../../../entities/curriculum-subject';
 import { fetchSubjects, fetchAssessmentTypes } from '../../../../entities/subject';
 import { fetchOfferingsByGroupId, fetchOfferingSlots, generateLessonsForGroup } from '../../../../entities/offering';
 import { useTranslation } from '../../../../shared/i18n';
@@ -115,7 +115,7 @@ export function ImplementationPage() {
   }, [groupId]);
 
   useEffect(() => {
-    if (!curriculumId || courseFilter === '') {
+    if (!groupId || courseFilter === '') {
       setSemesterId(null);
       setSemesterResolveError(null);
       return;
@@ -123,7 +123,7 @@ export function ImplementationPage() {
     let cancelled = false;
     setSemesterResolveError(null);
     setResolvingSemesterId(true);
-    getSemesterIdByCurriculum(curriculumId, courseFilter, semesterNo).then(({ data, error: err }) => {
+    getSemesterIdByGroup(groupId, courseFilter, semesterNo).then(({ data, error: err }) => {
       if (cancelled) return;
       setResolvingSemesterId(false);
       if (err) {
@@ -140,7 +140,7 @@ export function ImplementationPage() {
     return () => {
       cancelled = true;
     };
-  }, [curriculumId, courseFilter, semesterNo]);
+  }, [groupId, courseFilter, semesterNo]);
 
   const offeringsByCurriculumSubjectId = useMemo(() => {
     const map: Record<string, GroupSubjectOfferingDto> = {};

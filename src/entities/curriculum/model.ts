@@ -12,8 +12,7 @@ export interface CurriculumDto {
   id: string;
   programId: string;
   version: string;
-  startYear: number;
-  endYear: number | null;
+  durationYears: number;
   isActive: boolean;
   status: CurriculumStatus;
   approvedAt: string | null; // ISO 8601
@@ -26,8 +25,7 @@ export interface CurriculumDto {
 /** Запрос на создание учебного плана */
 export interface CreateCurriculumRequest {
   version: string;
-  startYear: number;
-  endYear?: number | null;
+  durationYears: number;
   isActive?: boolean;
   notes?: string | null;
 }
@@ -35,8 +33,7 @@ export interface CreateCurriculumRequest {
 /** Запрос на обновление учебного плана */
 export interface UpdateCurriculumRequest {
   version?: string;
-  startYear: number;
-  endYear: number | null;
+  durationYears: number;
   isActive: boolean;
   status?: CurriculumStatus;
   notes?: string | null;

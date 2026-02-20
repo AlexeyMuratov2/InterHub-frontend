@@ -18,7 +18,7 @@ import { getUser, listStudents } from '../../../../shared/api';
 import type { StudentProfileItem } from '../../../../shared/api';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getDisplayName } from '../../../../shared/lib';
+import { getDisplayName, formatDurationYears } from '../../../../shared/lib';
 import { EntityViewLayout } from '../../../../widgets/entity-view-layout';
 import { Alert, ConfirmModal, FormActions, FormGroup, Modal } from '../../../../shared/ui';
 import { GroupScheduleTab } from './GroupScheduleTab';
@@ -96,7 +96,9 @@ export function GroupViewPage() {
         if (!cancelled) setProgramName(p?.name ?? null);
       });
       fetchCurriculumById(g.curriculumId).then(({ data: c }) => {
-        if (!cancelled && c) setCurriculumLabel(`${c.version} (${c.startYear}–${c.endYear ?? '…'})`);
+        if (!cancelled && c) {
+          setCurriculumLabel(`${c.version} (${formatDurationYears(c.durationYears, t, locale)})`);
+        }
       });
       if (g.curatorUserId) {
         getUser(g.curatorUserId).then(({ data: u }) => {
