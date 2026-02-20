@@ -53,6 +53,148 @@
   color: #888;
 }
 
+/* ========== Глобальные стили для элементов формы ========== */
+/* Применяются ко всем input, textarea, select, datetime-local в приложении */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  color: #1e293b;
+  background-color: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="datetime-local"]:focus,
+input[type="time"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+input[type="text"]:disabled,
+input[type="email"]:disabled,
+input[type="password"]:disabled,
+input[type="number"]:disabled,
+input[type="date"]:disabled,
+input[type="datetime-local"]:disabled,
+input[type="time"]:disabled,
+input[type="tel"]:disabled,
+input[type="url"]:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="url"]::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+input[type="text"]:read-only,
+input[type="email"]:read-only,
+input[type="password"]:read-only,
+input[type="number"]:read-only,
+input[type="date"]:read-only,
+input[type="datetime-local"]:read-only,
+input[type="time"]:read-only,
+textarea:read-only {
+  background-color: #f7fafc;
+  color: #64748b;
+  cursor: default;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
+  padding-right: 2.5rem;
+  appearance: none;
+}
+
+/* Стили для datetime-local и date picker */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  filter: brightness(0) saturate(100%) invert(45%) sepia(8%) saturate(1000%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Стили для элементов формы внутри модалок и форм */
+.department-modal input[type="text"],
+.department-modal input[type="email"],
+.department-modal input[type="password"],
+.department-modal input[type="number"],
+.department-modal input[type="date"],
+.department-modal input[type="datetime-local"],
+.department-modal input[type="time"],
+.department-modal textarea,
+.department-modal select,
+.department-form input[type="text"],
+.department-form input[type="email"],
+.department-form input[type="password"],
+.department-form input[type="number"],
+.department-form input[type="date"],
+.department-form input[type="datetime-local"],
+.department-form input[type="time"],
+.department-form textarea,
+.department-form select,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="datetime-local"],
+.form-group input[type="time"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+}
+
 /* ========== Auth card pages (Login / Invite) — как на фото: градиент, белая карточка ========== */
 .auth-card-page {
   min-height: 100vh;

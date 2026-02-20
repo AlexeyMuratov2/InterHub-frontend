@@ -708,6 +708,32 @@ export interface CompositionLessonMaterialDto {
   files: CompositionStoredFileDto[];
 }
 
+// --- Lesson materials (POST /api/lessons/{lessonId}/materials, etc.) ---
+
+/** Материал урока (LessonMaterialDto) - API response */
+export interface LessonMaterialDto {
+  id: string;
+  lessonId: string;
+  name: string;
+  description: string | null;
+  authorId: string;
+  publishedAt: string;
+  files: StoredFileDto[];
+}
+
+/** Запрос на создание материала урока (CreateLessonMaterialRequest) */
+export interface CreateLessonMaterialRequest {
+  name: string;
+  description?: string | null;
+  publishedAt: string;
+  storedFileIds?: string[] | null;
+}
+
+/** Запрос на добавление файлов к материалу урока (AddLessonMaterialFilesRequest) */
+export interface AddLessonMaterialFilesRequest {
+  storedFileIds: string[];
+}
+
 /** Домашнее задание (HomeworkDto) */
 export interface CompositionHomeworkDto {
   id: string;

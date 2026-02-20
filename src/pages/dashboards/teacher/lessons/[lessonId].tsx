@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation, formatDate, formatTime } from '../../../../shared/i18n';
-import { getLessonFullDetails, getFileDownloadUrl, getLesson, listRooms } from '../../../../shared/api';
+import { getLessonFullDetails, getFileDownloadUrl, getLesson, listRooms, deleteLessonMaterial, removeLessonMaterialFile } from '../../../../shared/api';
 import type {
   LessonFullDetailsDto,
   CompositionStoredFileDto,
@@ -13,6 +13,8 @@ import {
   Alert,
   FileCard,
   LessonEditModal,
+  LessonMaterialModal,
+  ConfirmModal,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -22,7 +24,7 @@ import {
   getLessonStatusDisplayKey,
   formatCompositionRoomLine,
 } from '../../../../shared/lib';
-import { ArrowLeft, Plus, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 
 const LESSONS_LIST_PATH = '/dashboards/teacher/lessons';
 
@@ -40,6 +42,12 @@ export function LessonFullDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [materialModalOpen, setMaterialModalOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<CompositionLessonMaterialDto | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<CompositionLessonMaterialDto | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<{ material: CompositionLessonMaterialDto; file: CompositionStoredFileDto } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadDetails = useCallback(async () => {
     if (!lessonId) return;
@@ -112,6 +120,60 @@ export function LessonFullDetailsPage() {
     navigate(LESSONS_LIST_PATH);
   }, [navigate]);
 
+  const handleAddMaterialClick = useCallback(() => {
+    setSelectedMaterial(null);
+    setMaterialModalOpen(true);
+  }, []);
+
+  const handleEditMaterialClick = useCallback((material: CompositionLessonMaterialDto) => {
+    setSelectedMaterial(material);
+    setMaterialModalOpen(true);
+  }, []);
+
+  const handleMaterialSaved = useCallback(() => {
+    loadDetails();
+  }, [loadDetails]);
+
+  const handleDeleteMaterialClick = useCallback((material: CompositionLessonMaterialDto) => {
+    setMaterialToDelete(material);
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleDeleteFileClick = useCallback((material: CompositionLessonMaterialDto, file: CompositionStoredFileDto) => {
+    setFileToDelete({ material, file });
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!lessonId) return;
+    
+    setDeleting(true);
+    try {
+      if (materialToDelete) {
+        const result = await deleteLessonMaterial(lessonId, materialToDelete.id);
+        if (result.error) {
+          alert(result.error.message ?? tRef.current('lessonMaterialDeleteError'));
+        } else {
+          await loadDetails();
+        }
+        setMaterialToDelete(null);
+      } else if (fileToDelete) {
+        const result = await removeLessonMaterialFile(lessonId, fileToDelete.material.id, fileToDelete.file.id);
+        if (result.error) {
+          alert(result.error.message ?? tRef.current('lessonMaterialFileDeleteError'));
+        } else {
+          await loadDetails();
+        }
+        setFileToDelete(null);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : tRef.current('lessonMaterialDeleteError'));
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+    }
+  }, [lessonId, materialToDelete, fileToDelete, loadDetails]);
+
   if (loading) {
     return (
       <div className="entity-view-page department-form-page">
@@ -154,10 +216,8 @@ export function LessonFullDetailsPage() {
   const statusKey = getLessonStatusDisplayKey(lessonDetails.status);
   const lessonTypeKey = getLessonTypeDisplayKey(offeringSlot?.lessonType ?? null);
 
-  const allFiles: { file: CompositionStoredFileDto; material: CompositionLessonMaterialDto }[] = [];
-  materials.forEach((mat) => {
-    mat.files.forEach((f) => allFiles.push({ file: f, material: mat }));
-  });
+  // Group files by material for better display
+  const materialsWithFiles = materials.filter((mat) => mat.files.length > 0);
 
   const firstHomework = homework[0] ?? null;
 
@@ -257,6 +317,40 @@ export function LessonFullDetailsPage() {
         />
       )}
 
+      {/* Lesson Material Modal */}
+      {lessonId && (
+        <LessonMaterialModal
+          open={materialModalOpen}
+          onClose={() => {
+            setMaterialModalOpen(false);
+            setSelectedMaterial(null);
+          }}
+          lessonId={lessonId}
+          material={selectedMaterial}
+          onSaved={handleMaterialSaved}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        title={materialToDelete ? t('lessonMaterialDeleteTitle') : t('lessonMaterialFileDeleteTitle')}
+        message={
+          materialToDelete
+            ? t('lessonMaterialDeleteMessage', { name: materialToDelete.name?.trim() || t('lessonMaterialUntitled') })
+            : t('lessonMaterialFileDeleteMessage')
+        }
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setMaterialToDelete(null);
+          setFileToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        cancelLabel={t('cancel')}
+        confirmLabel={t('delete')}
+        confirmDisabled={deleting}
+      />
+
       {/* Two columns: Materials | Homework */}
       <div className="lesson-details-grid">
         {/* Lesson Materials */}
@@ -269,25 +363,66 @@ export function LessonFullDetailsPage() {
               type="button"
               className="btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-              onClick={() => {}}
+              onClick={handleAddMaterialClick}
             >
               <Plus style={{ width: '1rem', height: '1rem' }} aria-hidden />
               {t('lessonDetailsAddMaterial')}
             </button>
           </div>
-          {allFiles.length === 0 ? (
+          {materials.length === 0 ? (
             <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('lessonDetailsNoMaterials')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {allFiles.map(({ file, material }) => (
-                <FileCard
-                  key={file.id}
-                  title={file.originalName?.trim() || material.name?.trim() || 'File'}
-                  size={file.size}
-                  uploadedAt={file.uploadedAt}
-                  onDownload={() => handleDownloadFile(file)}
-                  onDelete={undefined}
-                />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {materials.map((material) => (
+                <div key={material.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
+                        {material.name?.trim() || t('lessonMaterialUntitled')}
+                      </h3>
+                      {material.description?.trim() && (
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                          {material.description.trim()}
+                        </p>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem' }}
+                        onClick={() => handleEditMaterialClick(material)}
+                        title={t('edit')}
+                      >
+                        <Pencil style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem', color: '#dc2626' }}
+                        onClick={() => handleDeleteMaterialClick(material)}
+                        title={t('delete')}
+                      >
+                        <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                      </button>
+                    </div>
+                  </div>
+                  {material.files.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {material.files.map((file) => (
+                        <FileCard
+                          key={file.id}
+                          title={file.originalName?.trim() || t('lessonMaterialFile')}
+                          size={file.size}
+                          uploadedAt={file.uploadedAt}
+                          description={file.contentType || undefined}
+                          onDownload={() => handleDownloadFile(file)}
+                          onDelete={() => handleDeleteFileClick(material, file)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}

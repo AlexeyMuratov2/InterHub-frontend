@@ -19,3 +19,5 @@ export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
 export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';
 export { FileCard } from './file-card';
 export type { FileCardProps } from './file-card';
+export { LessonMaterialModal } from './lesson-material-modal';
+export type { LessonMaterialModalProps } from './lesson-material-modal';

@@ -116,6 +116,15 @@ export type {
 
 export { getLessonFullDetails } from './composition';
 export type { CompositionApiResult } from './composition';
+export {
+  listLessonMaterials,
+  createLessonMaterial,
+  getLessonMaterial,
+  deleteLessonMaterial,
+  addLessonMaterialFiles,
+  removeLessonMaterialFile,
+} from './lessonMaterials';
+export type { LessonMaterialsApiResult } from './lessonMaterials';
 export type {
   LessonFullDetailsDto,
   CompositionLessonDto,
@@ -129,4 +138,7 @@ export type {
   CompositionStoredFileDto,
   CompositionLessonMaterialDto,
   CompositionHomeworkDto,
+  LessonMaterialDto,
+  CreateLessonMaterialRequest,
+  AddLessonMaterialFilesRequest,
 } from './types';
