@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation, formatDate, formatTime } from '../../../../shared/i18n';
-import { getLessonFullDetails, getFileDownloadUrl, getLesson, listRooms, deleteLessonMaterial, removeLessonMaterialFile } from '../../../../shared/api';
+import { getLessonFullDetails, getFileDownloadUrl, getLesson, listRooms, deleteLessonMaterial, removeLessonMaterialFile, listLessonHomework, deleteHomework } from '../../../../shared/api';
 import type {
   LessonFullDetailsDto,
   CompositionStoredFileDto,
   CompositionLessonMaterialDto,
   LessonDto,
   RoomDto,
+  HomeworkDto,
 } from '../../../../shared/api';
 import {
   Alert,
@@ -15,6 +16,7 @@ import {
   LessonEditModal,
   LessonMaterialModal,
   ConfirmModal,
+  HomeworkModal,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -48,6 +50,10 @@ export function LessonFullDetailsPage() {
   const [materialToDelete, setMaterialToDelete] = useState<CompositionLessonMaterialDto | null>(null);
   const [fileToDelete, setFileToDelete] = useState<{ material: CompositionLessonMaterialDto; file: CompositionStoredFileDto } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [homeworkModalOpen, setHomeworkModalOpen] = useState(false);
+  const [selectedHomework, setSelectedHomework] = useState<HomeworkDto | null>(null);
+  const [homeworkList, setHomeworkList] = useState<HomeworkDto[]>([]);
+  const [homeworkToDelete, setHomeworkToDelete] = useState<HomeworkDto | null>(null);
 
   const loadDetails = useCallback(async () => {
     if (!lessonId) return;
@@ -55,10 +61,11 @@ export function LessonFullDetailsPage() {
     setError(null);
     setNotFound(false);
     
-    const [detailsRes, lessonRes, roomsRes] = await Promise.all([
+    const [detailsRes, lessonRes, roomsRes, homeworkRes] = await Promise.all([
       getLessonFullDetails(lessonId),
       getLesson(lessonId),
       listRooms(),
+      listLessonHomework(lessonId),
     ]);
     
     if (detailsRes.error) {
@@ -83,6 +90,13 @@ export function LessonFullDetailsPage() {
     
     if (roomsRes.data) {
       setRooms(roomsRes.data);
+    }
+
+    if (homeworkRes.data) {
+      setHomeworkList(homeworkRes.data);
+    } else if (homeworkRes.error && homeworkRes.status !== 404) {
+      // Ignore 404 for homework list (empty is fine)
+      console.warn('Failed to load homework:', homeworkRes.error);
     }
     
     setLoading(false);
@@ -165,6 +179,14 @@ export function LessonFullDetailsPage() {
           await loadDetails();
         }
         setFileToDelete(null);
+      } else if (homeworkToDelete) {
+        const result = await deleteHomework(homeworkToDelete.id);
+        if (result.error) {
+          alert(result.error.message ?? tRef.current('homeworkDeleteError'));
+        } else {
+          await loadDetails();
+        }
+        setHomeworkToDelete(null);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : tRef.current('lessonMaterialDeleteError'));
@@ -172,7 +194,26 @@ export function LessonFullDetailsPage() {
       setDeleting(false);
       setDeleteConfirmOpen(false);
     }
-  }, [lessonId, materialToDelete, fileToDelete, loadDetails]);
+  }, [lessonId, materialToDelete, fileToDelete, homeworkToDelete, loadDetails]);
+
+  const handleAddHomeworkClick = useCallback(() => {
+    setSelectedHomework(null);
+    setHomeworkModalOpen(true);
+  }, []);
+
+  const handleEditHomeworkClick = useCallback((homework: HomeworkDto) => {
+    setSelectedHomework(homework);
+    setHomeworkModalOpen(true);
+  }, []);
+
+  const handleDeleteHomeworkClick = useCallback((homework: HomeworkDto) => {
+    setHomeworkToDelete(homework);
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleHomeworkSaved = useCallback(() => {
+    loadDetails();
+  }, [loadDetails]);
 
   if (loading) {
     return (
@@ -218,8 +259,6 @@ export function LessonFullDetailsPage() {
 
   // Group files by material for better display
   const materialsWithFiles = materials.filter((mat) => mat.files.length > 0);
-
-  const firstHomework = homework[0] ?? null;
 
   return (
     <div className="entity-view-page department-form-page">
@@ -331,19 +370,46 @@ export function LessonFullDetailsPage() {
         />
       )}
 
+      {/* Homework Modal */}
+      {lessonId && (
+        <HomeworkModal
+          open={homeworkModalOpen}
+          onClose={() => {
+            setHomeworkModalOpen(false);
+            setSelectedHomework(null);
+          }}
+          lessonId={lessonId}
+          homework={selectedHomework}
+          onSaved={handleHomeworkSaved}
+        />
+      )}
+
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         open={deleteConfirmOpen}
-        title={materialToDelete ? t('lessonMaterialDeleteTitle') : t('lessonMaterialFileDeleteTitle')}
+        title={
+          materialToDelete
+            ? t('lessonMaterialDeleteTitle')
+            : fileToDelete
+              ? t('lessonMaterialFileDeleteTitle')
+              : homeworkToDelete
+                ? t('homeworkDeleteTitle')
+                : ''
+        }
         message={
           materialToDelete
             ? t('lessonMaterialDeleteMessage', { name: materialToDelete.name?.trim() || t('lessonMaterialUntitled') })
-            : t('lessonMaterialFileDeleteMessage')
+            : fileToDelete
+              ? t('lessonMaterialFileDeleteMessage')
+              : homeworkToDelete
+                ? t('homeworkDeleteMessage', { title: homeworkToDelete.title?.trim() || t('homeworkUntitled') })
+                : ''
         }
         onCancel={() => {
           setDeleteConfirmOpen(false);
           setMaterialToDelete(null);
           setFileToDelete(null);
+          setHomeworkToDelete(null);
         }}
         onConfirm={handleDeleteConfirm}
         cancelLabel={t('cancel')}
@@ -436,29 +502,79 @@ export function LessonFullDetailsPage() {
             </h2>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-              onClick={() => {}}
+              onClick={handleAddHomeworkClick}
             >
-              <Pencil style={{ width: '1rem', height: '1rem' }} aria-hidden />
-              {t('lessonDetailsEditHomework')}
+              <Plus style={{ width: '1rem', height: '1rem' }} aria-hidden />
+              {t('lessonDetailsAddHomework')}
             </button>
           </div>
-          {!firstHomework ? (
+          {homeworkList.length === 0 ? (
             <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('lessonDetailsNoHomework')}</p>
           ) : (
-            <div>
-              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
-                {firstHomework.title?.trim() || '—'}
-              </h3>
-              {firstHomework.description?.trim() && (
-                <p style={{ margin: '0 0 0.5rem', fontSize: '0.9375rem', color: '#475569', lineHeight: 1.5 }}>
-                  {firstHomework.description.trim()}
-                </p>
-              )}
-              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                {t('lessonDetailsDueDate')}: {formatDate(firstHomework.updatedAt, locale)}
-              </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {homeworkList.map((hw) => (
+                <div key={hw.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
+                        {hw.title?.trim() || t('homeworkUntitled')}
+                      </h3>
+                      {hw.description?.trim() && (
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                          {hw.description.trim()}
+                        </p>
+                      )}
+                      {hw.points != null && (
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                          {t('homeworkPoints')}: {hw.points}
+                        </p>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem' }}
+                        onClick={() => handleEditHomeworkClick(hw)}
+                        title={t('edit')}
+                      >
+                        <Pencil style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem', color: '#dc2626' }}
+                        onClick={() => handleDeleteHomeworkClick(hw)}
+                        title={t('delete')}
+                      >
+                        <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                      </button>
+                    </div>
+                  </div>
+                  {hw.file && (
+                    <FileCard
+                      title={hw.file.originalName || t('homeworkFile')}
+                      size={hw.file.size}
+                      uploadedAt={hw.file.uploadedAt}
+                      description={hw.file.contentType || undefined}
+                      onDownload={async () => {
+                        try {
+                          const res = await getFileDownloadUrl(hw.file!.id);
+                          if (res.data?.url) {
+                            window.open(res.data.url, '_blank');
+                          } else {
+                            alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+                          }
+                        } catch (err) {
+                          alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </section>

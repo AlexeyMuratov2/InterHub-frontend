@@ -759,3 +759,34 @@ export interface LessonFullDetailsDto {
   materials: CompositionLessonMaterialDto[];
   homework: CompositionHomeworkDto[];
 }
+
+// --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---
+
+/** Домашнее задание (HomeworkDto) - API response */
+export interface HomeworkDto {
+  id: string;
+  lessonId: string;
+  title: string;
+  description: string | null;
+  points: number | null;
+  file: StoredFileDto | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Запрос на создание домашнего задания (CreateHomeworkRequest) */
+export interface CreateHomeworkRequest {
+  title: string;
+  description?: string | null;
+  points?: number | null;
+  storedFileId?: string | null;
+}
+
+/** Запрос на обновление домашнего задания (UpdateHomeworkRequest) */
+export interface UpdateHomeworkRequest {
+  title?: string | null;
+  description?: string | null;
+  points?: number | null;
+  clearFile?: boolean;
+  storedFileId?: string | null;
+}

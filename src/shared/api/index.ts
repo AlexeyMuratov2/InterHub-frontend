@@ -125,6 +125,14 @@ export {
   removeLessonMaterialFile,
 } from './lessonMaterials';
 export type { LessonMaterialsApiResult } from './lessonMaterials';
+export {
+  listLessonHomework,
+  getHomework,
+  createHomework,
+  updateHomework,
+  deleteHomework,
+} from './homework';
+export type { HomeworkApiResult } from './homework';
 export type {
   LessonFullDetailsDto,
   CompositionLessonDto,
@@ -141,4 +149,7 @@ export type {
   LessonMaterialDto,
   CreateLessonMaterialRequest,
   AddLessonMaterialFilesRequest,
+  HomeworkDto,
+  CreateHomeworkRequest,
+  UpdateHomeworkRequest,
 } from './types';

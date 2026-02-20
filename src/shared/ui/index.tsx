@@ -21,3 +21,5 @@ export { FileCard } from './file-card';
 export type { FileCardProps } from './file-card';
 export { LessonMaterialModal } from './lesson-material-modal';
 export type { LessonMaterialModalProps } from './lesson-material-modal';
+export { HomeworkModal } from './homework-modal';
+export type { HomeworkModalProps } from './homework-modal';
