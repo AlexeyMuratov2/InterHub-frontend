@@ -115,7 +115,13 @@ export function SchedulePage() {
         <input
           type="date"
           value={anchorDate}
-          onChange={(e) => setAnchorDate(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === '') return;
+            const d = new Date(v + 'T12:00:00');
+            const normalized = d.toISOString().slice(0, 10);
+            if (!Number.isNaN(d.getTime()) && normalized === v) setAnchorDate(v);
+          }}
           aria-label={t('dateFormat')}
         />
         <span className="schedule-tab-week-range">

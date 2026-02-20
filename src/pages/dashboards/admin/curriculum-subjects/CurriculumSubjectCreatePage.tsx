@@ -120,7 +120,7 @@ export function CurriculumSubjectCreatePage() {
     if (!subjectId) {
       newErrors.subjectId = t('curriculumSubjectErrorSubjectRequired');
     }
-    if (semesterNo === '' || semesterNo < 1) {
+    if (semesterNo === '' || (semesterNo !== 1 && semesterNo !== 2)) {
       newErrors.semesterNo = t('curriculumSubjectErrorSemesterRequired');
     }
     if (durationWeeks === '' || durationWeeks < 1) {
@@ -297,17 +297,18 @@ export function CurriculumSubjectCreatePage() {
               error={errors.semesterNo}
               required
             >
-              <input
+              <select
                 id="cs-create-semesterNo"
-                type="number"
-                min="1"
-                max="12"
-                className="department-form-input"
+                className="department-form-select"
                 value={semesterNo}
                 onChange={(e) => setSemesterNo(e.target.value === '' ? '' : Number(e.target.value))}
                 required
                 aria-invalid={!!errors.semesterNo}
-              />
+              >
+                <option value="">{t('curriculumSubjectSelectSemester')}</option>
+                <option value={1}>{t('curriculumSubjectSemesterN', { n: 1 })}</option>
+                <option value={2}>{t('curriculumSubjectSemesterN', { n: 2 })}</option>
+              </select>
             </FormGroup>
 
             <FormGroup label={t('curriculumSubjectCourseYear')} htmlFor="cs-create-courseYear">

@@ -12,6 +12,33 @@ export type CurriculumSubjectApiResult<T> = {
   error?: { message?: string; code?: string; details?: Record<string, string>; status?: number };
 };
 
+export interface SemesterIdResponse {
+  semesterId: string;
+}
+
+/**
+ * Получить ID календарного семестра по учебному плану, курсу и номеру семестра (1 или 2).
+ * GET /api/programs/curricula/{curriculumId}/semester-id?courseYear=&semesterNo=
+ */
+export async function getSemesterIdByCurriculum(
+  curriculumId: string,
+  courseYear: number,
+  semesterNo: 1 | 2
+): Promise<CurriculumSubjectApiResult<SemesterIdResponse>> {
+  const params = new URLSearchParams({
+    courseYear: String(courseYear),
+    semesterNo: String(semesterNo),
+  });
+  const result = await request<SemesterIdResponse>(
+    `${BASE}/curricula/${encodeURIComponent(curriculumId)}/semester-id?${params.toString()}`,
+    { method: 'GET' }
+  );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+  };
+}
+
 /**
  * Получить все предметы учебного плана
  * GET /api/programs/curricula/{curriculumId}/subjects

@@ -1178,6 +1178,19 @@ img.app-dashboard-sidebar-logo {
   border-bottom: 1px solid #f3f4f6;
 }
 
+.lesson-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .lesson-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Horizontal definition list: label and value on same row */
 .entity-view-dl {
   display: grid;
@@ -2521,13 +2534,15 @@ img.app-dashboard-sidebar-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
   background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   color: #fff;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 700;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .semester-count {
@@ -2824,6 +2839,74 @@ img.app-dashboard-sidebar-logo {
 
 .btn-link:hover {
   text-decoration: underline;
+}
+
+/* Общие стили кнопок для всего проекта (primary = синяя, secondary = белая, delete = красная) */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+a.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-delete {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #dc2626;
+  color: #fff;
+  transition: background-color 0.15s ease;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-delete:disabled {
+  background: #fecaca;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 /* Секция использования предмета в учебных планах */

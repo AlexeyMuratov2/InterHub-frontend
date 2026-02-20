@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, BookMarked } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
@@ -17,6 +17,7 @@ const TEACHER_MENU: Array<{
   { path: '/dashboards/teacher', labelKey: 'menuDashboard', end: true, icon: LayoutDashboard },
   { path: '/dashboards/teacher/schedule', labelKey: 'menuSchedule', end: false, icon: Calendar },
   { path: '/dashboards/teacher/subjects', labelKey: 'menuTeacherSubjects', end: false, icon: BookOpen },
+  { path: '/dashboards/teacher/lessons', labelKey: 'menuLessons', end: false, icon: BookMarked },
 ] as const;
 
 /** Layout дашборда преподавателя: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -48,14 +49,17 @@ export function TeacherDashboardLayout() {
   const isSchedule = location.pathname.startsWith('/dashboards/teacher/schedule');
   const isProfile = location.pathname.startsWith('/dashboards/teacher/profile');
   const isSubjects = location.pathname.startsWith('/dashboards/teacher/subjects');
+  const isLessons = location.pathname.startsWith('/dashboards/teacher/lessons');
 
   const headerSectionTitle = isProfile
     ? t('profilePageTitleShort')
     : isSubjects
       ? t('menuTeacherSubjects')
-      : isSchedule
-        ? t('menuSchedule')
-        : t('menuDashboard');
+      : isLessons
+        ? t('menuLessons')
+        : isSchedule
+          ? t('menuSchedule')
+          : t('menuDashboard');
 
   return (
     <div className="app-dashboard-layout">

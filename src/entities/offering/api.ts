@@ -2,10 +2,8 @@ import { request } from '../../shared/api';
 import type {
   GroupSubjectOfferingDto,
   OfferingSlotDto,
-  OfferingTeacherDto,
   CreateOfferingRequest,
   UpdateOfferingRequest,
-  AddOfferingTeacherRequest,
   CreateOfferingSlotRequest,
   GenerateLessonsResponse,
 } from './model';
@@ -86,42 +84,6 @@ export async function updateOffering(
 /** DELETE /api/offerings/{id} */
 export async function deleteOffering(id: string): Promise<{ error?: OfferingApiError }> {
   const result = await request<unknown>(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
-}
-
-/** GET /api/offerings/{offeringId}/teachers */
-export async function fetchOfferingTeachers(offeringId: string): Promise<{
-  data?: OfferingTeacherDto[];
-  error?: OfferingApiError;
-}> {
-  const result = await request<OfferingTeacherDto[]>(
-    `${BASE}/${encodeURIComponent(offeringId)}/teachers`,
-    { method: 'GET' }
-  );
-  return toResult(result);
-}
-
-/** POST /api/offerings/{offeringId}/teachers */
-export async function addOfferingTeacher(
-  offeringId: string,
-  body: AddOfferingTeacherRequest
-): Promise<{
-  data?: OfferingTeacherDto;
-  error?: OfferingApiError;
-}> {
-  const result = await request<OfferingTeacherDto>(
-    `${BASE}/${encodeURIComponent(offeringId)}/teachers`,
-    { method: 'POST', body: JSON.stringify(body) }
-  );
-  return toResult(result);
-}
-
-/** DELETE /api/offerings/teachers/{id} */
-export async function deleteOfferingTeacher(offeringTeacherId: string): Promise<{ error?: OfferingApiError }> {
-  const result = await request<unknown>(
-    `${BASE}/teachers/${encodeURIComponent(offeringTeacherId)}`,
-    { method: 'DELETE' }
-  );
   return { error: result.error ? { ...(result.error as object), status: result.status } : undefined };
 }
 

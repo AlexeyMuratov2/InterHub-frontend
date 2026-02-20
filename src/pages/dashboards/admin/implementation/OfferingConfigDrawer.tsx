@@ -4,7 +4,6 @@ import { Drawer } from '../../../../shared/ui';
 import type { GroupSubjectOfferingDto } from '../../../../entities/offering';
 import type { CurriculumSubjectRow } from './CurriculumSubjectsTableWithImplementation';
 import { OfferingForm } from './OfferingForm';
-import { OfferingTeachersEditor } from './OfferingTeachersEditor';
 import { OfferingSlotsEditor } from './OfferingSlotsEditor';
 import { GenerateLessonsPanel } from './GenerateLessonsPanel';
 
@@ -61,7 +60,6 @@ export function OfferingConfigDrawer({
 
       {offering && (
         <>
-          <OfferingTeachersEditor offeringId={offering.id} onUpdate={onSaved} />
           <OfferingSlotsEditor
             offeringId={offering.id}
             onUpdate={onSaved}

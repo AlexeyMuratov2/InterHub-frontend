@@ -134,30 +134,42 @@ export function CurriculumSubjectsPage() {
       );
     }
 
-    // Сортируем по семестру, затем по названию
+    // Сортируем по курсу, семестру, затем по названию
     return result.sort((a, b) => {
+      const courseA = a.courseYear ?? 0;
+      const courseB = b.courseYear ?? 0;
+      if (courseA !== courseB) return courseA - courseB;
       if (a.semesterNo !== b.semesterNo) return a.semesterNo - b.semesterNo;
       return a.subjectChineseName.localeCompare(b.subjectChineseName);
     });
   }, [curriculumSubjects, search, semesterFilter]);
 
-  // Уникальные номера семестров для фильтра
-  const uniqueSemesters = useMemo(() => {
-    const semesters = new Set(curriculumSubjects.map((cs) => cs.semesterNo));
-    return Array.from(semesters).sort((a, b) => a - b);
-  }, [curriculumSubjects]);
+  // Семестр может быть только 1 или 2 — варианты для фильтра
+  const semesterFilterOptions = useMemo(() => [1, 2] as const, []);
 
-  // Группировка по семестрам для красивого отображения
-  const groupedBySemester = useMemo(() => {
-    const groups: Record<number, CurriculumSubjectWithDetails[]> = {};
+  // Группировка по курсу и семестру: заголовок "N курс M семестр"
+  const groupedByCourseAndSemester = useMemo(() => {
+    const groups: Record<string, CurriculumSubjectWithDetails[]> = {};
     filtered.forEach((cs) => {
-      if (!groups[cs.semesterNo]) {
-        groups[cs.semesterNo] = [];
+      const courseYear = cs.courseYear ?? '';
+      const key = `${courseYear}-${cs.semesterNo}`;
+      if (!groups[key]) {
+        groups[key] = [];
       }
-      groups[cs.semesterNo].push(cs);
+      groups[key].push(cs);
     });
     return groups;
   }, [filtered]);
+
+  // Ключи групп, отсортированные по курсу и семестру
+  const sortedGroupKeys = useMemo(() => {
+    return Object.keys(groupedByCourseAndSemester).sort((a, b) => {
+      const [courseA, semA] = a.split('-').map((x) => (x === '' ? 0 : Number(x)));
+      const [courseB, semB] = b.split('-').map((x) => (x === '' ? 0 : Number(x)));
+      if (courseA !== courseB) return courseA - courseB;
+      return semA - semB;
+    });
+  }, [groupedByCourseAndSemester]);
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
@@ -244,7 +256,7 @@ export function CurriculumSubjectsPage() {
           <div className="stat-label">{t('curriculumSubjectsTotalHours')}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{uniqueSemesters.length}</div>
+          <div className="stat-value">{sortedGroupKeys.length}</div>
           <div className="stat-label">{t('curriculumSubjectsTotalSemesters')}</div>
         </div>
       </div>
@@ -285,7 +297,7 @@ export function CurriculumSubjectsPage() {
             aria-label={t('curriculumSubjectFilterBySemester')}
           >
             <option value="">{t('curriculumSubjectAllSemesters')}</option>
-            {uniqueSemesters.map((sem) => (
+            {semesterFilterOptions.map((sem) => (
               <option key={sem} value={sem}>
                 {t('curriculumSubjectSemesterN', { n: sem })}
               </option>
@@ -330,13 +342,15 @@ export function CurriculumSubjectsPage() {
         </div>
       ) : (
         <div className="curriculum-subjects-list">
-          {Object.entries(groupedBySemester)
-            .sort(([a], [b]) => Number(a) - Number(b))
-            .map(([semester, items]) => (
-              <section key={semester} className="semester-section">
+          {sortedGroupKeys.map((key) => {
+            const items = groupedByCourseAndSemester[key];
+            const [coursePart, semesterPart] = key.split('-');
+            const courseYear = coursePart === '' ? null : Number(coursePart);
+            const semesterNo = Number(semesterPart);
+            return (
+              <section key={key} className="semester-section">
                 <h2 className="semester-title">
-                  <span className="semester-badge">{semester}</span>
-                  {t('curriculumSubjectSemesterN', { n: Number(semester) })}
+                  <span className="semester-badge">{t('curriculumSubjectCourseSemester', { course: courseYear ?? '—', semester: semesterNo })}</span>
                   <span className="semester-count">({items.length} {t('curriculumSubjectSubjectsCount')})</span>
                 </h2>
                 <div className="department-table-wrap">
@@ -427,7 +441,8 @@ export function CurriculumSubjectsPage() {
                   </table>
                 </div>
               </section>
-            ))}
+            );
+          })}
         </div>
       )}
 

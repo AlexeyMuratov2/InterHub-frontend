@@ -113,3 +113,20 @@ export type {
   AddCourseMaterialRequest,
   PresignedUrlResponse,
 } from './types';
+
+export { getLessonFullDetails } from './composition';
+export type { CompositionApiResult } from './composition';
+export type {
+  LessonFullDetailsDto,
+  CompositionLessonDto,
+  CompositionSubjectDto,
+  CompositionStudentGroupDto,
+  CompositionOfferingDto,
+  CompositionOfferingSlotDto,
+  CompositionCurriculumSubjectDto,
+  CompositionRoomDto,
+  CompositionTeacherDto,
+  CompositionStoredFileDto,
+  CompositionLessonMaterialDto,
+  CompositionHomeworkDto,
+} from './types';

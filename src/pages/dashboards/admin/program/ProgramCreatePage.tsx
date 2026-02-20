@@ -133,7 +133,7 @@ export function ProgramCreatePage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={NAME_MAX}
-          placeholder={t('namePlaceholder')}
+          placeholder={t('programNamePlaceholder')}
           aria-invalid={!!fieldErrors.name}
         />
       </FormGroup>

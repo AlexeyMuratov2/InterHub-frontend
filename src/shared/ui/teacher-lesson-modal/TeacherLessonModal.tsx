@@ -2,6 +2,7 @@
  * Модалка урока для преподавателя: только просмотр (view).
  * Показывает группу вместо преподавателя, кнопка "Перейти к уроку".
  */
+import { useNavigate } from 'react-router-dom';
 import { useTranslation, useI18n, formatDate, formatTime } from '../../i18n';
 import { formatRoomLine, formatGroupLine } from '../../lib/schedule';
 import { Modal } from '../Modal';
@@ -33,6 +34,7 @@ export function TeacherLessonModal({
   item,
   getLessonTypeLabel,
 }: TeacherLessonModalProps) {
+  const navigate = useNavigate();
   const { t } = useTranslation('dashboard');
   const { locale } = useI18n();
 
@@ -50,8 +52,8 @@ export function TeacherLessonModal({
   })();
 
   const handleGoToLesson = () => {
-    // TODO: Реализовать переход к уроку
-    // Пока ничего не делаем
+    onClose();
+    navigate(`/dashboards/teacher/lessons/${lesson.id}`);
   };
 
   if (!open) return null;

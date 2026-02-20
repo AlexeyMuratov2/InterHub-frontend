@@ -568,3 +568,168 @@ export interface AddCourseMaterialRequest {
 export interface PresignedUrlResponse {
   url: string;
 }
+
+// --- Composition module (GET /api/composition/lessons/{id}/full-details) ---
+
+/** Урок в ответе composition (status может быть null) */
+export interface CompositionLessonDto {
+  id: string;
+  offeringId: string;
+  offeringSlotId: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  roomId: string | null;
+  topic: string | null;
+  status: 'PLANNED' | 'CANCELLED' | 'DONE' | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Предмет из каталога (SubjectDto в composition) */
+export interface CompositionSubjectDto {
+  id: string;
+  code: string | null;
+  chineseName: string | null;
+  englishName: string | null;
+  description: string | null;
+  departmentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Группа студентов (StudentGroupDto) */
+export interface CompositionStudentGroupDto {
+  id: string;
+  programId: string;
+  curriculumId: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  startYear: number;
+  graduationYear: number | null;
+  curatorUserId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Офферинг (GroupSubjectOfferingDto в composition) */
+export interface CompositionOfferingDto {
+  id: string;
+  groupId: string;
+  curriculumSubjectId: string;
+  teacherId: string | null;
+  roomId: string | null;
+  format: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Слот офферинга (OfferingSlotDto) */
+export interface CompositionOfferingSlotDto {
+  id: string;
+  offeringId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  lessonType: string | null;
+  roomId: string | null;
+  teacherId: string | null;
+  createdAt: string;
+}
+
+/** Элемент учебного плана (CurriculumSubjectDto) */
+export interface CompositionCurriculumSubjectDto {
+  id: string;
+  curriculumId: string;
+  subjectId: string;
+  semesterNo: number;
+  courseYear: number | null;
+  durationWeeks: number;
+  hoursTotal: number | null;
+  hoursLecture: number | null;
+  hoursPractice: number | null;
+  hoursLab: number | null;
+  hoursSeminar: number | null;
+  hoursSelfStudy: number | null;
+  hoursConsultation: number | null;
+  hoursCourseWork: number | null;
+  assessmentTypeId: string;
+  credits: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Аудитория в composition (RoomDto, buildingName может быть null) */
+export interface CompositionRoomDto {
+  id: string;
+  buildingId: string;
+  buildingName: string | null;
+  number: string | null;
+  capacity: number | null;
+  type: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Профиль преподавателя (TeacherDto в composition) */
+export interface CompositionTeacherDto {
+  id: string;
+  userId: string;
+  teacherId: string | null;
+  faculty: string | null;
+  englishName: string | null;
+  position: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Файл в хранилище в composition (contentType/originalName могут быть null) */
+export interface CompositionStoredFileDto {
+  id: string;
+  size: number;
+  contentType: string | null;
+  originalName: string | null;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+/** Материал урока (LessonMaterialDto) */
+export interface CompositionLessonMaterialDto {
+  id: string;
+  lessonId: string;
+  name: string | null;
+  description: string | null;
+  authorId: string;
+  publishedAt: string;
+  files: CompositionStoredFileDto[];
+}
+
+/** Домашнее задание (HomeworkDto) */
+export interface CompositionHomeworkDto {
+  id: string;
+  lessonId: string;
+  title: string | null;
+  description: string | null;
+  points: number | null;
+  file: CompositionStoredFileDto | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Полная информация по уроку (LessonFullDetailsDto) */
+export interface LessonFullDetailsDto {
+  lesson: CompositionLessonDto;
+  subject: CompositionSubjectDto;
+  group: CompositionStudentGroupDto;
+  offering: CompositionOfferingDto;
+  offeringSlot: CompositionOfferingSlotDto | null;
+  curriculumSubject: CompositionCurriculumSubjectDto;
+  room: CompositionRoomDto | null;
+  mainTeacher: CompositionTeacherDto | null;
+  materials: CompositionLessonMaterialDto[];
+  homework: CompositionHomeworkDto[];
+}

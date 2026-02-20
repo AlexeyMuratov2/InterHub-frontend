@@ -52,7 +52,7 @@ export function OfferingSlotsEditor({ offeringId, onUpdate, highlightError, defa
   const [dayOfWeek, setDayOfWeek] = useState(1);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:30');
-  const [lessonType, setLessonType] = useState('LECTURE');
+  const [lessonType, setLessonType] = useState('SEMINAR');
   const [slotTeacherId, setSlotTeacherId] = useState('');
   const [slotRoomId, setSlotRoomId] = useState('');
 
@@ -86,8 +86,8 @@ export function OfferingSlotsEditor({ offeringId, onUpdate, highlightError, defa
     setAddError(null);
     const body: Record<string, unknown> = {
       lessonType,
-      roomId: slotRoomId || null,
-      teacherId: slotTeacherId || null,
+      roomId: lessonType === 'SEMINAR' ? (defaultRoomId ?? null) : (slotRoomId || null),
+      teacherId: lessonType === 'SEMINAR' ? (defaultTeacherId ?? null) : (slotTeacherId || null),
     };
     if (useTimeslot && timeslotId) {
       body.timeslotId = timeslotId;
@@ -137,11 +137,9 @@ export function OfferingSlotsEditor({ offeringId, onUpdate, highlightError, defa
   return (
     <section style={{ marginTop: '1.25rem', border: highlightError ? '1px solid #dc2626' : undefined, borderRadius: 8, padding: highlightError ? '0.75rem' : 0 }}>
       <h3 className="entity-view-card-title">{t('implementationWeeklySlots')}</h3>
-      {lessonType === 'SEMINAR' && (
-        <p className="form-hint" style={{ fontSize: '0.8125rem', color: '#64748b', marginBottom: '0.5rem' }}>
-          {t('implementationSeminarHint')}
-        </p>
-      )}
+      <p className="form-hint" style={{ fontSize: '0.8125rem', color: '#64748b', marginBottom: '1rem' }}>
+        {t('implementationSlotsDescription')}
+      </p>
       <div className="department-table-wrap implementation-slots-table-wrap" style={{ marginBottom: '1rem' }}>
         <table className="department-table implementation-slots-table" style={{ minWidth: 520 }}>
           <thead>
@@ -197,6 +195,30 @@ export function OfferingSlotsEditor({ offeringId, onUpdate, highlightError, defa
             ))}
           </select>
         </FormGroup>
+        {lessonType !== 'SEMINAR' && (
+          <>
+            <FormGroup label={t('implementationTeacher')} htmlFor="slot-teacher">
+              <select id="slot-teacher" value={slotTeacherId} onChange={(e) => setSlotTeacherId(e.target.value)} style={{ width: '100%', padding: '0.5rem' }}>
+                <option value="">—</option>
+                {teachers.map((tr) => (
+                  <option key={tr.id} value={tr.id}>
+                    {tr.displayName}
+                  </option>
+                ))}
+              </select>
+            </FormGroup>
+            <FormGroup label={t('implementationRoom')} htmlFor="slot-room">
+              <select id="slot-room" value={slotRoomId} onChange={(e) => setSlotRoomId(e.target.value)} style={{ width: '100%', padding: '0.5rem' }}>
+                <option value="">—</option>
+                {rooms.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </FormGroup>
+          </>
+        )}
         <div className="implementation-slot-time-mode" style={{ marginBottom: '1rem' }}>
           <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>
             {t('implementationSlotTimeMode')}
@@ -284,26 +306,6 @@ export function OfferingSlotsEditor({ offeringId, onUpdate, highlightError, defa
             </FormGroup>
           </>
         )}
-        <FormGroup label={t('implementationTeacher')} htmlFor="slot-teacher">
-          <select id="slot-teacher" value={slotTeacherId} onChange={(e) => setSlotTeacherId(e.target.value)} style={{ width: '100%', padding: '0.5rem' }}>
-            <option value="">—</option>
-            {teachers.map((tr) => (
-              <option key={tr.id} value={tr.id}>
-                {tr.displayName}
-              </option>
-            ))}
-          </select>
-        </FormGroup>
-        <FormGroup label={t('implementationRoom')} htmlFor="slot-room">
-          <select id="slot-room" value={slotRoomId} onChange={(e) => setSlotRoomId(e.target.value)} style={{ width: '100%', padding: '0.5rem' }}>
-            <option value="">—</option>
-            {rooms.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-        </FormGroup>
         <FormActions
           submitLabel={adding ? tCommon('submitting') : t('implementationAddSlot')}
           submitting={adding}

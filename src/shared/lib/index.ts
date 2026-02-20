@@ -25,3 +25,13 @@ export {
   type ScheduleEvent,
 } from './schedule';
 export { getIsoWeekStart, getIsoWeekEnd } from './weekUtils';
+export { formatFileSize } from './fileUtils';
+export {
+  isNonStandardLessonStatus,
+  getLessonStatusDisplayKey,
+  getLessonTypeDisplayKey,
+  getTeacherDisplayName,
+  getSubjectDisplayName,
+  formatCompositionRoomLine,
+} from './lessonDisplay';
+export type { SubjectLocale } from './lessonDisplay';

@@ -15,9 +15,9 @@ import type {
   CourseMaterialInfoDto,
   GroupSubjectOfferingInfoDto,
 } from '../../../../shared/api';
-import { Alert } from '../../../../shared/ui';
-import { BookOpen, Download, Plus, Trash2, FileText, Upload, X } from 'lucide-react';
-import { formatDate } from '../../../../shared/i18n';
+import { Alert, FileCard } from '../../../../shared/ui';
+import { formatFileSize } from '../../../../shared/lib';
+import { BookOpen, Plus, Upload, X } from 'lucide-react';
 
 const TAB_STUDENTS = 'students';
 const TAB_COURSE_MATERIALS = 'course-materials';
@@ -30,12 +30,6 @@ function subjectDisplayNameByLocale(
     return subject.chineseName || subject.englishName || subject.code || '—';
   }
   return subject.englishName || subject.chineseName || subject.code || '—';
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function SubjectDetailPage() {
@@ -680,75 +674,15 @@ export function SubjectDetailPage() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {selectedOffering.materials.map((material) => (
-                      <div
+                      <FileCard
                         key={material.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem',
-                          padding: '1rem 1.25rem',
-                          backgroundColor: '#f1f5f9',
-                          borderRadius: '8px',
-                          border: 'none',
-                        }}
-                      >
-                        <FileText style={{ width: '2rem', height: '2rem', color: '#64748b', flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: '#0f172a' }}>
-                            {material.title}
-                          </div>
-                          <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                            {formatFileSize(material.file.size)} • {t('uploaded')} {formatDate(material.uploadedAt, locale)}
-                          </div>
-                          {material.description && (
-                            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
-                              {material.description}
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadMaterial(material)}
-                            title={t('download')}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '2.25rem',
-                              height: '2.25rem',
-                              padding: 0,
-                              border: 'none',
-                              background: 'transparent',
-                              color: '#64748b',
-                              cursor: 'pointer',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            <Download style={{ width: '1.25rem', height: '1.25rem' }} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteMaterial(material)}
-                            title={t('delete')}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '2.25rem',
-                              height: '2.25rem',
-                              padding: 0,
-                              border: 'none',
-                              background: 'transparent',
-                              color: '#dc2626',
-                              cursor: 'pointer',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            <Trash2 style={{ width: '1.125rem', height: '1.125rem' }} />
-                          </button>
-                        </div>
-                      </div>
+                        title={material.title}
+                        size={material.file.size}
+                        uploadedAt={material.uploadedAt}
+                        description={material.description}
+                        onDownload={() => handleDownloadMaterial(material)}
+                        onDelete={() => handleDeleteMaterial(material)}
+                      />
                     ))}
                   </div>
                 )

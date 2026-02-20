@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchGroupById } from '../../../../entities/group';
-import { fetchCurriculumSubjects } from '../../../../entities/curriculum-subject';
+import { fetchCurriculumSubjects, getSemesterIdByCurriculum } from '../../../../entities/curriculum-subject';
 import { fetchSubjects, fetchAssessmentTypes } from '../../../../entities/subject';
 import { fetchOfferingsByGroupId, fetchOfferingSlots, generateLessonsForGroup } from '../../../../entities/offering';
 import { useTranslation } from '../../../../shared/i18n';
 import { Alert, PageMessage } from '../../../../shared/ui';
-import { GroupSemesterPicker } from './GroupSemesterPicker';
+import { GroupSemesterPicker, type SemesterNo } from './GroupSemesterPicker';
 import {
   CurriculumSubjectsTableWithImplementation,
   buildCurriculumSubjectRows,
@@ -15,7 +15,6 @@ import {
 } from './CurriculumSubjectsTableWithImplementation';
 import { OfferingConfigDrawer } from './OfferingConfigDrawer';
 import type { GroupSubjectOfferingDto } from '../../../../entities/offering';
-import type { SemesterDto } from '../../../../entities/academic';
 
 export function ImplementationPage() {
   const [searchParams] = useSearchParams();
@@ -25,9 +24,12 @@ export function ImplementationPage() {
   tRef.current = t;
 
   const [groupId, setGroupId] = useState<string | null>(null);
+  const [curriculumId, setCurriculumId] = useState<string | null>(null);
   const [semesterId, setSemesterId] = useState<string | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState<SemesterDto | null>(null);
+  const [semesterNo, setSemesterNo] = useState<SemesterNo>(1);
   const [courseFilter, setCourseFilter] = useState<number | ''>('');
+  const [semesterResolveError, setSemesterResolveError] = useState<string | null>(null);
+  const [resolvingSemesterId, setResolvingSemesterId] = useState(false);
 
   const [curriculumSubjects, setCurriculumSubjects] = useState<CurriculumSubjectRow[]>([]);
   const [offerings, setOfferings] = useState<GroupSubjectOfferingDto[]>([]);
@@ -45,12 +47,18 @@ export function ImplementationPage() {
 
   useEffect(() => {
     if (!groupId) {
+      setCurriculumId(null);
+      setSemesterId(null);
+      setSemesterResolveError(null);
       setCurriculumSubjects([]);
       setOfferings([]);
       setSlotsCountByOfferingId({});
       return;
     }
     let cancelled = false;
+    setCurriculumId(null);
+    setSemesterId(null);
+    setSemesterResolveError(null);
     setLoading(true);
     setError(null);
     const getT = () => tRef.current;
@@ -58,14 +66,17 @@ export function ImplementationPage() {
       if (cancelled) return;
       if (groupErr || !group) {
         setLoading(false);
+        setCurriculumId(null);
+        setSemesterId(null);
         setError(groupErr?.message ?? getT()('implementationErrorLoadCurriculum'));
         setCurriculumSubjects([]);
         setOfferings([]);
         return;
       }
-      const curriculumId = group.curriculumId;
+      const nextCurriculumId = group.curriculumId;
+      setCurriculumId(nextCurriculumId);
       Promise.all([
-        fetchCurriculumSubjects(curriculumId),
+        fetchCurriculumSubjects(nextCurriculumId),
         fetchOfferingsByGroupId(groupId),
         fetchSubjects(),
         fetchAssessmentTypes(),
@@ -103,6 +114,34 @@ export function ImplementationPage() {
     };
   }, [groupId]);
 
+  useEffect(() => {
+    if (!curriculumId || courseFilter === '') {
+      setSemesterId(null);
+      setSemesterResolveError(null);
+      return;
+    }
+    let cancelled = false;
+    setSemesterResolveError(null);
+    setResolvingSemesterId(true);
+    getSemesterIdByCurriculum(curriculumId, courseFilter, semesterNo).then(({ data, error: err }) => {
+      if (cancelled) return;
+      setResolvingSemesterId(false);
+      if (err) {
+        setSemesterResolveError(err.message ?? tRef.current('implementationErrorLoadSemesters'));
+        setSemesterId(null);
+        return;
+      }
+      if (data?.semesterId) {
+        setSemesterId(data.semesterId);
+      } else {
+        setSemesterId(null);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [curriculumId, courseFilter, semesterNo]);
+
   const offeringsByCurriculumSubjectId = useMemo(() => {
     const map: Record<string, GroupSubjectOfferingDto> = {};
     offerings.forEach((o) => {
@@ -125,13 +164,9 @@ export function ImplementationPage() {
     return map;
   }, [curriculumSubjects, offeringsByCurriculumSubjectId, slotsCountByOfferingId]);
 
-  /** Фильтр: семестр учебного плана = номер выбранного академического семестра; курс — с учётом courseYear === null (выводим курс из semesterNo). */
+  /** Фильтр: семестр учебного плана по номеру семестра (1 или 2) и курсу. */
   const filteredRows = useMemo(() => {
-    const semesterNoFilter = selectedSemester?.number ?? null;
-    let result = curriculumSubjects;
-    if (semesterNoFilter != null) {
-      result = result.filter((r) => r.semesterNo === semesterNoFilter);
-    }
+    let result = curriculumSubjects.filter((r) => r.semesterNo === semesterNo);
     if (courseFilter !== '') {
       const course = courseFilter;
       result = result.filter((r) => {
@@ -144,7 +179,7 @@ export function ImplementationPage() {
       if (a.semesterNo !== b.semesterNo) return a.semesterNo - b.semesterNo;
       return a.subjectChineseName.localeCompare(b.subjectChineseName);
     });
-  }, [curriculumSubjects, selectedSemester?.number, courseFilter]);
+  }, [curriculumSubjects, semesterNo, courseFilter]);
 
   const drawerOffering = drawerSubject ? offeringsByCurriculumSubjectId[drawerSubject.id] ?? null : null;
 
@@ -172,7 +207,7 @@ export function ImplementationPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const blockActions = !groupId || !semesterId;
+  const blockActions = !groupId || !semesterId || resolvingSemesterId;
 
   /** Кнопка «Сгенерировать все уроки» — активна только при выбранных группе, семестре и курсе и если у каждого предмета в этом семестре/курсе у офферинга задан хотя бы один слот */
   const hasSubjectWithoutSlots = useMemo(
@@ -216,16 +251,20 @@ export function ImplementationPage() {
         initialGroupId={preselectedGroupId}
         groupId={groupId}
         onGroupIdChange={setGroupId}
-        semesterId={semesterId}
-        onSemesterIdChange={setSemesterId}
-        onSemesterChange={setSelectedSemester}
         courseFilter={courseFilter}
         onCourseFilterChange={setCourseFilter}
+        semesterNo={semesterNo}
+        onSemesterNoChange={setSemesterNo}
       />
 
       {error && (
         <Alert variant="error" role="alert">
           {error}
+        </Alert>
+      )}
+      {semesterResolveError && curriculumId && courseFilter !== '' && (
+        <Alert variant="error" role="alert" style={{ marginTop: '0.5rem' }}>
+          {semesterResolveError}
         </Alert>
       )}
       {toastMessage && (
@@ -236,7 +275,7 @@ export function ImplementationPage() {
         </div>
       )}
 
-      {groupId && semesterId && !loading && (
+      {groupId && semesterId && !loading && !resolvingSemesterId && (
         <div className="implementation-generate-all-wrap" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
             type="button"
@@ -283,7 +322,11 @@ export function ImplementationPage() {
         onClose={() => setDrawerSubject(null)}
         groupId={groupId}
         semesterId={semesterId}
-        semesterLabel={selectedSemester ? (selectedSemester.name ?? `Семестр ${selectedSemester.number}`) : null}
+        semesterLabel={
+          courseFilter !== '' && semesterId
+            ? `${t('implementationFilterCourse')} ${courseFilter}, ${t('implementationSemesterNoOption', { number: semesterNo })}`
+            : null
+        }
         curriculumSubject={drawerSubject}
         offering={drawerOffering}
         slotsCount={drawerOffering ? slotsCountByOfferingId[drawerOffering.id] ?? 0 : 0}

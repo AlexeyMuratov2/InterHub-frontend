@@ -304,7 +304,12 @@ export function CurriculumSubjectEditPage() {
           <div className="info-row">
             <span className="info-label">{t('curriculumSubjectSemester')}</span>
             <span className="info-value">
-              <span className="semester-badge">{curriculumSubject?.semesterNo}</span>
+              <span className="semester-badge">
+                {t('curriculumSubjectCourseSemester', {
+                  course: curriculumSubject?.courseYear ?? '—',
+                  semester: curriculumSubject?.semesterNo ?? '—',
+                })}
+              </span>
             </span>
           </div>
           <div className="info-row">

@@ -30,15 +30,6 @@ export interface OfferingSlotDto {
   createdAt: string;
 }
 
-/** Привязка учителя к офферингу с ролью (OfferingTeacherDto) */
-export interface OfferingTeacherDto {
-  id: string;
-  offeringId: string;
-  teacherId: string;
-  role: string;
-  createdAt: string;
-}
-
 /** Тело создания офферинга (POST /api/offerings) */
 export interface CreateOfferingRequest {
   groupId: string;
@@ -55,12 +46,6 @@ export interface UpdateOfferingRequest {
   roomId?: string | null;
   format?: string | null;
   notes?: string | null;
-}
-
-/** Тело добавления учителя к офферингу (POST /api/offerings/{id}/teachers) */
-export interface AddOfferingTeacherRequest {
-  teacherId: string;
-  role: string;
 }
 
 /** Тело добавления слота (POST /api/offerings/{id}/slots). Либо timeslotId, либо dayOfWeek + startTime + endTime. */
@@ -80,5 +65,4 @@ export interface GenerateLessonsResponse {
 }
 
 export const OFFERING_LESSON_TYPES = ['LECTURE', 'PRACTICE', 'LAB', 'SEMINAR'] as const;
-export const OFFERING_TEACHER_ROLES = ['LECTURE', 'PRACTICE', 'LAB'] as const;
 export const OFFERING_FORMAT_VALUES = ['offline', 'online', 'mixed'] as const;

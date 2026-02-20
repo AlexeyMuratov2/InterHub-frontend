@@ -15,3 +15,5 @@ export { TeacherLessonModal } from './teacher-lesson-modal';
 export type { TeacherLessonModalProps } from './teacher-lesson-modal';
 export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
 export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';
+export { FileCard } from './file-card';
+export type { FileCardProps } from './file-card';
