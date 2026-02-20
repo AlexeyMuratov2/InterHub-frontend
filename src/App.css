@@ -1233,9 +1233,24 @@ img.app-dashboard-sidebar-logo {
   background: #eff6ff;
 }
 
+.department-table-btn--danger {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
 .department-table-btn--danger:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  color: #991b1b;
+  background: #fecaca;
+}
+
+.department-table-btn--success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.department-table-btn--success:hover {
+  color: #14532d;
+  background: #bbf7d0;
 }
 
 .department-empty {
@@ -1945,6 +1960,291 @@ img.app-dashboard-sidebar-logo {
 .invitation-status-badge--disabled {
   background: #fef2f2;
   color: #b91c1c;
+}
+
+/* Absence notice status badges (teacher dashboard) */
+.absence-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.absence-status-badge--approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.absence-status-badge--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.absence-status-badge--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.absence-status-badge--submitted {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.absence-status-badge--canceled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.absence-status-badge--acknowledged,
+.absence-status-badge--attached {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.absence-status-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Карточка фильтров: белый фон, скругление, лёгкая обводка */
+.absence-requests-filters-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.absence-requests-filters-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Обёртка для каждого поля (селект или дата) — единый вид */
+.absence-requests-filter-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.absence-requests-filter-field--select,
+.absence-requests-filter-field--date {
+  min-width: 0;
+}
+
+/* Селекты: скругление, серая обводка, белый фон, иконка шеврона справа */
+.absence-requests-filter-field--select {
+  min-width: 140px;
+}
+
+.absence-requests-select {
+  width: 100%;
+  min-width: 140px;
+  height: 2.5rem;
+  padding: 0 2rem 0 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.9375rem;
+  color: #1e293b;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.absence-requests-select:hover {
+  border-color: #d1d5db;
+}
+
+.absence-requests-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.absence-requests-select-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+/* Поля даты: такой же высота и обводка, иконка календаря справа */
+.absence-requests-filter-field--date {
+  min-width: 10.5rem;
+}
+
+.absence-requests-date-input {
+  width: 100%;
+  min-width: 10.5rem;
+  height: 2.5rem;
+  padding: 0 2.5rem 0 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.9375rem;
+  color: #1e293b;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.absence-requests-date-input:hover {
+  border-color: #d1d5db;
+}
+
+.absence-requests-date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* Убираем нативную кнопку выбора даты — открытие календаря только по нашей иконке */
+.absence-requests-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.absence-requests-date-input::-webkit-date-and-time-value {
+  margin: 0;
+}
+
+/* Кнопка открытия календаря — только наша иконка, без нативного дизайна */
+.absence-requests-date-trigger {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 0 8px 8px 0;
+}
+.absence-requests-date-trigger:hover {
+  color: #374151;
+}
+.absence-requests-date-trigger:focus {
+  outline: none;
+  color: #3b82f6;
+}
+
+.absence-requests-date-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+
+.absence-requests-student-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.absence-requests-student-link:hover {
+  text-decoration: underline;
+}
+
+.department-table-btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  color: #475569;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.department-table-btn-link:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+/* Absence review modal */
+.absence-review-modal .department-modal-body {
+  min-width: 20rem;
+  max-width: 28rem;
+}
+
+.absence-review-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.absence-review-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.absence-review-dl dt {
+  margin: 0;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.absence-review-dl dd {
+  margin: 0;
+}
+
+.absence-review-teacher-comment {
+  margin: 0 0 0.25rem 0;
+  white-space: pre-wrap;
+}
+
+.absence-review-responded-at {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.absence-review-comment-input {
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  resize: vertical;
+}
+
+.absence-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .invitation-no-permission {

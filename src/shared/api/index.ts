@@ -153,3 +153,19 @@ export type {
   CreateHomeworkRequest,
   UpdateHomeworkRequest,
 } from './types';
+
+export { listTeacherNotices, approveNotice, rejectNotice, ABSENCE_NOTICE_STATUS } from './attendance';
+export type {
+  AttendanceApiResult,
+  AbsenceNoticeDto,
+  AbsenceNoticeStatus,
+  RespondToAbsenceNoticeRequest,
+  TeacherNoticeStudentSummary,
+  TeacherNoticeLessonSummary,
+  TeacherNoticeOfferingSummary,
+  TeacherNoticeSlotSummary,
+  TeacherNoticeGroupSummary,
+  TeacherAbsenceNoticeItemDto,
+  TeacherAbsenceNoticePage,
+  ListTeacherNoticesParams,
+} from './attendance';
