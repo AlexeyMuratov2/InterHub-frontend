@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation, formatDate, formatTime } from '../../../../shared/i18n';
-import { getLessonFullDetails, getFileDownloadUrl } from '../../../../shared/api';
+import { getLessonFullDetails, getFileDownloadUrl, getLesson, listRooms } from '../../../../shared/api';
 import type {
   LessonFullDetailsDto,
   CompositionStoredFileDto,
   CompositionLessonMaterialDto,
+  LessonDto,
+  RoomDto,
 } from '../../../../shared/api';
 import {
   Alert,
   FileCard,
+  LessonEditModal,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -25,31 +28,55 @@ const LESSONS_LIST_PATH = '/dashboards/teacher/lessons';
 
 export function LessonFullDetailsPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
+  const navigate = useNavigate();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
 
   const [data, setData] = useState<LessonFullDetailsDto | null>(null);
+  const [lesson, setLesson] = useState<LessonDto | null>(null);
+  const [rooms, setRooms] = useState<RoomDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const loadDetails = useCallback(async () => {
     if (!lessonId) return;
     setLoading(true);
     setError(null);
     setNotFound(false);
-    const res = await getLessonFullDetails(lessonId);
-    if (res.error) {
-      if (res.status === 404 || res.error.status === 404) {
+    
+    const [detailsRes, lessonRes, roomsRes] = await Promise.all([
+      getLessonFullDetails(lessonId),
+      getLesson(lessonId),
+      listRooms(),
+    ]);
+    
+    if (detailsRes.error) {
+      if (detailsRes.status === 404 || detailsRes.error.status === 404) {
         setNotFound(true);
       } else {
-        setError(res.error.message ?? tRef.current('teacherSubjectDetailErrorLoad'));
+        setError(detailsRes.error.message ?? tRef.current('teacherSubjectDetailErrorLoad'));
       }
       setData(null);
     } else {
-      setData(res.data ?? null);
+      setData(detailsRes.data ?? null);
     }
+    
+    if (lessonRes.error) {
+      if (lessonRes.status === 404 || lessonRes.error.status === 404) {
+        setNotFound(true);
+      }
+      setLesson(null);
+    } else {
+      setLesson(lessonRes.data ?? null);
+    }
+    
+    if (roomsRes.data) {
+      setRooms(roomsRes.data);
+    }
+    
     setLoading(false);
   }, [lessonId]);
 
@@ -72,6 +99,18 @@ export function LessonFullDetailsPage() {
     },
     []
   );
+
+  const handleEditClick = useCallback(() => {
+    setEditModalOpen(true);
+  }, []);
+
+  const handleLessonUpdated = useCallback(() => {
+    loadDetails();
+  }, [loadDetails]);
+
+  const handleLessonDeleted = useCallback(() => {
+    navigate(LESSONS_LIST_PATH);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -101,18 +140,18 @@ export function LessonFullDetailsPage() {
     return null;
   }
 
-  const { lesson, subject, room, mainTeacher, offeringSlot, materials, homework } = data;
+  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials, homework } = data;
   const subjectName = getSubjectDisplayName(subject, locale);
   const teacherDisplay = mainTeacher ? getTeacherDisplayName(mainTeacher) : '—';
   const roomDisplay = formatCompositionRoomLine(room);
   const dateTimeLine = [
-    formatDate(lesson.date, locale),
-    lesson.startTime && lesson.endTime
-      ? `${formatTime(`${lesson.date}T${lesson.startTime}`, locale)} – ${formatTime(`${lesson.date}T${lesson.endTime}`, locale)}`
-      : `${lesson.startTime?.slice(0, 5) ?? ''} – ${lesson.endTime?.slice(0, 5) ?? ''}`,
+    formatDate(lessonDetails.date, locale),
+    lessonDetails.startTime && lessonDetails.endTime
+      ? `${formatTime(`${lessonDetails.date}T${lessonDetails.startTime}`, locale)} – ${formatTime(`${lessonDetails.date}T${lessonDetails.endTime}`, locale)}`
+      : `${lessonDetails.startTime?.slice(0, 5) ?? ''} – ${lessonDetails.endTime?.slice(0, 5) ?? ''}`,
   ].filter(Boolean).join(' • ');
-  const showStatus = isNonStandardLessonStatus(lesson.status);
-  const statusKey = getLessonStatusDisplayKey(lesson.status);
+  const showStatus = isNonStandardLessonStatus(lessonDetails.status);
+  const statusKey = getLessonStatusDisplayKey(lessonDetails.status);
   const lessonTypeKey = getLessonTypeDisplayKey(offeringSlot?.lessonType ?? null);
 
   const allFiles: { file: CompositionStoredFileDto; material: CompositionLessonMaterialDto }[] = [];
@@ -188,21 +227,35 @@ export function LessonFullDetailsPage() {
             {t('lessonDetailsTeacherLabel')}: {teacherDisplay}
           </span>
         </div>
-        {lesson.topic?.trim() && (
-          <p style={{ margin: '0.75rem 0 0', fontSize: '0.9375rem', color: '#475569' }}>{lesson.topic.trim()}</p>
+        {lessonDetails.topic?.trim() && (
+          <p style={{ margin: '0.75rem 0 0', fontSize: '0.9375rem', color: '#475569' }}>{lessonDetails.topic.trim()}</p>
         )}
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn-secondary"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-            onClick={() => {}}
+            onClick={handleEditClick}
+            disabled={!lesson}
           >
             <Pencil style={{ width: '1rem', height: '1rem' }} aria-hidden />
             {t('lessonDetailsEditLesson')}
           </button>
         </div>
       </section>
+
+      {/* Edit Lesson Modal */}
+      {lesson && (
+        <LessonEditModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          lesson={lesson}
+          rooms={rooms}
+          subjectName={subjectName}
+          onUpdated={handleLessonUpdated}
+          onDeleted={handleLessonDeleted}
+        />
+      )}
 
       {/* Two columns: Materials | Homework */}
       <div className="lesson-details-grid">

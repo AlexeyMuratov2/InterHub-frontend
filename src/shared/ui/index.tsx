@@ -13,6 +13,8 @@ export { LessonModal } from './lesson-modal';
 export type { LessonModalProps } from './lesson-modal';
 export { TeacherLessonModal } from './teacher-lesson-modal';
 export type { TeacherLessonModalProps } from './teacher-lesson-modal';
+export { LessonEditModal } from './lesson-edit-modal';
+export type { LessonEditModalProps } from './lesson-edit-modal';
 export { TimeslotsByDayGrid } from './TimeslotsByDayGrid';
 export type { TimeslotsByDayGridProps, TimeslotItem } from './TimeslotsByDayGrid';
 export { FileCard } from './file-card';
