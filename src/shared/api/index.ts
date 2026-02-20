@@ -114,7 +114,7 @@ export type {
   PresignedUrlResponse,
 } from './types';
 
-export { getLessonFullDetails } from './composition';
+export { getLessonFullDetails, getLessonRosterAttendance } from './composition';
 export type { CompositionApiResult } from './composition';
 export {
   listLessonMaterials,
@@ -152,9 +152,35 @@ export type {
   HomeworkDto,
   CreateHomeworkRequest,
   UpdateHomeworkRequest,
+  LessonRosterAttendanceDto,
+  LessonRosterAttendanceRowDto,
+  LessonRosterLessonDto,
+  LessonRosterGroupDto,
+  LessonRosterStudentDto,
+  LessonRosterNoticeDto,
+  GradeEntryDto,
+  CreateGradeEntryRequest,
+  UpdateGradeEntryRequest,
+  StudentOfferingGradesDto,
 } from './types';
 
-export { listTeacherNotices, approveNotice, rejectNotice, ABSENCE_NOTICE_STATUS } from './attendance';
+export {
+  createGradeEntry,
+  updateGradeEntry,
+  getStudentOfferingGrades,
+  setLessonPoints,
+} from './grades';
+export type { GradesApiResult } from './grades';
+export {
+  listTeacherNotices,
+  approveNotice,
+  rejectNotice,
+  ABSENCE_NOTICE_STATUS,
+  getSessionAttendance,
+  putStudentAttendance,
+  attachNoticeToRecord,
+  detachNoticeFromRecord,
+} from './attendance';
 export type {
   AttendanceApiResult,
   AbsenceNoticeDto,
@@ -168,4 +194,9 @@ export type {
   TeacherAbsenceNoticeItemDto,
   TeacherAbsenceNoticePage,
   ListTeacherNoticesParams,
+  StudentNoticeDto,
+  SessionAttendanceStudentDto,
+  SessionAttendanceDto,
+  AttendanceRecordDto,
+  PutStudentAttendanceRequest,
 } from './attendance';

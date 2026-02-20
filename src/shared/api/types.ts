@@ -760,6 +760,137 @@ export interface LessonFullDetailsDto {
   homework: CompositionHomeworkDto[];
 }
 
+// --- Composition: roster-attendance (GET /api/composition/lessons/{id}/roster-attendance) ---
+
+/** Урок в ростере посещаемости (LessonDto) */
+export interface LessonRosterLessonDto {
+  id: string;
+  offeringId: string;
+  offeringSlotId: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  roomId: string | null;
+  topic: string | null;
+  status: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Группа в ростере (StudentGroupDto) */
+export interface LessonRosterGroupDto {
+  id: string;
+  programId: string;
+  curriculumId: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  startYear: number;
+  graduationYear: number | null;
+  curatorUserId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Студент в ростере (StudentDto) */
+export interface LessonRosterStudentDto {
+  id: string;
+  userId: string;
+  studentId: string | null;
+  chineseName: string | null;
+  faculty: string | null;
+  course: string | null;
+  enrollmentYear: number | null;
+  groupName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Краткая заявка на пропуск в ростере (StudentNoticeDto) */
+export interface LessonRosterNoticeDto {
+  id: string;
+  type: string;
+  status: string;
+  reasonText: string | null;
+  submittedAt: string;
+  fileIds: string[];
+}
+
+/** Строка таблицы посещаемости по уроку */
+export interface LessonRosterAttendanceRowDto {
+  student: LessonRosterStudentDto;
+  status: string | null;
+  minutesLate: number | null;
+  teacherComment: string | null;
+  markedAt: string | null;
+  markedBy: string | null;
+  attachedAbsenceNoticeId: string | null;
+  notices: LessonRosterNoticeDto[];
+  lessonPoints: number;
+}
+
+/** Ростер посещаемости по уроку */
+export interface LessonRosterAttendanceDto {
+  lesson: LessonRosterLessonDto;
+  group: LessonRosterGroupDto;
+  subjectName: string;
+  counts: Record<string, number>;
+  unmarkedCount: number;
+  rows: LessonRosterAttendanceRowDto[];
+}
+
+// --- Grades module (POST/PUT/GET /api/grades/entries, etc.) ---
+
+/** Запись баллов (GradeEntryDto) */
+export interface GradeEntryDto {
+  id: string;
+  studentId: string;
+  offeringId: string;
+  points: number;
+  typeCode: string;
+  typeLabel: string | null;
+  description: string | null;
+  lessonSessionId: string | null;
+  homeworkSubmissionId: string | null;
+  gradedBy: string;
+  gradedAt: string;
+  status: string;
+}
+
+/** Запрос на создание записи баллов */
+export interface CreateGradeEntryRequest {
+  studentId: string;
+  offeringId: string;
+  points: number;
+  typeCode: string;
+  typeLabel?: string | null;
+  description?: string | null;
+  lessonSessionId?: string | null;
+  homeworkSubmissionId?: string | null;
+  gradedAt?: string | null;
+}
+
+/** Запрос на обновление записи баллов */
+export interface UpdateGradeEntryRequest {
+  points?: number;
+  typeCode?: string;
+  typeLabel?: string | null;
+  description?: string | null;
+  lessonSessionId?: string | null;
+  homeworkSubmissionId?: string | null;
+  gradedAt?: string | null;
+}
+
+/** Баллы студента по офферингу */
+export interface StudentOfferingGradesDto {
+  studentId: string;
+  offeringId: string;
+  entries: GradeEntryDto[];
+  totalPoints: number;
+  breakdownByType: Record<string, number>;
+}
+
 // --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---
 
 /** Домашнее задание (HomeworkDto) - API response */

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   listTeacherNotices,
   approveNotice,
@@ -68,6 +68,7 @@ function getLessonType(item: TeacherAbsenceNoticeItemDto): string | null {
 
 export function AbsenceRequestsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, locale } = useTranslation('dashboard');
   const [items, setItems] = useState<TeacherAbsenceNoticeItemDto[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -76,11 +77,16 @@ export function AbsenceRequestsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(ABSENCE_NOTICE_STATUS.SUBMITTED);
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(() => {
+    const p = new URLSearchParams(window.location.search);
+    const from = p.get('dateFrom') ?? '';
+    const to = p.get('dateTo') ?? '';
+    return from || to ? '' : ABSENCE_NOTICE_STATUS.SUBMITTED;
+  });
   const [subjectFilter, setSubjectFilter] = useState<string>('');
   const [groupFilter, setGroupFilter] = useState<string>('');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>(() => new URLSearchParams(window.location.search).get('dateFrom') ?? '');
+  const [dateTo, setDateTo] = useState<string>(() => new URLSearchParams(window.location.search).get('dateTo') ?? '');
 
   const [reviewItem, setReviewItem] = useState<TeacherAbsenceNoticeItemDto | null>(null);
   const [reviewComment, setReviewComment] = useState('');
@@ -90,8 +96,24 @@ export function AbsenceRequestsPage() {
   const dateFromInputRef = useRef<HTMLInputElement>(null);
   const dateToInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const from = searchParams.get('dateFrom') ?? '';
+    const to = searchParams.get('dateTo') ?? '';
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:searchParams effect',message:'searchParams effect ran',data:{from,to,willSetState:!!(from||to)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    if (from || to) {
+      setDateFrom(from);
+      setDateTo(to);
+      // Do not set statusFilter to '' — it triggers a second load() that overwrites items with empty API result
+    }
+  }, [searchParams]);
+
   const load = async (cursor?: string | null) => {
     const isFirst = cursor == null;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:load() entry',message:'load called',data:{statusFilter,isFirst,cursor:!!cursor},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     if (isFirst) setLoading(true);
     else setLoadingMore(true);
     setError(null);
@@ -113,6 +135,9 @@ export function AbsenceRequestsPage() {
     }
     const list = data?.items ?? [];
     const next = data?.nextCursor ?? null;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:load() done',message:'load completed',data:{listLength:list.length,isFirst,hadError:!!err},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     if (isFirst) {
       setItems(list);
       setNextCursor(next);
@@ -128,6 +153,9 @@ export function AbsenceRequestsPage() {
 
   const filtered = useMemo(() => {
     let list = items;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:useMemo filtered',message:'filtered memo',data:{itemsLength:items.length,dateFrom,dateTo,subjectFilter,groupFilter},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     if (subjectFilter) {
       list = list.filter((item) => getSubjectDisplay(item) === subjectFilter);
     }
@@ -140,6 +168,9 @@ export function AbsenceRequestsPage() {
     if (dateTo) {
       list = list.filter((item) => item.lesson && item.lesson.date <= dateTo);
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:filtered result',message:'filtered length',data:{filteredLength:list.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     return list;
   }, [items, subjectFilter, groupFilter, dateFrom, dateTo]);
 
