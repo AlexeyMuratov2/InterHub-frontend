@@ -87,3 +87,18 @@ export function formatCompositionRoomLine(room: {
   const parts = [room.buildingName, room.number].filter(Boolean);
   return parts.join(' ').trim() || room.number?.trim() || '—';
 }
+
+/**
+ * Отображаемое имя студента из профиля (LessonRosterStudentDto / LessonHomeworkStudentDto).
+ * Используется в таблицах посещаемости и отправок ДЗ.
+ */
+export function getStudentDisplayName(student: {
+  chineseName: string | null;
+  studentId?: string | null;
+  id?: string;
+}): string {
+  if (student.chineseName?.trim()) return student.chineseName.trim();
+  if (student.studentId?.trim()) return student.studentId.trim();
+  if (student.id) return student.id;
+  return '—';
+}

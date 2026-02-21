@@ -1,6 +1,10 @@
 import { request } from './client';
 import type { ErrorResponse } from './types';
-import type { LessonFullDetailsDto, LessonRosterAttendanceDto } from './types';
+import type {
+  LessonFullDetailsDto,
+  LessonRosterAttendanceDto,
+  LessonHomeworkSubmissionsDto,
+} from './types';
 
 export type CompositionApiResult<T> = {
   data?: T;
@@ -41,6 +45,24 @@ export async function getLessonRosterAttendance(
   const query = search.toString();
   const path = `/api/composition/lessons/${encodeURIComponent(lessonId)}/roster-attendance${query ? `?${query}` : ''}`;
   const result = await request<LessonRosterAttendanceDto>(path, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * Отправленные домашние задания по уроку: студенты группы и по каждому ДЗ — отправка, баллы, файлы.
+ * GET /api/composition/lessons/{lessonId}/homework-submissions
+ */
+export async function getLessonHomeworkSubmissions(
+  lessonId: string
+): Promise<CompositionApiResult<LessonHomeworkSubmissionsDto>> {
+  const result = await request<LessonHomeworkSubmissionsDto>(
+    `/api/composition/lessons/${encodeURIComponent(lessonId)}/homework-submissions`,
+    { method: 'GET' }
+  );
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

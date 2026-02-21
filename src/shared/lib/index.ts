@@ -34,5 +34,6 @@ export {
   getTeacherDisplayName,
   getSubjectDisplayName,
   formatCompositionRoomLine,
+  getStudentDisplayName,
 } from './lessonDisplay';
 export type { SubjectLocale } from './lessonDisplay';

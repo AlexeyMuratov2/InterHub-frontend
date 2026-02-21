@@ -14,6 +14,7 @@ import {
   putStudentAttendance,
   setLessonPoints,
 } from '../../../../shared/api';
+import { LessonHomeworkSubmissionsTab } from './LessonHomeworkSubmissionsTab';
 import type {
   LessonFullDetailsDto,
   CompositionStoredFileDto,
@@ -36,12 +37,13 @@ import {
 import {
   getSubjectDisplayName,
   getTeacherDisplayName,
+  getStudentDisplayName,
   getLessonTypeDisplayKey,
   isNonStandardLessonStatus,
   getLessonStatusDisplayKey,
   formatCompositionRoomLine,
 } from '../../../../shared/lib';
-import { ArrowLeft, Plus, Pencil, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
 
 const LESSONS_LIST_PATH = '/dashboards/teacher/lessons';
 
@@ -76,11 +78,6 @@ interface StudentAttendanceRowProps {
   onPointsBlur: (row: LessonRosterAttendanceRowDto, points: number) => void;
 }
 
-function getStudentDisplayName(row: LessonRosterAttendanceRowDto): string {
-  const s = row.student;
-  return (s.chineseName?.trim() || s.studentId?.trim() || s.id) ?? '—';
-}
-
 function StudentAttendanceRow({
   row,
   lessonDate,
@@ -92,7 +89,7 @@ function StudentAttendanceRow({
   onPointsBlur,
 }: StudentAttendanceRowProps) {
   const currentStatus = (row.status || '') as AttendanceStatusValue;
-  const displayName = getStudentDisplayName(row);
+  const displayName = getStudentDisplayName(row.student);
   const [localPoints, setLocalPoints] = useState(row.lessonPoints ?? 0);
   useEffect(() => {
     setLocalPoints(row.lessonPoints ?? 0);
@@ -818,6 +815,27 @@ export function LessonFullDetailsPage() {
             <Users style={{ width: '1.125rem', height: '1.125rem' }} aria-hidden />
             {t('lessonAttendanceCarouselStudents')}
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab(1)}
+            style={{
+              padding: '0.625rem 1rem',
+              border: 'none',
+              borderBottom: activeTab === 1 ? '2px solid #3b82f6' : '2px solid transparent',
+              background: activeTab === 1 ? '#fff' : 'transparent',
+              borderRadius: '8px 8px 0 0',
+              fontWeight: 600,
+              fontSize: '0.9375rem',
+              color: activeTab === 1 ? '#1e40af' : '#64748b',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <FileCheck style={{ width: '1.125rem', height: '1.125rem' }} aria-hidden />
+            {t('lessonHomeworkSubmissionsTab')}
+          </button>
         </div>
 
         <div style={{ padding: '1.25rem 1.5rem', minHeight: '200px' }}>
@@ -882,6 +900,9 @@ export function LessonFullDetailsPage() {
                 </p>
               )}
             </>
+          )}
+          {activeTab === 1 && lessonId && (
+            <LessonHomeworkSubmissionsTab lessonId={lessonId} />
           )}
         </div>
       </section>

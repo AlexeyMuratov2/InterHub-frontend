@@ -840,6 +840,54 @@ export interface LessonRosterAttendanceDto {
   rows: LessonRosterAttendanceRowDto[];
 }
 
+// --- Composition: homework-submissions (GET /api/composition/lessons/{id}/homework-submissions) ---
+
+/** Студент в ответе homework-submissions (StudentDto) */
+export interface LessonHomeworkStudentDto {
+  id: string;
+  userId: string;
+  studentId: string;
+  chineseName: string | null;
+  faculty: string | null;
+  course: string | null;
+  enrollmentYear: number | null;
+  groupName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Отправка домашнего задания (HomeworkSubmissionDto) */
+export interface HomeworkSubmissionDto {
+  id: string;
+  homeworkId: string;
+  authorId: string;
+  submittedAt: string;
+  description: string | null;
+  storedFileIds: string[];
+}
+
+/** Ячейка таблицы: одно ДЗ для одного студента (StudentHomeworkItemDto) */
+export interface StudentHomeworkItemDto {
+  homeworkId: string;
+  submission: HomeworkSubmissionDto | null;
+  points: number | null;
+  files: CompositionStoredFileDto[];
+}
+
+/** Строка таблицы отправок: студент + ячейки по каждому ДЗ (StudentHomeworkRowDto) */
+export interface StudentHomeworkRowDto {
+  student: LessonHomeworkStudentDto;
+  items: StudentHomeworkItemDto[];
+}
+
+/** Ответ: отправленные домашние задания по уроку (LessonHomeworkSubmissionsDto) */
+export interface LessonHomeworkSubmissionsDto {
+  lesson: CompositionLessonDto;
+  group: CompositionStudentGroupDto;
+  homeworks: CompositionHomeworkDto[];
+  studentRows: StudentHomeworkRowDto[];
+}
+
 // --- Grades module (POST/PUT/GET /api/grades/entries, etc.) ---
 
 /** Запись баллов (GradeEntryDto) */
