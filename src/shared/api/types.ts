@@ -871,6 +871,8 @@ export interface StudentHomeworkItemDto {
   homeworkId: string;
   submission: HomeworkSubmissionDto | null;
   points: number | null;
+  /** Запись оценки по этой отправке (если выставлена). Содержит id, points, description и др. */
+  gradeEntry?: GradeEntryDto | null;
   files: CompositionStoredFileDto[];
 }
 
@@ -941,14 +943,17 @@ export interface StudentOfferingGradesDto {
 
 // --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---
 
-/** Домашнее задание (HomeworkDto) - API response */
+/** Домашнее задание (HomeworkDto) - API response. По контракту: files — массив; file оставлен для обратной совместимости. */
 export interface HomeworkDto {
   id: string;
   lessonId: string;
   title: string;
   description: string | null;
   points: number | null;
-  file: StoredFileDto | null;
+  /** Список прикреплённых файлов (порядок сохранён). */
+  files?: StoredFileDto[];
+  /** Один файл — для обратной совместимости, если бэкенд ещё отдаёт file вместо files. */
+  file?: StoredFileDto | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -958,7 +963,8 @@ export interface CreateHomeworkRequest {
   title: string;
   description?: string | null;
   points?: number | null;
-  storedFileId?: string | null;
+  /** Id файлов в хранилище (порядок сохранён). */
+  storedFileIds?: string[] | null;
 }
 
 /** Запрос на обновление домашнего задания (UpdateHomeworkRequest) */
@@ -966,6 +972,8 @@ export interface UpdateHomeworkRequest {
   title?: string | null;
   description?: string | null;
   points?: number | null;
-  clearFile?: boolean;
-  storedFileId?: string | null;
+  /** Удалить все прикреплённые файлы. */
+  clearFiles?: boolean;
+  /** Новый список id файлов (полная замена). */
+  storedFileIds?: string[] | null;
 }

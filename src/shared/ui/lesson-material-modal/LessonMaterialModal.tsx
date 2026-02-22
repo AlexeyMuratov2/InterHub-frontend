@@ -2,7 +2,7 @@
  * Модалка создания/редактирования материала урока.
  * Поддерживает загрузку нескольких файлов и создание материала с ними.
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n';
 import { parseFieldErrors } from '../../lib/parseFieldErrors';
 import { formatFileSize } from '../../lib/fileUtils';
@@ -10,10 +10,11 @@ import { Modal } from '../Modal';
 import { FormActions } from '../FormActions';
 import { FormGroup } from '../FormGroup';
 import { Alert } from '../Alert';
+import { FileUploadArea } from '../file-upload-area/FileUploadArea';
 import { uploadFile, getFileDownloadUrl } from '../../api/materials';
 import { createLessonMaterial, addLessonMaterialFiles } from '../../api/lessonMaterials';
 import type { StoredFileDto, CompositionLessonMaterialDto } from '../../api/types';
-import { Upload, X, Trash2, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import '../lesson-modal/lesson-modal.css';
 
 export interface LessonMaterialModalProps {
@@ -47,8 +48,6 @@ export function LessonMaterialModal({
   const [description, setDescription] = useState('');
   const [publishedAt, setPublishedAt] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [dropZoneActive, setDropZoneActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = !!material;
 
@@ -61,7 +60,6 @@ export function LessonMaterialModal({
     setUploadedFiles([]);
     setFormError(null);
     setFieldErrors({});
-    setDropZoneActive(false);
   }, [material]);
 
   useEffect(() => {
@@ -76,34 +74,9 @@ export function LessonMaterialModal({
     onClose();
   }, [onClose, resetForm]);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length > 0) {
-      const newFiles: UploadedFile[] = files.map((file) => ({ file }));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      const newFiles: UploadedFile[] = files.map((file) => ({ file }));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setDropZoneActive(false);
+  const handleFilesAdd = useCallback((files: File[]) => {
+    const newFiles: UploadedFile[] = files.map((file) => ({ file }));
+    setUploadedFiles((prev) => [...prev, ...newFiles]);
   }, []);
 
   const handleRemoveFile = useCallback((index: number) => {
@@ -351,110 +324,25 @@ export function LessonMaterialModal({
           {/* File upload section */}
           {!isEditMode && (
             <FormGroup label={t('lessonMaterialFiles')} htmlFor="material-files">
-              <input
-                ref={fileInputRef}
-                id="material-files"
-                type="file"
+              <FileUploadArea
+                items={uploadedFiles.map((uf) => ({
+                  file: uf.file,
+                  uploaded: uf.uploaded ? { id: uf.uploaded.id, originalName: uf.uploaded.originalName, size: uf.uploaded.size } : undefined,
+                  uploading: uf.uploading,
+                  error: uf.error,
+                }))}
+                onAdd={handleFilesAdd}
+                onRemove={handleRemoveFile}
+                onDownload={handleDownloadFile}
+                disabled={saving}
                 multiple
-                onChange={handleFileSelect}
-                disabled={saving}
-                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
-                tabIndex={-1}
+                dropZoneText={t('lessonMaterialClickToUpload')}
+                buttonText={t('lessonMaterialUploadFiles')}
+                inputId="material-files"
+                downloadTitle={t('download')}
+                deleteTitle={t('delete')}
+                uploadingText={t('uploading')}
               />
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '1.5rem',
-                  border: `2px dashed ${dropZoneActive ? '#345FE7' : '#d1d5db'}`,
-                  borderRadius: '8px',
-                  backgroundColor: dropZoneActive ? '#f0f4ff' : '#fff',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  minHeight: '120px',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <Upload style={{ width: '2rem', height: '2rem', color: '#9ca3af' }} />
-                <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                  {t('lessonMaterialClickToUpload')}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={saving}
-                className="btn-secondary"
-                style={{ marginBottom: '1rem' }}
-              >
-                <Upload style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-                {t('lessonMaterialUploadFiles')}
-              </button>
-
-              {/* Uploaded files list */}
-              {uploadedFiles.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {uploadedFiles.map((uploadedFile, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        padding: '0.75rem',
-                        backgroundColor: '#f1f5f9',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>
-                          {uploadedFile.file.name}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                          {formatFileSize(uploadedFile.file.size)}
-                          {uploadedFile.uploading && ` • ${t('uploading')}`}
-                          {uploadedFile.error && ` • ${uploadedFile.error}`}
-                        </div>
-                      </div>
-                      {uploadedFile.uploaded && (
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadFile(uploadedFile.uploaded!.id)}
-                          className="btn-secondary"
-                          style={{ padding: '0.25rem 0.5rem' }}
-                          title={t('download')}
-                        >
-                          <Download style={{ width: '1rem', height: '1rem' }} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        disabled={saving || uploadedFile.uploading}
-                        className="btn-secondary"
-                        style={{ padding: '0.25rem 0.5rem', color: '#dc2626' }}
-                        title={t('delete')}
-                      >
-                        <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </FormGroup>
           )}
 
@@ -500,110 +388,25 @@ export function LessonMaterialModal({
           {/* Add files in edit mode */}
           {isEditMode && (
             <FormGroup label={t('lessonMaterialAddFiles')} htmlFor="add-files">
-              <input
-                ref={fileInputRef}
-                id="add-files"
-                type="file"
+              <FileUploadArea
+                items={uploadedFiles.map((uf) => ({
+                  file: uf.file,
+                  uploaded: uf.uploaded ? { id: uf.uploaded.id, originalName: uf.uploaded.originalName, size: uf.uploaded.size } : undefined,
+                  uploading: uf.uploading,
+                  error: uf.error,
+                }))}
+                onAdd={handleFilesAdd}
+                onRemove={handleRemoveFile}
+                onDownload={handleDownloadFile}
+                disabled={saving}
                 multiple
-                onChange={handleFileSelect}
-                disabled={saving}
-                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
-                tabIndex={-1}
+                dropZoneText={t('lessonMaterialClickToUpload')}
+                buttonText={t('lessonMaterialUploadFiles')}
+                inputId="add-files"
+                downloadTitle={t('download')}
+                deleteTitle={t('delete')}
+                uploadingText={t('uploading')}
               />
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '1.5rem',
-                  border: `2px dashed ${dropZoneActive ? '#345FE7' : '#d1d5db'}`,
-                  borderRadius: '8px',
-                  backgroundColor: dropZoneActive ? '#f0f4ff' : '#fff',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  minHeight: '120px',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <Upload style={{ width: '2rem', height: '2rem', color: '#9ca3af' }} />
-                <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                  {t('lessonMaterialClickToUpload')}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={saving}
-                className="btn-secondary"
-                style={{ marginBottom: '1rem' }}
-              >
-                <Upload style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-                {t('lessonMaterialUploadFiles')}
-              </button>
-
-              {/* Uploaded files list */}
-              {uploadedFiles.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {uploadedFiles.map((uploadedFile, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        padding: '0.75rem',
-                        backgroundColor: '#f1f5f9',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>
-                          {uploadedFile.file.name}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                          {formatFileSize(uploadedFile.file.size)}
-                          {uploadedFile.uploading && ` • ${t('uploading')}`}
-                          {uploadedFile.error && ` • ${uploadedFile.error}`}
-                        </div>
-                      </div>
-                      {uploadedFile.uploaded && (
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadFile(uploadedFile.uploaded!.id)}
-                          className="btn-secondary"
-                          style={{ padding: '0.25rem 0.5rem' }}
-                          title={t('download')}
-                        >
-                          <Download style={{ width: '1rem', height: '1rem' }} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        disabled={saving || uploadedFile.uploading}
-                        className="btn-secondary"
-                        style={{ padding: '0.25rem 0.5rem', color: '#dc2626' }}
-                        title={t('delete')}
-                      >
-                        <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </FormGroup>
           )}
 

@@ -15,9 +15,8 @@ import type {
   CourseMaterialInfoDto,
   GroupSubjectOfferingInfoDto,
 } from '../../../../shared/api';
-import { Alert, FileCard } from '../../../../shared/ui';
-import { formatFileSize } from '../../../../shared/lib';
-import { BookOpen, Plus, Upload, X } from 'lucide-react';
+import { Alert, FileCard, FileUploadArea } from '../../../../shared/ui';
+import { BookOpen, Plus, X } from 'lucide-react';
 
 const TAB_STUDENTS = 'students';
 const TAB_COURSE_MATERIALS = 'course-materials';
@@ -53,9 +52,7 @@ export function SubjectDetailPage() {
   const [addMaterialOpen, setAddMaterialOpen] = useState(false);
   const [materialTitle, setMaterialTitle] = useState('');
   const [materialDescription, setMaterialDescription] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [dropZoneActive, setDropZoneActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const loadSubjectDetail = useCallback(async () => {
     if (!id) return;
@@ -85,40 +82,16 @@ export function SubjectDetailPage() {
     loadSubjectDetail();
   }, [loadSubjectDetail]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      if (!materialTitle) {
-        setMaterialTitle(file.name);
-      }
-    }
-    e.target.value = '';
-  };
+  const handleFilesAdd = useCallback((files: File[]) => {
+    setSelectedFiles((prev) => [...prev, ...files]);
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      if (!materialTitle) {
-        setMaterialTitle(file.name);
-      }
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(true);
-  };
-
-  const handleDragLeave = () => {
-    setDropZoneActive(false);
-  };
+  const handleFileRemove = useCallback((index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleUploadMaterial = async () => {
-    if (!selectedFile || !selectedOffering || !materialTitle.trim()) {
+    if (selectedFiles.length === 0 || !selectedOffering || !materialTitle.trim()) {
       setUploadError(tRef.current('teacherSubjectMaterialValidationError'));
       return;
     }
@@ -127,28 +100,28 @@ export function SubjectDetailPage() {
     setUploadError(null);
 
     try {
-      // Step 1: Upload file
-      const uploadRes = await uploadFile(selectedFile);
-      if (uploadRes.error || !uploadRes.data) {
-        setUploadError(uploadRes.error?.message ?? tRef.current('teacherSubjectMaterialUploadError'));
-        setUploading(false);
-        return;
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const uploadRes = await uploadFile(file);
+        if (uploadRes.error || !uploadRes.data) {
+          setUploadError(uploadRes.error?.message ?? tRef.current('teacherSubjectMaterialUploadError'));
+          setUploading(false);
+          return;
+        }
+
+        const materialRes = await addCourseMaterial(selectedOffering.id, {
+          storedFileId: uploadRes.data.id,
+          title: materialTitle.trim() || file.name,
+          description: materialDescription.trim() || null,
+        });
+
+        if (materialRes.error) {
+          setUploadError(materialRes.error.message ?? tRef.current('teacherSubjectMaterialCreateError'));
+          setUploading(false);
+          return;
+        }
       }
 
-      // Step 2: Create material
-      const materialRes = await addCourseMaterial(selectedOffering.id, {
-        storedFileId: uploadRes.data.id,
-        title: materialTitle.trim(),
-        description: materialDescription.trim() || null,
-      });
-
-      if (materialRes.error) {
-        setUploadError(materialRes.error.message ?? tRef.current('teacherSubjectMaterialCreateError'));
-        setUploading(false);
-        return;
-      }
-
-      // Success: reload subject detail and materials
       await loadSubjectDetail();
       if (selectedOffering) {
         const materialsRes = await getOfferingMaterials(selectedOffering.id);
@@ -160,14 +133,10 @@ export function SubjectDetailPage() {
         }
       }
 
-      // Reset form
       setAddMaterialOpen(false);
       setMaterialTitle('');
       setMaterialDescription('');
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setSelectedFiles([]);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialUploadError'));
     } finally {
@@ -553,74 +522,21 @@ export function SubjectDetailPage() {
                         />
                       </div>
 
-                      {/* Upload File: drop zone + button */}
+                      {/* Upload files: multiple allowed, list with remove */}
                       <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                          {t('teacherSubjectMaterialFile')}
-                        </label>
-                        <input
-                          ref={fileInputRef}
-                          id="material-file"
-                          type="file"
-                          onChange={handleFileSelect}
+                        <FileUploadArea
+                          items={selectedFiles.map((file) => ({ file }))}
+                          onAdd={handleFilesAdd}
+                          onRemove={handleFileRemove}
                           disabled={uploading}
-                          style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
-                          tabIndex={-1}
+                          multiple
+                          label={t('teacherSubjectMaterialFile')}
+                          dropZoneText={t('teacherSubjectClickToUploadMultiple')}
+                          buttonText={t('teacherSubjectUploadFile')}
+                          inputId="material-files"
+                          deleteTitle={t('remove')}
+                          uploadingText={t('uploading')}
                         />
-                        <div
-                          onDrop={handleDrop}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onClick={() => fileInputRef.current?.click()}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            padding: '1.5rem',
-                            border: `2px dashed ${dropZoneActive ? '#345FE7' : '#d1d5db'}`,
-                            borderRadius: '8px',
-                            backgroundColor: dropZoneActive ? '#f0f4ff' : '#fff',
-                            cursor: uploading ? 'not-allowed' : 'pointer',
-                            minHeight: '120px',
-                            marginBottom: '0.75rem',
-                          }}
-                        >
-                          <Upload style={{ width: '2rem', height: '2rem', color: '#9ca3af' }} />
-                          <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                            {t('teacherSubjectClickToUpload')}
-                          </span>
-                          {selectedFile && (
-                            <span style={{ fontSize: '0.875rem', color: '#345FE7', fontWeight: 500 }}>
-                              {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 1rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            backgroundColor: '#fff',
-                            color: '#374151',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            cursor: uploading ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          <Upload style={{ width: '1rem', height: '1rem' }} />
-                          {t('teacherSubjectUploadFile')}
-                        </button>
                       </div>
 
                       {/* Actions */}
@@ -645,7 +561,7 @@ export function SubjectDetailPage() {
                         <button
                           type="button"
                           onClick={handleUploadMaterial}
-                          disabled={uploading || !selectedFile || !materialTitle.trim()}
+                          disabled={uploading || selectedFiles.length === 0 || !materialTitle.trim()}
                           style={{
                             padding: '0.5rem 1.25rem',
                             border: 'none',

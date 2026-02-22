@@ -1,31 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslation, formatDateTime } from '../../../../shared/i18n';
-import { getLessonHomeworkSubmissions, getFileDownloadUrl } from '../../../../shared/api';
+import { useTranslation } from '../../../../shared/i18n';
+import {
+  getLessonHomeworkSubmissions,
+  getFileDownloadUrl,
+  createGradeEntry,
+  updateGradeEntry,
+  getStudentOfferingGrades,
+} from '../../../../shared/api';
 import type {
   LessonHomeworkSubmissionsDto,
   StudentHomeworkRowDto,
   StudentHomeworkItemDto,
   CompositionStoredFileDto,
   CompositionHomeworkDto,
+  GradeEntryDto,
 } from '../../../../shared/api';
 import { Alert, Modal, FileCard } from '../../../../shared/ui';
-import { getStudentDisplayName } from '../../../../shared/lib';
-import { FileText } from 'lucide-react';
+import { getStudentDisplayName, truncate } from '../../../../shared/lib';
+import { FileText, Pencil } from 'lucide-react';
 
 export interface LessonHomeworkSubmissionsTabProps {
   lessonId: string;
-  /** Вызов при потере фокуса поля баллов (если не передан, поле только для чтения) */
-  onPointsBlur?: (
-    studentId: string,
-    homeworkId: string,
-    submissionId: string | null,
-    points: number
-  ) => Promise<void>;
 }
 
 export function LessonHomeworkSubmissionsTab({
   lessonId,
-  onPointsBlur,
 }: LessonHomeworkSubmissionsTabProps) {
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
@@ -37,6 +36,21 @@ export function LessonHomeworkSubmissionsTab({
   const [filesModalOpen, setFilesModalOpen] = useState(false);
   const [filesModalItems, setFilesModalItems] = useState<CompositionStoredFileDto[]>([]);
   const [savingPointsKey, setSavingPointsKey] = useState<string | null>(null);
+
+  /** Состояние диалога оценки: при открытии заданы контекст ячейки и данные для формы */
+  const [gradeDialog, setGradeDialog] = useState<{
+    open: boolean;
+    studentId: string;
+    studentDisplayName: string;
+    homeworkId: string;
+    homeworkTitle: string;
+    submissionId: string;
+    maxPoints: number | null;
+    currentPoints: number;
+    offeringId: string;
+    /** Запись оценки с бэкенда (id, description и др.) — для отображения в диалоге без доп. запроса */
+    gradeEntry: GradeEntryDto | null;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!lessonId) return;
@@ -80,6 +94,36 @@ export function LessonHomeworkSubmissionsTab({
   const closeFilesModal = useCallback(() => {
     setFilesModalOpen(false);
     setFilesModalItems([]);
+  }, []);
+
+  const openGradeDialog = useCallback(
+    (
+      item: StudentHomeworkItemDto,
+      studentId: string,
+      studentDisplayName: string,
+      homeworkTitle: string,
+      maxPoints: number | null,
+      offeringId: string
+    ) => {
+      if (!item.submission) return;
+      setGradeDialog({
+        open: true,
+        studentId,
+        studentDisplayName,
+        homeworkId: item.homeworkId,
+        homeworkTitle,
+        submissionId: item.submission.id,
+        maxPoints,
+        currentPoints: item.points ?? 0,
+        offeringId,
+        gradeEntry: item.gradeEntry ?? null,
+      });
+    },
+    []
+  );
+
+  const closeGradeDialog = useCallback(() => {
+    setGradeDialog(null);
   }, []);
 
   if (loading) {
@@ -170,7 +214,7 @@ export function LessonHomeworkSubmissionsTab({
                     {t('homeworkPoints')}
                   </th>,
                   <th
-                    key={`${hw.id}-submitted`}
+                    key={`${hw.id}-description`}
                     style={{
                       padding: '0.5rem 0.5rem',
                       fontWeight: 500,
@@ -179,7 +223,7 @@ export function LessonHomeworkSubmissionsTab({
                       borderLeft: '1px solid #e2e8f0',
                     }}
                   >
-                    {t('lessonHomeworkSubmissionsSubmittedAt')}
+                    {t('lessonHomeworkSubmissionsDescription')}
                   </th>,
                 ])}
               </tr>
@@ -190,11 +234,12 @@ export function LessonHomeworkSubmissionsTab({
                   key={row.student.id}
                   row={row}
                   homeworks={homeworks}
+                  offeringId={data.lesson.offeringId}
                   t={t}
                   locale={locale}
                   onDownloadFile={handleDownloadFile}
                   onOpenFilesModal={openFilesModal}
-                  onPointsBlur={onPointsBlur}
+                  onOpenGradeDialog={openGradeDialog}
                   savingPointsKey={savingPointsKey}
                   setSavingPointsKey={setSavingPointsKey}
                 />
@@ -223,6 +268,24 @@ export function LessonHomeworkSubmissionsTab({
           ))}
         </div>
       </Modal>
+
+      {gradeDialog && (
+        <HomeworkGradeDialog
+          open={gradeDialog.open}
+          lessonId={lessonId}
+          studentId={gradeDialog.studentId}
+          studentDisplayName={gradeDialog.studentDisplayName}
+          homeworkTitle={gradeDialog.homeworkTitle}
+          submissionId={gradeDialog.submissionId}
+          maxPoints={gradeDialog.maxPoints}
+          initialPoints={gradeDialog.currentPoints}
+          offeringId={gradeDialog.offeringId}
+          initialGradeEntry={gradeDialog.gradeEntry}
+          onClose={closeGradeDialog}
+          onSaved={load}
+          t={t}
+        />
+      )}
     </>
   );
 }
@@ -230,16 +293,19 @@ export function LessonHomeworkSubmissionsTab({
 interface StudentHomeworkRowProps {
   row: StudentHomeworkRowDto;
   homeworks: CompositionHomeworkDto[];
+  offeringId: string;
   t: (key: string) => string;
   locale: string;
   onDownloadFile: (file: CompositionStoredFileDto) => void;
   onOpenFilesModal: (files: CompositionStoredFileDto[]) => void;
-  onPointsBlur?: (
+  onOpenGradeDialog: (
+    item: StudentHomeworkItemDto,
     studentId: string,
-    homeworkId: string,
-    submissionId: string | null,
-    points: number
-  ) => Promise<void>;
+    studentDisplayName: string,
+    homeworkTitle: string,
+    maxPoints: number | null,
+    offeringId: string
+  ) => void;
   savingPointsKey: string | null;
   setSavingPointsKey: (key: string | null) => void;
 }
@@ -247,11 +313,12 @@ interface StudentHomeworkRowProps {
 function StudentHomeworkRow({
   row,
   homeworks,
+  offeringId,
   t,
   locale,
   onDownloadFile,
   onOpenFilesModal,
-  onPointsBlur,
+  onOpenGradeDialog,
   savingPointsKey,
   setSavingPointsKey,
 }: StudentHomeworkRowProps) {
@@ -278,12 +345,15 @@ function StudentHomeworkRow({
           key={item.homeworkId}
           item={item}
           maxPoints={homeworks[idx]?.points ?? null}
+          homeworkTitle={homeworks[idx]?.title?.trim() || t('homeworkUntitled')}
+          offeringId={offeringId}
+          studentId={studentId}
+          studentDisplayName={displayName}
           t={t}
           locale={locale}
-          studentId={studentId}
           onDownloadFile={onDownloadFile}
           onOpenFilesModal={onOpenFilesModal}
-          onPointsBlur={onPointsBlur}
+          onOpenGradeDialog={onOpenGradeDialog}
           savingPointsKey={savingPointsKey}
           setSavingPointsKey={setSavingPointsKey}
         />
@@ -295,57 +365,73 @@ function StudentHomeworkRow({
 interface HomeworkItemCellsProps {
   item: StudentHomeworkItemDto;
   maxPoints: number | null;
+  homeworkTitle: string;
+  offeringId: string;
+  studentId: string;
+  studentDisplayName: string;
   t: (key: string) => string;
   locale: string;
-  studentId: string;
   onDownloadFile: (file: CompositionStoredFileDto) => void;
   onOpenFilesModal: (files: CompositionStoredFileDto[]) => void;
-  onPointsBlur?: (
+  onOpenGradeDialog: (
+    item: StudentHomeworkItemDto,
     studentId: string,
-    homeworkId: string,
-    submissionId: string | null,
-    points: number
-  ) => Promise<void>;
+    studentDisplayName: string,
+    homeworkTitle: string,
+    maxPoints: number | null,
+    offeringId: string
+  ) => void;
   savingPointsKey: string | null;
   setSavingPointsKey: (key: string | null) => void;
+}
+
+const DESCRIPTION_TRUNCATE_LEN = 80;
+const INTL_LOCALE_MAP: Record<string, string> = { en: 'en-US', ru: 'ru-RU', 'zh-Hans': 'zh-CN' };
+
+function formatShortDateTime(iso: string, locale: string): string {
+  try {
+    const intlLocale = INTL_LOCALE_MAP[locale] ?? locale;
+    return new Date(iso).toLocaleString(intlLocale, {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return iso;
+  }
 }
 
 function HomeworkItemCells({
   item,
   maxPoints,
+  homeworkTitle,
+  offeringId,
+  studentId,
+  studentDisplayName,
   t,
   locale,
-  studentId,
   onDownloadFile,
   onOpenFilesModal,
-  onPointsBlur,
+  onOpenGradeDialog,
   savingPointsKey,
   setSavingPointsKey,
 }: HomeworkItemCellsProps) {
   const { homeworkId, submission, points, files } = item;
-  const [localPoints, setLocalPoints] = useState(points ?? 0);
-
-  useEffect(() => {
-    setLocalPoints(points ?? 0);
-  }, [points]);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const saveKey = `${studentId}:${homeworkId}`;
   const isSaving = savingPointsKey === saveKey;
-  const canEditPoints = Boolean(onPointsBlur && submission);
+  const canOpenGradeDialog = Boolean(submission);
 
-  const handlePointsBlur = useCallback(() => {
-    if (!onPointsBlur || !submission) return;
-    const num = localPoints;
-    if (num === (points ?? 0)) return;
-    setSavingPointsKey(saveKey);
-    onPointsBlur(studentId, homeworkId, submission.id, num)
-      .catch((err) => {
-        alert(err?.message ?? t('attendanceSaveError'));
-      })
-      .finally(() => {
-        setSavingPointsKey(null);
-      });
-  }, [onPointsBlur, submission, localPoints, points, studentId, homeworkId, saveKey, t, setSavingPointsKey]);
+  const handleOpenGradeDialog = useCallback(() => {
+    if (!submission || isSaving) return;
+    onOpenGradeDialog(item, studentId, studentDisplayName, homeworkTitle, maxPoints, offeringId);
+  }, [submission, isSaving, item, studentId, studentDisplayName, homeworkTitle, maxPoints, offeringId, onOpenGradeDialog]);
+
+  const desc = submission?.description?.trim() ?? '';
+  const isLongDesc = desc.length > DESCRIPTION_TRUNCATE_LEN;
+  const displayDesc = !desc ? '—' : (descriptionExpanded ? desc : truncate(desc, DESCRIPTION_TRUNCATE_LEN));
 
   return (
     <>
@@ -407,23 +493,30 @@ function HomeworkItemCells({
           verticalAlign: 'top',
         }}
       >
-        {canEditPoints ? (
-          <input
-            type="number"
-            min={0}
-            max={maxPoints ?? undefined}
-            step={0.01}
-            className="form-control"
-            value={localPoints}
-            onChange={(e) => {
-              const raw = e.target.value.trim();
-              const num = raw === '' ? 0 : Math.max(0, parseFloat(raw) || 0);
-              setLocalPoints(num);
-            }}
-            onBlur={handlePointsBlur}
+        {canOpenGradeDialog ? (
+          <button
+            type="button"
+            onClick={handleOpenGradeDialog}
             disabled={isSaving}
-            style={{ width: '4.5rem', padding: '0.375rem 0.5rem' }}
-          />
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.375rem 0.5rem',
+              minWidth: '4.5rem',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              background: points != null && points > 0 ? '#f0fdf4' : '#f8fafc',
+              cursor: isSaving ? 'wait' : 'pointer',
+              fontSize: '0.9375rem',
+              color: submission ? '#0f172a' : '#94a3b8',
+              textAlign: 'left',
+            }}
+            title={t('lessonHomeworkSubmissionsGradeClickToEdit')}
+          >
+            {points != null ? String(points) : '—'}
+            <Pencil style={{ width: '0.875rem', height: '0.875rem', color: '#64748b', flexShrink: 0 }} />
+          </button>
         ) : (
           <span style={{ color: submission ? '#0f172a' : '#94a3b8' }}>
             {submission ? (points != null ? String(points) : '—') : '—'}
@@ -434,15 +527,264 @@ function HomeworkItemCells({
         style={{
           padding: '0.75rem 0.5rem',
           borderLeft: '1px solid #e2e8f0',
-          fontSize: '0.875rem',
-          color: '#475569',
           verticalAlign: 'top',
+          minWidth: '140px',
         }}
       >
-        {submission?.submittedAt
-          ? formatDateTime(submission.submittedAt, locale as 'ru' | 'en' | 'zh-Hans')
-          : '—'}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '0.25rem',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              fontSize: '0.875rem',
+              color: submission ? '#334155' : '#94a3b8',
+              textAlign: 'left',
+              lineHeight: 1.4,
+            }}
+          >
+            {displayDesc}
+            {isLongDesc && (
+              <button
+                type="button"
+                onClick={() => setDescriptionExpanded((v) => !v)}
+                style={{
+                  marginLeft: '0.375rem',
+                  padding: 0,
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.8125rem',
+                  color: '#3b82f6',
+                }}
+              >
+                {descriptionExpanded ? t('lessonHomeworkSubmissionsShowLess') : t('lessonHomeworkSubmissionsShowFull')}
+              </button>
+            )}
+          </div>
+          {submission?.submittedAt && (
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: '#94a3b8',
+              }}
+            >
+              {formatShortDateTime(submission.submittedAt, locale)}
+            </span>
+          )}
+        </div>
       </td>
     </>
+  );
+}
+
+// --- Homework grade dialog (set / edit grade with description) ---
+
+interface HomeworkGradeDialogProps {
+  open: boolean;
+  lessonId: string;
+  studentId: string;
+  studentDisplayName: string;
+  homeworkTitle: string;
+  submissionId: string;
+  maxPoints: number | null;
+  initialPoints: number;
+  offeringId: string;
+  /** Запись оценки с эндпоинта homework-submissions — сразу подставляем баллы и описание в форму */
+  initialGradeEntry: GradeEntryDto | null;
+  onClose: () => void;
+  onSaved: () => void;
+  t: (key: string) => string;
+}
+
+function HomeworkGradeDialog({
+  open,
+  lessonId,
+  studentId,
+  studentDisplayName,
+  homeworkTitle,
+  submissionId,
+  maxPoints,
+  initialPoints,
+  offeringId,
+  initialGradeEntry,
+  onClose,
+  onSaved,
+  t,
+}: HomeworkGradeDialogProps) {
+  const [formPoints, setFormPoints] = useState(initialPoints);
+  const [formDescription, setFormDescription] = useState('');
+  const [existingEntryId, setExistingEntryId] = useState<string | null>(null);
+  const [loadingEntry, setLoadingEntry] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFormPoints(initialPoints);
+    setFormDescription('');
+    setExistingEntryId(null);
+    setError(null);
+    if (!open) return;
+    if (initialGradeEntry) {
+      setExistingEntryId(initialGradeEntry.id);
+      setFormPoints(initialGradeEntry.points ?? initialPoints);
+      setFormDescription(initialGradeEntry.description ?? '');
+      return;
+    }
+    setLoadingEntry(true);
+    getStudentOfferingGrades(studentId, offeringId)
+      .then((res) => {
+        if (res.error || !res.data) return;
+        const entry = res.data.entries.find(
+          (e) => e.homeworkSubmissionId === submissionId
+        );
+        if (entry) {
+          setExistingEntryId(entry.id);
+          setFormPoints(entry.points ?? initialPoints);
+          setFormDescription(entry.description ?? '');
+        }
+      })
+      .finally(() => setLoadingEntry(false));
+  }, [open, studentId, offeringId, submissionId, initialPoints, initialGradeEntry]);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      setSaving(true);
+      const points = Number(formPoints);
+      const description = formDescription.trim() || null;
+      if (existingEntryId) {
+        const res = await updateGradeEntry(existingEntryId, {
+          points,
+          description,
+        });
+        if (res.error) {
+          setError(res.error.message ?? t('attendanceSaveError'));
+          setSaving(false);
+          return;
+        }
+      } else {
+        const res = await createGradeEntry({
+          studentId,
+          offeringId,
+          points,
+          typeCode: 'HOMEWORK',
+          description,
+          lessonSessionId: lessonId,
+          homeworkSubmissionId: submissionId,
+        });
+        if (res.error) {
+          setError(res.error.message ?? t('attendanceSaveError'));
+          setSaving(false);
+          return;
+        }
+      }
+      setSaving(false);
+      onSaved();
+      onClose();
+    },
+    [
+      formPoints,
+      formDescription,
+      existingEntryId,
+      studentId,
+      offeringId,
+      lessonId,
+      submissionId,
+      onSaved,
+      onClose,
+      t,
+    ]
+  );
+
+  if (!open) return null;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('lessonHomeworkSubmissionsGradeDialogTitle')}
+      variant="form"
+    >
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+          {studentDisplayName} · {homeworkTitle}
+        </p>
+        {error && (
+          <Alert variant="error">{error}</Alert>
+        )}
+        {loadingEntry ? (
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('loading')}</p>
+        ) : (
+          <>
+            <div>
+              <label htmlFor="hw-grade-points" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                {t('homeworkPoints')}
+                {maxPoints != null && (
+                  <span style={{ fontWeight: 400, color: '#64748b', marginLeft: '0.25rem' }}>
+                    ({t('lessonHomeworkSubmissionsGradeMax')} {maxPoints})
+                  </span>
+                )}
+              </label>
+              <input
+                id="hw-grade-points"
+                type="number"
+                min={0}
+                max={maxPoints ?? undefined}
+                step={0.01}
+                className="form-control"
+                value={formPoints}
+                onChange={(e) => {
+                  const raw = e.target.value.trim();
+                  const num = raw === '' ? 0 : Math.max(0, parseFloat(raw) || 0);
+                  setFormPoints(num);
+                }}
+                disabled={saving}
+                style={{ width: '8rem', padding: '0.5rem' }}
+              />
+            </div>
+            <div>
+              <label htmlFor="hw-grade-desc" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                {t('lessonHomeworkSubmissionsGradeDescription')}
+              </label>
+              <textarea
+                id="hw-grade-desc"
+                className="form-control"
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                disabled={saving}
+                rows={3}
+                maxLength={2000}
+                placeholder={t('lessonHomeworkSubmissionsGradeDescriptionPlaceholder')}
+                style={{ width: '100%', padding: '0.5rem', resize: 'vertical' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-secondary"
+                disabled={saving}
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={saving}
+              >
+                {saving ? t('saving') : t('save')}
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </Modal>
   );
 }

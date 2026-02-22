@@ -1,8 +1,8 @@
 /**
  * Модалка создания/редактирования домашнего задания.
- * Поддерживает загрузку одного файла или использование уже загруженного файла.
+ * Поддерживает загрузку нескольких файлов (как в контракте API: files — массив).
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n';
 import { parseFieldErrors } from '../../lib/parseFieldErrors';
 import { formatFileSize } from '../../lib/fileUtils';
@@ -10,10 +10,11 @@ import { Modal } from '../Modal';
 import { FormActions } from '../FormActions';
 import { FormGroup } from '../FormGroup';
 import { Alert } from '../Alert';
+import { FileUploadArea } from '../file-upload-area/FileUploadArea';
 import { uploadFile, getFileDownloadUrl } from '../../api/materials';
 import { createHomework, updateHomework } from '../../api/homework';
 import type { StoredFileDto, HomeworkDto } from '../../api/types';
-import { Upload, X, Trash2, Download } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import '../lesson-modal/lesson-modal.css';
 
 export interface HomeworkModalProps {
@@ -31,6 +32,14 @@ interface UploadedFile {
   error?: string;
 }
 
+/** Текущие файлы ДЗ: из ответа API (files или один file для совместимости). */
+function getHomeworkFiles(homework: HomeworkDto | null | undefined): StoredFileDto[] {
+  if (!homework) return [];
+  if (homework.files && homework.files.length > 0) return homework.files;
+  if (homework.file) return [homework.file];
+  return [];
+}
+
 export function HomeworkModal({
   open,
   onClose,
@@ -46,24 +55,21 @@ export function HomeworkModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [points, setPoints] = useState<string>('');
-  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
-  const [useExistingFileId, setUseExistingFileId] = useState<string>('');
-  const [clearFile, setClearFile] = useState(false);
-  const [dropZoneActive, setDropZoneActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  /** Id существующих файлов, которые пользователь снял (удалить при сохранении). */
+  const [removedExistingIds, setRemovedExistingIds] = useState<Set<string>>(new Set());
 
   const isEditMode = !!homework;
+  const existingFiles = getHomeworkFiles(homework);
 
   const resetForm = useCallback(() => {
     setTitle(homework?.title ?? '');
     setDescription(homework?.description ?? '');
     setPoints(homework?.points?.toString() ?? '');
-    setUploadedFile(null);
-    setUseExistingFileId('');
-    setClearFile(false);
+    setUploadedFiles([]);
+    setRemovedExistingIds(new Set());
     setFormError(null);
     setFieldErrors({});
-    setDropZoneActive(false);
   }, [homework]);
 
   useEffect(() => {
@@ -78,45 +84,17 @@ export function HomeworkModal({
     onClose();
   }, [onClose, resetForm]);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile({ file });
-      setUseExistingFileId('');
-      setClearFile(false);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleFilesAdd = useCallback((files: File[]) => {
+    const newItems: UploadedFile[] = files.map((file) => ({ file }));
+    setUploadedFiles((prev) => [...prev, ...newItems]);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setUploadedFile({ file });
-      setUseExistingFileId('');
-      setClearFile(false);
-    }
+  const handleRemoveNewFile = useCallback((index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropZoneActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setDropZoneActive(false);
-  }, []);
-
-  const handleRemoveFile = useCallback(() => {
-    setUploadedFile(null);
-    setUseExistingFileId('');
-    setClearFile(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleRemoveExisting = useCallback((fileId: string) => {
+    setRemovedExistingIds((prev) => new Set(prev).add(fileId));
   }, []);
 
   const handleDownloadFile = useCallback(async (fileId: string) => {
@@ -132,38 +110,51 @@ export function HomeworkModal({
     }
   }, [t]);
 
-  const uploadFileIfNeeded = useCallback(async (): Promise<string | null> => {
-    if (useExistingFileId.trim()) {
-      return useExistingFileId.trim();
-    }
+  const uploadAllNewFiles = useCallback(async (files: UploadedFile[]): Promise<string[]> => {
+    const fileIds: string[] = [];
 
-    if (!uploadedFile) {
-      return null;
-    }
-
-    if (uploadedFile.uploaded) {
-      return uploadedFile.uploaded.id;
-    }
-
-    setUploadedFile((prev) => prev ? { ...prev, uploading: true, error: undefined } : null);
-
-    try {
-      const uploadRes = await uploadFile(uploadedFile.file);
-      if (uploadRes.error || !uploadRes.data) {
-        const errorMsg = uploadRes.error?.message ?? t('teacherSubjectMaterialUploadError');
-        setUploadedFile((prev) => prev ? { ...prev, uploading: false, error: errorMsg } : null);
-        throw new Error(errorMsg);
+    for (let i = 0; i < files.length; i++) {
+      const item = files[i];
+      if (item.uploaded) {
+        fileIds.push(item.uploaded.id);
+        continue;
       }
 
-      const fileId = uploadRes.data.id;
-      setUploadedFile((prev) => prev ? { ...prev, uploading: false, uploaded: uploadRes.data } : null);
-      return fileId;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : t('teacherSubjectMaterialUploadError');
-      setUploadedFile((prev) => prev ? { ...prev, uploading: false, error: errorMsg } : null);
-      throw err;
+      setUploadedFiles((prev) => {
+        const next = [...prev];
+        next[i] = { ...next[i], uploading: true, error: undefined };
+        return next;
+      });
+
+      try {
+        const uploadRes = await uploadFile(item.file);
+        if (uploadRes.error || !uploadRes.data) {
+          const msg = uploadRes.error?.message ?? t('teacherSubjectMaterialUploadError');
+          setUploadedFiles((prev) => {
+            const next = [...prev];
+            next[i] = { ...next[i], uploading: false, error: msg };
+            return next;
+          });
+          throw new Error(msg);
+        }
+        fileIds.push(uploadRes.data.id);
+        setUploadedFiles((prev) => {
+          const next = [...prev];
+          next[i] = { ...next[i], uploading: false, uploaded: uploadRes.data };
+          return next;
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : t('teacherSubjectMaterialUploadError');
+        setUploadedFiles((prev) => {
+          const next = [...prev];
+          next[i] = { ...next[i], uploading: false, error: msg };
+          return next;
+        });
+        throw err;
+      }
     }
-  }, [uploadedFile, useExistingFileId, t]);
+    return fileIds;
+  }, [t]);
 
   const handleSave = useCallback(async () => {
     const titleTrimmed = title.trim();
@@ -191,12 +182,10 @@ export function HomeworkModal({
     setSaving(true);
 
     try {
-      let storedFileId: string | null = null;
-
-      // Upload file if needed
-      if (uploadedFile || useExistingFileId.trim()) {
+      let newFileIds: string[] = [];
+      if (uploadedFiles.length > 0) {
         try {
-          storedFileId = await uploadFileIfNeeded();
+          newFileIds = await uploadAllNewFiles(uploadedFiles);
         } catch (err) {
           setFormError(err instanceof Error ? err.message : t('teacherSubjectMaterialUploadError'));
           setSaving(false);
@@ -205,40 +194,28 @@ export function HomeworkModal({
       }
 
       if (isEditMode && homework) {
-        // Edit mode: update homework
-        const updateBody: any = {};
-        
-        if (titleTrimmed !== homework.title) {
-          updateBody.title = titleTrimmed;
-        }
-        
+        const keptExistingIds = existingFiles
+          .filter((f) => !removedExistingIds.has(f.id))
+          .map((f) => f.id);
+        const storedFileIds = [...keptExistingIds, ...newFileIds];
+
+        const updateBody: import('../../api/types').UpdateHomeworkRequest = {};
+        if (titleTrimmed !== homework.title) updateBody.title = titleTrimmed;
         if (description.trim() !== (homework.description ?? '')) {
           updateBody.description = description.trim() || null;
         }
-        
-        if (pointsNum !== homework.points) {
-          updateBody.points = pointsNum;
-        }
-
-        // Handle file changes
-        if (clearFile) {
-          updateBody.clearFile = true;
-        } else if (storedFileId) {
-          updateBody.storedFileId = storedFileId;
-        }
+        if (pointsNum !== homework.points) updateBody.points = pointsNum;
+        updateBody.storedFileIds = storedFileIds;
 
         const result = await updateHomework(homework.id, updateBody);
 
         if (result.error) {
-          if (result.status === 403) {
-            setFormError(t('homeworkPermissionDenied'));
-          } else if (result.status === 404) {
-            setFormError(t('homeworkNotFound'));
-          } else {
+          if (result.status === 403) setFormError(t('homeworkPermissionDenied'));
+          else if (result.status === 404) setFormError(t('homeworkNotFound'));
+          else {
             const err = result.error as { details?: Record<string, string> };
-            const details = err?.details;
-            if (details && typeof details === 'object') {
-              setFieldErrors(parseFieldErrors(details));
+            if (err?.details && typeof err.details === 'object') {
+              setFieldErrors(parseFieldErrors(err.details));
             }
             setFormError(result.error.message ?? t('homeworkSaveError'));
           }
@@ -246,24 +223,20 @@ export function HomeworkModal({
           return;
         }
       } else {
-        // Create mode: create new homework
         const result = await createHomework(lessonId, {
           title: titleTrimmed,
           description: description.trim() || null,
           points: pointsNum,
-          storedFileId: storedFileId || null,
+          storedFileIds: newFileIds.length > 0 ? newFileIds : null,
         });
 
         if (result.error) {
-          if (result.status === 403) {
-            setFormError(t('homeworkCreatePermissionDenied'));
-          } else if (result.status === 404) {
-            setFormError(t('homeworkLessonNotFound'));
-          } else {
+          if (result.status === 403) setFormError(t('homeworkCreatePermissionDenied'));
+          else if (result.status === 404) setFormError(t('homeworkLessonNotFound'));
+          else {
             const err = result.error as { details?: Record<string, string> };
-            const details = err?.details;
-            if (details && typeof details === 'object') {
-              setFieldErrors(parseFieldErrors(details));
+            if (err?.details && typeof err.details === 'object') {
+              setFieldErrors(parseFieldErrors(err.details));
             }
             setFormError(result.error.message ?? t('homeworkSaveError'));
           }
@@ -283,20 +256,20 @@ export function HomeworkModal({
     title,
     description,
     points,
-    uploadedFile,
-    useExistingFileId,
-    clearFile,
+    uploadedFiles,
+    removedExistingIds,
+    existingFiles,
     isEditMode,
     homework,
     lessonId,
-    uploadFileIfNeeded,
+    uploadAllNewFiles,
     t,
     onSaved,
     handleClose,
   ]);
 
   const titleText = isEditMode ? t('homeworkEditTitle') : t('homeworkCreateTitle');
-  const hasFile = uploadedFile || useExistingFileId.trim() || (homework?.file && !clearFile);
+  const keptExisting = existingFiles.filter((f) => !removedExistingIds.has(f.id));
 
   return (
     <>
@@ -365,105 +338,13 @@ export function HomeworkModal({
             />
           </FormGroup>
 
-          {/* File upload section */}
-          <FormGroup label={t('homeworkFile')} htmlFor="homework-file">
-            {/* Existing file in edit mode */}
-            {isEditMode && homework?.file && !clearFile && !uploadedFile && !useExistingFileId && (
-              <div style={{ marginBottom: '1rem' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem',
-                    backgroundColor: '#f1f5f9',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>
-                      {homework.file.originalName || t('homeworkFile')}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      {formatFileSize(homework.file.size)}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadFile(homework.file!.id)}
-                    className="btn-secondary"
-                    style={{ padding: '0.25rem 0.5rem' }}
-                    title={t('download')}
-                    disabled={saving}
-                  >
-                    <Download style={{ width: '1rem', height: '1rem' }} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setClearFile(true)}
-                    className="btn-secondary"
-                    style={{ padding: '0.25rem 0.5rem', color: '#dc2626' }}
-                    title={t('remove')}
-                    disabled={saving}
-                  >
-                    <X style={{ width: '1rem', height: '1rem' }} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* File input (hidden) */}
-            <input
-              ref={fileInputRef}
-              id="homework-file"
-              type="file"
-              onChange={handleFileSelect}
-              disabled={saving}
-              style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
-              tabIndex={-1}
-            />
-
-            {/* Drop zone or file display */}
-            {!hasFile && (
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '1.5rem',
-                  border: `2px dashed ${dropZoneActive ? '#345FE7' : '#d1d5db'}`,
-                  borderRadius: '8px',
-                  backgroundColor: dropZoneActive ? '#f0f4ff' : '#fff',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  minHeight: '120px',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <Upload style={{ width: '2rem', height: '2rem', color: '#9ca3af' }} />
-                <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                  {t('homeworkClickToUpload')}
-                </span>
-              </div>
-            )}
-
-            {hasFile && (
-              <div style={{ marginBottom: '0.75rem' }}>
-                {uploadedFile && (
+          <FormGroup label={t('homeworkFiles')} htmlFor="homework-files">
+            {/* Существующие файлы (режим редактирования) */}
+            {isEditMode && keptExisting.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                {keptExisting.map((file) => (
                   <div
+                    key={file.id}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -475,102 +356,61 @@ export function HomeworkModal({
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>
-                        {uploadedFile.file.name}
+                        {file.originalName || t('homeworkFile')}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        {formatFileSize(uploadedFile.file.size)}
-                        {uploadedFile.uploading && ` • ${t('uploading')}`}
-                        {uploadedFile.error && ` • ${uploadedFile.error}`}
+                        {formatFileSize(file.size)}
                       </div>
                     </div>
-                    {uploadedFile.uploaded && (
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadFile(uploadedFile.uploaded!.id)}
-                        className="btn-secondary"
-                        style={{ padding: '0.25rem 0.5rem' }}
-                        title={t('download')}
-                        disabled={saving}
-                      >
-                        <Download style={{ width: '1rem', height: '1rem' }} />
-                      </button>
-                    )}
                     <button
                       type="button"
-                      onClick={handleRemoveFile}
-                      disabled={saving || uploadedFile?.uploading}
+                      onClick={() => handleDownloadFile(file.id)}
                       className="btn-secondary"
-                      style={{ padding: '0.25rem 0.5rem', color: '#dc2626' }}
-                      title={t('delete')}
-                    >
-                      <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                    </button>
-                  </div>
-                )}
-                {useExistingFileId.trim() && !uploadedFile && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem',
-                      backgroundColor: '#f1f5f9',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>
-                        {t('homeworkFileId')}: {useExistingFileId}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveFile}
+                      style={{ padding: '0.25rem 0.5rem' }}
+                      title={t('download')}
                       disabled={saving}
+                    >
+                      <Download style={{ width: '1rem', height: '1rem' }} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExisting(file.id)}
                       className="btn-secondary"
                       style={{ padding: '0.25rem 0.5rem', color: '#dc2626' }}
-                      title={t('delete')}
+                      title={t('remove')}
+                      disabled={saving}
                     >
-                      <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                      <X style={{ width: '1rem', height: '1rem' }} />
                     </button>
                   </div>
-                )}
+                ))}
               </div>
             )}
 
-            {!hasFile && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={saving}
-                className="btn-secondary"
-                style={{ marginBottom: '1rem' }}
-              >
-                <Upload style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-                {t('homeworkUploadFile')}
-              </button>
-            )}
+            {/* Уже удалённые в этой сессии (показать только если есть что восстанавливать — не показываем) */}
 
-            {/* Option to use existing file ID (for advanced users) */}
-            {!hasFile && (
-              <div style={{ marginTop: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={useExistingFileId}
-                  onChange={(e) => {
-                    setUseExistingFileId(e.target.value);
-                    setUploadedFile(null);
-                    setClearFile(false);
-                  }}
-                  disabled={saving}
-                  placeholder={t('homeworkFileIdPlaceholder')}
-                  style={{ width: '100%', padding: '0.5rem' }}
-                />
-                <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  {t('homeworkFileIdHint')}
-                </p>
-              </div>
-            )}
+            {/* Новые файлы: drop zone + список */}
+            <FileUploadArea
+              items={uploadedFiles.map((uf) => ({
+                file: uf.file,
+                uploaded: uf.uploaded
+                  ? { id: uf.uploaded.id, originalName: uf.uploaded.originalName, size: uf.uploaded.size }
+                  : undefined,
+                uploading: uf.uploading,
+                error: uf.error,
+              }))}
+              onAdd={handleFilesAdd}
+              onRemove={handleRemoveNewFile}
+              onDownload={handleDownloadFile}
+              disabled={saving}
+              multiple
+              dropZoneText={t('homeworkClickToUpload')}
+              buttonText={t('homeworkUploadFile')}
+              inputId="homework-files"
+              downloadTitle={t('download')}
+              deleteTitle={t('remove')}
+              uploadingText={t('uploading')}
+            />
           </FormGroup>
 
           <FormActions

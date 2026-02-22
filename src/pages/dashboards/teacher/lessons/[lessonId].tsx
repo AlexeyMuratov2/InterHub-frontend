@@ -747,26 +747,29 @@ export function LessonFullDetailsPage() {
                       </button>
                     </div>
                   </div>
-                  {hw.file && (
-                    <FileCard
-                      title={hw.file.originalName || t('homeworkFile')}
-                      size={hw.file.size}
-                      uploadedAt={hw.file.uploadedAt}
-                      description={hw.file.contentType || undefined}
-                      onDownload={async () => {
-                        try {
-                          const res = await getFileDownloadUrl(hw.file!.id);
-                          if (res.data?.url) {
-                            window.open(res.data.url, '_blank');
-                          } else {
-                            alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {(hw.files?.length ? hw.files : hw.file ? [hw.file] : []).map((file) => (
+                      <FileCard
+                        key={file.id}
+                        title={file.originalName || t('homeworkFile')}
+                        size={file.size}
+                        uploadedAt={file.uploadedAt}
+                        description={file.contentType || undefined}
+                        onDownload={async () => {
+                          try {
+                            const res = await getFileDownloadUrl(file.id);
+                            if (res.data?.url) {
+                              window.open(res.data.url, '_blank');
+                            } else {
+                              alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+                            }
+                          } catch (err) {
+                            alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
                           }
-                        } catch (err) {
-                          alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
-                        }
-                      }}
-                    />
-                  )}
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
