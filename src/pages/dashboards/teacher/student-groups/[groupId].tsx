@@ -9,7 +9,7 @@ import type {
   GroupSubjectStudentItemDto,
   GroupSubjectLeaderDto,
 } from '../../../../shared/api';
-import { Alert, StudentGradeHistoryModal } from '../../../../shared/ui';
+import { Alert, StudentGradeHistoryModal, StudentAttendanceHistoryModal } from '../../../../shared/ui';
 import { ArrowLeft, UserCheck, BookOpen } from 'lucide-react';
 
 const STUDENT_GROUPS_PATH = '/dashboards/teacher/student-groups';
@@ -84,6 +84,12 @@ export function GroupSubjectInfoPage() {
   const [error, setError] = useState<string | null>(null);
   /** When set, the grade history modal is open for this student. */
   const [gradeHistoryStudent, setGradeHistoryStudent] = useState<{
+    studentId: string;
+    offeringId: string;
+    studentDisplayName: string;
+  } | null>(null);
+  /** When set, the attendance history modal is open for this student. */
+  const [attendanceHistoryStudent, setAttendanceHistoryStudent] = useState<{
     studentId: string;
     offeringId: string;
     studentDisplayName: string;
@@ -338,20 +344,24 @@ export function GroupSubjectInfoPage() {
                             </button>
                           </td>
                           <td>
-                            {row.attendancePercent != null ? (
-                              <span
-                                className={
-                                  attendanceStatus
-                                    ? `group-subject-info-stat group-subject-info-stat-${attendanceStatus}`
-                                    : 'group-subject-info-stat'
-                                }
-                                title={t('groupSubjectInfoAttendance')}
-                              >
-                                {Math.round(row.attendancePercent)}%
-                              </span>
-                            ) : (
-                              '—'
-                            )}
+                            <button
+                              type="button"
+                              className={
+                                attendanceStatus
+                                  ? `group-subject-info-points-button group-subject-info-stat group-subject-info-stat-${attendanceStatus}`
+                                  : 'group-subject-info-points-button group-subject-info-stat'
+                              }
+                              onClick={() =>
+                                setAttendanceHistoryStudent({
+                                  studentId: row.student.id,
+                                  offeringId: subjectInfo.offering.id,
+                                  studentDisplayName: studentEnglishName(row.user),
+                                })
+                              }
+                              title={t('groupSubjectInfoAttendance')}
+                            >
+                              {row.attendancePercent != null ? `${Math.round(row.attendancePercent)}%` : '—'}
+                            </button>
                           </td>
                           <td>
                             {totalHw > 0 ? (
@@ -408,6 +418,15 @@ export function GroupSubjectInfoPage() {
           studentId={gradeHistoryStudent.studentId}
           offeringId={gradeHistoryStudent.offeringId}
           studentDisplayName={gradeHistoryStudent.studentDisplayName}
+        />
+      )}
+      {attendanceHistoryStudent && (
+        <StudentAttendanceHistoryModal
+          open={true}
+          onClose={() => setAttendanceHistoryStudent(null)}
+          studentId={attendanceHistoryStudent.studentId}
+          offeringId={attendanceHistoryStudent.offeringId}
+          studentDisplayName={attendanceHistoryStudent.studentDisplayName}
         />
       )}
     </section>

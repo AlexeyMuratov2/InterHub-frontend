@@ -1,3 +1,5 @@
+import type { AttendanceRecordDto, StudentNoticeDto } from './attendance';
+
 /** Ответ об ошибке от API */
 export interface ErrorResponse {
   code?: string;
@@ -1168,6 +1170,28 @@ export interface StudentGradeHistoryDto {
   totalPoints: number;
   breakdownByType: Record<string, number>;
   entries: StudentGradeHistoryItemDto[];
+}
+
+/** Один урок в истории посещаемости: урок + запись посещаемости (если есть) + уведомления об отсутствии. */
+export interface StudentAttendanceHistoryLessonItemDto {
+  lesson: LessonDto;
+  /** Запись посещаемости по этому уроку; null если не отмечено. */
+  attendance: AttendanceRecordDto | null;
+  /** Все уведомления об отсутствии студента по этому уроку. */
+  absenceNotices: StudentNoticeDto[];
+}
+
+/** Полная история посещаемости студента по офферингу: все уроки в хронологическом порядке + сводка. */
+export interface StudentAttendanceHistoryDto {
+  student: StudentDto;
+  offeringId: string;
+  subjectName: string;
+  /** Количество уроков со статусом ABSENT или EXCUSED. */
+  missedCount: number;
+  /** Всего подано уведомлений об отсутствии по этому офферингу. */
+  absenceNoticesSubmittedCount: number;
+  /** Все уроки офферинга в хронологическом порядке (включая без отметки). */
+  lessons: StudentAttendanceHistoryLessonItemDto[];
 }
 
 // --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---

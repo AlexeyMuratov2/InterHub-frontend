@@ -7,6 +7,7 @@ import type {
   TeacherStudentGroupsDto,
   GroupSubjectInfoDto,
   StudentGradeHistoryDto,
+  StudentAttendanceHistoryDto,
 } from './types';
 
 export type CompositionApiResult<T> = {
@@ -124,6 +125,26 @@ export async function getStudentGradeHistory(
 ): Promise<CompositionApiResult<StudentGradeHistoryDto>> {
   const result = await request<StudentGradeHistoryDto>(
     `/api/composition/students/${encodeURIComponent(studentId)}/offerings/${encodeURIComponent(offeringId)}/grade-history`,
+    { method: 'GET' }
+  );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * История посещаемости студента по офферингу: все уроки в хронологическом порядке,
+ * статус посещения и уведомления об отсутствии по каждому уроку.
+ * GET /api/composition/students/{studentId}/offerings/{offeringId}/attendance-history
+ */
+export async function getStudentAttendanceHistory(
+  studentId: string,
+  offeringId: string
+): Promise<CompositionApiResult<StudentAttendanceHistoryDto>> {
+  const result = await request<StudentAttendanceHistoryDto>(
+    `/api/composition/students/${encodeURIComponent(studentId)}/offerings/${encodeURIComponent(offeringId)}/attendance-history`,
     { method: 'GET' }
   );
   return {

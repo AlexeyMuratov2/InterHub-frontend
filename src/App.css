@@ -1962,6 +1962,261 @@ img.app-dashboard-sidebar-logo {
   color: #94a3b8;
 }
 
+/* Student attendance history modal */
+.student-attendance-history-modal.department-modal {
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-attendance-history-modal__body {
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.student-attendance-history-modal__summary {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  border: 1px solid #bbf7d0;
+}
+
+.student-attendance-history-modal__summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #14532d;
+  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+}
+
+.student-attendance-history-modal__summary-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: #166534;
+}
+
+.student-attendance-history-modal__loading,
+.student-attendance-history-modal__empty {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 1rem 0;
+}
+
+.student-attendance-history-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-attendance-history-modal__item {
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border-radius: 8px;
+  border-left: 4px solid #94a3b8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-attendance-history-modal__item.border-present {
+  border-left-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.student-attendance-history-modal__item.border-absent {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.student-attendance-history-modal__item.border-late {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.student-attendance-history-modal__item.border-unmarked {
+  border-left-color: #94a3b8;
+}
+
+.student-attendance-history-modal__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.student-attendance-history-modal__item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.student-attendance-history-modal__item-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.student-attendance-history-modal__status {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.student-attendance-history-modal__status.status-present {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.student-attendance-history-modal__status.status-absent,
+.student-attendance-history-modal__status.status-excused {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.student-attendance-history-modal__status.status-late {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.student-attendance-history-modal__status.status-unmarked {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.student-attendance-history-modal__item-topic {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.student-attendance-history-modal__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.25rem;
+}
+
+.student-attendance-history-modal__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.student-attendance-history-modal__link:hover {
+  text-decoration: underline;
+}
+
+.student-attendance-history-modal__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.student-attendance-history-modal__toggle:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.student-attendance-history-modal__notices {
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-attendance-history-modal__notice {
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.student-attendance-history-modal__notice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.student-attendance-history-modal__notice-type {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.student-attendance-history-modal__notice-status {
+  font-size: 0.6875rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.student-attendance-history-modal__notice-status.status-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.student-attendance-history-modal__notice-status.status-rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.student-attendance-history-modal__notice-status.status-submitted,
+.student-attendance-history-modal__notice-status.status-acknowledged,
+.student-attendance-history-modal__notice-status.status-attached {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.student-attendance-history-modal__notice-status.status-canceled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.student-attendance-history-modal__notice-reason {
+  margin: 0 0 0.35rem;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.student-attendance-history-modal__notice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
 .department-modal-actions .btn-cancel {
   background: #fff;
   border: 1px solid #e2e8f0;
