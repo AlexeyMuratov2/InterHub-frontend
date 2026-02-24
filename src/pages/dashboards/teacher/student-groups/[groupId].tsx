@@ -9,7 +9,7 @@ import type {
   GroupSubjectStudentItemDto,
   GroupSubjectLeaderDto,
 } from '../../../../shared/api';
-import { Alert, StudentGradeHistoryModal, StudentAttendanceHistoryModal } from '../../../../shared/ui';
+import { Alert, StudentGradeHistoryModal, StudentAttendanceHistoryModal, StudentHomeworkHistoryModal } from '../../../../shared/ui';
 import { ArrowLeft, UserCheck, BookOpen } from 'lucide-react';
 
 const STUDENT_GROUPS_PATH = '/dashboards/teacher/student-groups';
@@ -90,6 +90,12 @@ export function GroupSubjectInfoPage() {
   } | null>(null);
   /** When set, the attendance history modal is open for this student. */
   const [attendanceHistoryStudent, setAttendanceHistoryStudent] = useState<{
+    studentId: string;
+    offeringId: string;
+    studentDisplayName: string;
+  } | null>(null);
+  /** When set, the homework history modal is open for this student. */
+  const [homeworkHistoryStudent, setHomeworkHistoryStudent] = useState<{
     studentId: string;
     offeringId: string;
     studentDisplayName: string;
@@ -365,19 +371,27 @@ export function GroupSubjectInfoPage() {
                           </td>
                           <td>
                             {totalHw > 0 ? (
-                              <span
+                              <button
+                                type="button"
                                 className={
                                   homeworkStatus
-                                    ? `group-subject-info-stat group-subject-info-stat-${homeworkStatus}`
-                                    : 'group-subject-info-stat'
+                                    ? `group-subject-info-points-button group-subject-info-stat group-subject-info-stat-${homeworkStatus}`
+                                    : 'group-subject-info-points-button group-subject-info-stat'
                                 }
-                                title={`${t('groupSubjectInfoHomeworkSubmitted')}: ${Math.round(homeworkPercent ?? 0)}%`}
+                                onClick={() =>
+                                  setHomeworkHistoryStudent({
+                                    studentId: row.student.id,
+                                    offeringId: subjectInfo.offering.id,
+                                    studentDisplayName: studentEnglishName(row.user),
+                                  })
+                                }
+                                title={t('groupSubjectInfoHomeworkSubmitted')}
                               >
                                 {row.submittedHomeworkCount} / {totalHw}
                                 <span className="group-subject-info-stat-percent">
                                   {' '}({Math.round(homeworkPercent ?? 0)}%)
                                 </span>
-                              </span>
+                              </button>
                             ) : (
                               <span className="group-subject-info-stat">{row.submittedHomeworkCount} / 0</span>
                             )}
@@ -427,6 +441,15 @@ export function GroupSubjectInfoPage() {
           studentId={attendanceHistoryStudent.studentId}
           offeringId={attendanceHistoryStudent.offeringId}
           studentDisplayName={attendanceHistoryStudent.studentDisplayName}
+        />
+      )}
+      {homeworkHistoryStudent && (
+        <StudentHomeworkHistoryModal
+          open={true}
+          onClose={() => setHomeworkHistoryStudent(null)}
+          studentId={homeworkHistoryStudent.studentId}
+          offeringId={homeworkHistoryStudent.offeringId}
+          studentDisplayName={homeworkHistoryStudent.studentDisplayName}
         />
       )}
     </section>

@@ -8,6 +8,7 @@ import type {
   GroupSubjectInfoDto,
   StudentGradeHistoryDto,
   StudentAttendanceHistoryDto,
+  StudentHomeworkHistoryDto,
 } from './types';
 
 export type CompositionApiResult<T> = {
@@ -145,6 +146,25 @@ export async function getStudentAttendanceHistory(
 ): Promise<CompositionApiResult<StudentAttendanceHistoryDto>> {
   const result = await request<StudentAttendanceHistoryDto>(
     `/api/composition/students/${encodeURIComponent(studentId)}/offerings/${encodeURIComponent(offeringId)}/attendance-history`,
+    { method: 'GET' }
+  );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * История домашних заданий студента по офферингу: все ДЗ с отправкой и оценкой по каждому (хронологический порядок).
+ * GET /api/composition/students/{studentId}/offerings/{offeringId}/homework-history
+ */
+export async function getStudentHomeworkHistory(
+  studentId: string,
+  offeringId: string
+): Promise<CompositionApiResult<StudentHomeworkHistoryDto>> {
+  const result = await request<StudentHomeworkHistoryDto>(
+    `/api/composition/students/${encodeURIComponent(studentId)}/offerings/${encodeURIComponent(offeringId)}/homework-history`,
     { method: 'GET' }
   );
   return {

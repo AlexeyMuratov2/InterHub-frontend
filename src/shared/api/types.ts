@@ -1194,6 +1194,29 @@ export interface StudentAttendanceHistoryDto {
   lessons: StudentAttendanceHistoryLessonItemDto[];
 }
 
+// --- Composition: student homework history (GET /api/composition/students/{id}/offerings/{id}/homework-history) ---
+
+/** One homework assignment in student homework history: homework, lesson, optional submission and grade. */
+export interface StudentHomeworkHistoryItemDto {
+  homework: HomeworkDto;
+  lesson: LessonDto;
+  /** Student's submission for this homework, if any. */
+  submission?: HomeworkSubmissionDto | null;
+  /** Grade entry for this submission when one exists. */
+  gradeEntry?: GradeEntryDto | null;
+  /** File metadata for this submission's attached files. */
+  submissionFiles?: StoredFileDto[];
+}
+
+/** Full homework history for a student in an offering: all homeworks with submission and grade per assignment. */
+export interface StudentHomeworkHistoryDto {
+  student: StudentDto;
+  offeringId: string;
+  subjectName: string;
+  /** All homeworks for the offering with student's submission and grade per homework (chronological order). */
+  items: StudentHomeworkHistoryItemDto[];
+}
+
 // --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---
 
 /** Домашнее задание (HomeworkDto) - API response. По контракту: files — массив; file оставлен для обратной совместимости. */

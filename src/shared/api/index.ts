@@ -114,7 +114,7 @@ export type {
   PresignedUrlResponse,
 } from './types';
 
-export { getLessonFullDetails, getLessonRosterAttendance, getLessonHomeworkSubmissions, getTeacherStudentGroups, getGroupSubjectInfo, getStudentGradeHistory, getStudentAttendanceHistory } from './composition';
+export { getLessonFullDetails, getLessonRosterAttendance, getLessonHomeworkSubmissions, getTeacherStudentGroups, getGroupSubjectInfo, getStudentGradeHistory, getStudentAttendanceHistory, getStudentHomeworkHistory } from './composition';
 export type { CompositionApiResult } from './composition';
 export {
   listLessonMaterials,
@@ -182,6 +182,8 @@ export type {
   StudentGradeHistoryUserDto,
   StudentAttendanceHistoryDto,
   StudentAttendanceHistoryLessonItemDto,
+  StudentHomeworkHistoryDto,
+  StudentHomeworkHistoryItemDto,
 } from './types';
 
 export {
