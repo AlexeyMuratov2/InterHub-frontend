@@ -1816,6 +1816,152 @@ img.app-dashboard-sidebar-logo {
   cursor: pointer;
 }
 
+/* Student grade history modal (wider, list layout) */
+.student-grade-history-modal.department-modal {
+  max-width: 520px;
+}
+
+.student-grade-history-modal__body {
+  min-width: 0;
+}
+
+.student-grade-history-modal__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  font-size: 0.9375rem;
+}
+
+.student-grade-history-modal__loading,
+.student-grade-history-modal__empty {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 1rem 0;
+}
+
+.student-grade-history-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.student-grade-history-modal__item {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 3px solid #3b82f6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-grade-history-modal__item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.student-grade-history-modal__points {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.student-grade-history-modal__type {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 4px;
+}
+
+.student-grade-history-modal__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.student-grade-history-modal__homework-title {
+  color: #475569;
+  font-style: italic;
+}
+
+.student-grade-history-modal__meta,
+.student-grade-history-modal__graded {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.student-grade-history-modal__link-wrap {
+  margin-top: 0.25rem;
+}
+
+.student-grade-history-modal__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.student-grade-history-modal__link:hover {
+  text-decoration: underline;
+}
+
+.student-grade-history-modal__comment {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.student-grade-history-modal__comment .student-grade-history-modal__comment-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.student-grade-history-modal__comment-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.student-grade-history-modal__graded-at {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
 .department-modal-actions .btn-cancel {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -3764,6 +3910,58 @@ a.btn-secondary {
 .group-subject-info-leader-badge.deputy {
   background: #e0e7ff;
   color: #4338ca;
+}
+
+/* Подсветка успеваемости и прогресса по ДЗ: >85% зелёный, >65% жёлтый, иначе красный */
+.group-subject-info-stat {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.group-subject-info-stat-percent {
+  margin-left: 0.15rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.group-subject-info-stat-high {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.group-subject-info-stat-medium {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.group-subject-info-stat-low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.group-subject-info-points-button {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  margin: -0.25rem -0.5rem;
+  font: inherit;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.group-subject-info-points-button:hover {
+  background: #eff6ff;
+  text-decoration: underline;
 }
 
 /* Вкладка «Расписание» группы: тулбар и блок семестра */

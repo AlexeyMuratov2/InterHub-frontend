@@ -1141,6 +1141,35 @@ export interface StudentOfferingGradesDto {
   breakdownByType: Record<string, number>;
 }
 
+// --- Composition: student grade history (GET /api/composition/students/{id}/offerings/{id}/grade-history) ---
+
+/** Пользователь, выставивший оценку (UserDto). */
+export interface StudentGradeHistoryUserDto {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+/** Одна запись истории оценок с контекстом (урок, ДЗ, кто выставил). */
+export interface StudentGradeHistoryItemDto {
+  gradeEntry: GradeEntryDto;
+  lesson: LessonDto | null;
+  homework: CompositionHomeworkDto | null;
+  submission: HomeworkSubmissionDto | null;
+  gradedByUser: StudentGradeHistoryUserDto | null;
+  lessonForHomework: LessonDto | null;
+}
+
+/** Полная история оценок студента по предмету (офферингу). */
+export interface StudentGradeHistoryDto {
+  studentId: string;
+  offeringId: string;
+  totalPoints: number;
+  breakdownByType: Record<string, number>;
+  entries: StudentGradeHistoryItemDto[];
+}
+
 // --- Homework module (GET/POST /api/lessons/{lessonId}/homework, GET/PUT/DELETE /api/homework/{homeworkId}) ---
 
 /** Домашнее задание (HomeworkDto) - API response. По контракту: files — массив; file оставлен для обратной совместимости. */

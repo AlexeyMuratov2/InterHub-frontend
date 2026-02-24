@@ -9,8 +9,8 @@ import type {
   GroupSubjectStudentItemDto,
   GroupSubjectLeaderDto,
 } from '../../../../shared/api';
-import { Alert } from '../../../../shared/ui';
-import { ArrowLeft, ChevronLeft, ChevronRight, UserCheck, BookOpen } from 'lucide-react';
+import { Alert, StudentGradeHistoryModal } from '../../../../shared/ui';
+import { ArrowLeft, UserCheck, BookOpen } from 'lucide-react';
 
 const STUDENT_GROUPS_PATH = '/dashboards/teacher/student-groups';
 
@@ -61,6 +61,14 @@ function studentEnglishName(user: GroupSubjectStudentItemDto['user']): string {
   return parts.length > 0 ? parts.join(' ').trim() : (user.email ?? '—');
 }
 
+/** Returns CSS class for progress/attendance: high (>85%), medium (>65%), low (≤65%). */
+function getProgressStatusClass(percent: number | null): 'high' | 'medium' | 'low' | null {
+  if (percent == null || percent < 0) return null;
+  if (percent > 85) return 'high';
+  if (percent > 65) return 'medium';
+  return 'low';
+}
+
 export function GroupSubjectInfoPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const { t, locale } = useTranslation('dashboard');
@@ -74,6 +82,12 @@ export function GroupSubjectInfoPage() {
   const [loadingGroups, setLoadingGroups] = useState(true);
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** When set, the grade history modal is open for this student. */
+  const [gradeHistoryStudent, setGradeHistoryStudent] = useState<{
+    studentId: string;
+    offeringId: string;
+    studentDisplayName: string;
+  } | null>(null);
 
   // Load teacher student groups and find this group (only when groupId changes)
   useEffect(() => {
@@ -139,23 +153,6 @@ export function GroupSubjectInfoPage() {
     () => subjectsForGroup.find((s) => s.id === selectedSubjectId) ?? null,
     [subjectsForGroup, selectedSubjectId]
   );
-
-  const subjectIndex = useMemo(
-    () => subjectsForGroup.findIndex((s) => s.id === selectedSubjectId),
-    [subjectsForGroup, selectedSubjectId]
-  );
-
-  const goPrevSubject = () => {
-    if (subjectIndex > 0) {
-      setSelectedSubjectId(subjectsForGroup[subjectIndex - 1].id);
-    }
-  };
-
-  const goNextSubject = () => {
-    if (subjectIndex >= 0 && subjectIndex < subjectsForGroup.length - 1) {
-      setSelectedSubjectId(subjectsForGroup[subjectIndex + 1].id);
-    }
-  };
 
   if (!groupId) {
     return (
@@ -247,15 +244,6 @@ export function GroupSubjectInfoPage() {
           <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>{t('groupSubjectInfoNoSubjects')}</p>
         ) : hasMultipleSubjects ? (
           <div className="group-subject-info-carousel">
-            <button
-              type="button"
-              className="group-subject-info-carousel-btn"
-              onClick={goPrevSubject}
-              disabled={subjectIndex <= 0}
-              aria-label={t('groupSubjectInfoPrevSubject')}
-            >
-              <ChevronLeft size={24} />
-            </button>
             <div className="group-subject-info-carousel-track">
               {subjectsForGroup.map((subj) => (
                 <button
@@ -268,15 +256,6 @@ export function GroupSubjectInfoPage() {
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              className="group-subject-info-carousel-btn"
-              onClick={goNextSubject}
-              disabled={subjectIndex < 0 || subjectIndex >= subjectsForGroup.length - 1}
-              aria-label={t('groupSubjectInfoNextSubject')}
-            >
-              <ChevronRight size={24} />
-            </button>
           </div>
         ) : (
           selectedSubject && (
@@ -332,19 +311,66 @@ export function GroupSubjectInfoPage() {
                   ) : (
                     subjectInfo.students.map((row) => {
                       const leaderRole = getLeaderRoleForStudent(row.student.id, subjectInfo.leaders);
+                      const attendanceStatus = getProgressStatusClass(row.attendancePercent ?? null);
+                      const totalHw = subjectInfo.totalHomeworkCount ?? 0;
+                      const homeworkPercent =
+                        totalHw > 0 ? (row.submittedHomeworkCount / totalHw) * 100 : null;
+                      const homeworkStatus = getProgressStatusClass(homeworkPercent);
                       return (
                         <tr key={row.student.id}>
                           <td>{studentEnglishName(row.user)}</td>
                           <td>{row.student.chineseName ?? '—'}</td>
                           <td className="group-subject-info-cell-id">{row.student.studentId ?? '—'}</td>
-                          <td>{row.totalPoints}</td>
                           <td>
-                            {row.attendancePercent != null
-                              ? `${Math.round(row.attendancePercent)}%`
-                              : '—'}
+                            <button
+                              type="button"
+                              className="group-subject-info-points-button"
+                              onClick={() =>
+                                setGradeHistoryStudent({
+                                  studentId: row.student.id,
+                                  offeringId: subjectInfo.offering.id,
+                                  studentDisplayName: studentEnglishName(row.user),
+                                })
+                              }
+                              title={t('groupSubjectInfoPoints')}
+                            >
+                              {row.totalPoints}
+                            </button>
                           </td>
                           <td>
-                            {row.submittedHomeworkCount} / {subjectInfo.totalHomeworkCount}
+                            {row.attendancePercent != null ? (
+                              <span
+                                className={
+                                  attendanceStatus
+                                    ? `group-subject-info-stat group-subject-info-stat-${attendanceStatus}`
+                                    : 'group-subject-info-stat'
+                                }
+                                title={t('groupSubjectInfoAttendance')}
+                              >
+                                {Math.round(row.attendancePercent)}%
+                              </span>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                          <td>
+                            {totalHw > 0 ? (
+                              <span
+                                className={
+                                  homeworkStatus
+                                    ? `group-subject-info-stat group-subject-info-stat-${homeworkStatus}`
+                                    : 'group-subject-info-stat'
+                                }
+                                title={`${t('groupSubjectInfoHomeworkSubmitted')}: ${Math.round(homeworkPercent ?? 0)}%`}
+                              >
+                                {row.submittedHomeworkCount} / {totalHw}
+                                <span className="group-subject-info-stat-percent">
+                                  {' '}({Math.round(homeworkPercent ?? 0)}%)
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="group-subject-info-stat">{row.submittedHomeworkCount} / 0</span>
+                            )}
                           </td>
                           <td>
                             {leaderRole ? (
@@ -373,6 +399,16 @@ export function GroupSubjectInfoPage() {
           )
         )}
       </div>
+      )}
+
+      {gradeHistoryStudent && (
+        <StudentGradeHistoryModal
+          open={true}
+          onClose={() => setGradeHistoryStudent(null)}
+          studentId={gradeHistoryStudent.studentId}
+          offeringId={gradeHistoryStudent.offeringId}
+          studentDisplayName={gradeHistoryStudent.studentDisplayName}
+        />
       )}
     </section>
   );

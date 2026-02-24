@@ -6,6 +6,7 @@ import type {
   LessonHomeworkSubmissionsDto,
   TeacherStudentGroupsDto,
   GroupSubjectInfoDto,
+  StudentGradeHistoryDto,
 } from './types';
 
 export type CompositionApiResult<T> = {
@@ -106,6 +107,25 @@ export async function getGroupSubjectInfo(
   const query = search.toString();
   const path = `/api/composition/groups/${encodeURIComponent(groupId)}/subjects/${encodeURIComponent(subjectId)}/info${query ? `?${query}` : ''}`;
   const result = await request<GroupSubjectInfoDto>(path, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * История оценок студента по предмету (офферингу): все записи с контекстом (урок, ДЗ, кто выставил).
+ * GET /api/composition/students/{studentId}/offerings/{offeringId}/grade-history
+ */
+export async function getStudentGradeHistory(
+  studentId: string,
+  offeringId: string
+): Promise<CompositionApiResult<StudentGradeHistoryDto>> {
+  const result = await request<StudentGradeHistoryDto>(
+    `/api/composition/students/${encodeURIComponent(studentId)}/offerings/${encodeURIComponent(offeringId)}/grade-history`,
+    { method: 'GET' }
+  );
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,
