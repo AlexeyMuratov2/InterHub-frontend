@@ -6,6 +6,7 @@ export { SubjectsPage } from './subjects';
 export { StudentGroupsPage } from './student-groups';
 export { GroupSubjectInfoPage } from './student-groups/[groupId]';
 export { AbsenceRequestsPage } from './absence-requests/AbsenceRequestsPage';
+export { TeacherProfilePage } from './profile';
 
 /** Для реестра дашбордов: редирект на расписание (основной экран преподавателя) */
 export function TeacherDashboardPage() {

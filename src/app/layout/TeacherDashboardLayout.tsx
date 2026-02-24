@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen, BookMarked, Users2, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, BookMarked, Users2, ClipboardList, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
@@ -20,6 +20,7 @@ const TEACHER_MENU: Array<{
   { path: '/dashboards/teacher/lessons', labelKey: 'menuLessons', end: false, icon: BookMarked },
   { path: '/dashboards/teacher/student-groups', labelKey: 'menuTeacherStudentGroups', end: false, icon: Users2 },
   { path: '/dashboards/teacher/absence-requests', labelKey: 'menuAbsenceRequests', end: false, icon: ClipboardList },
+  { path: '/dashboards/teacher/profile', labelKey: 'profilePageTitleShort', end: true, icon: User },
 ] as const;
 
 /** Layout дашборда преподавателя: сайдбар слева (тёмный), шапка + контент по центру. */

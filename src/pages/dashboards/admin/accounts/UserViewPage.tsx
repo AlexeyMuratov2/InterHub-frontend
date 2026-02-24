@@ -9,8 +9,10 @@ import {
   type CreateStudentRequest,
   type CreateTeacherRequest,
 } from '../../../../shared/api';
+import { useAuth } from '../../../../app/providers';
 import { useCanManageAccounts } from '../../../../app/hooks/useCanManageAccounts';
 import { useCanDeleteUser } from '../../../../app/hooks/useCanDeleteUser';
+import { getRolesFromUser } from '../../../../shared/config';
 import { useTranslation, formatDateTime } from '../../../../shared/i18n';
 import { getDisplayName, parseFieldErrors } from '../../../../shared/lib';
 import { Alert, ConfirmModal, FormActions, FormGroup } from '../../../../shared/ui';
@@ -27,7 +29,10 @@ import {
 export function UserViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const canManage = useCanManageAccounts();
+  const currentUserRoles = currentUser ? getRolesFromUser(currentUser) : [];
+  const canEditProfileIds = currentUserRoles.includes('SUPER_ADMIN');
   const [data, setData] = useState<UserWithProfilesDto | undefined>(undefined);
   const canDeleteThis = useCanDeleteUser(id ?? '', data?.user?.roles ?? []);
   const { t, locale } = useTranslation('dashboard');
@@ -438,6 +443,8 @@ export function UserViewPage() {
                     value={studentData.studentId}
                     onChange={(e) => setStudentData({ ...studentData, studentId: e.target.value })}
                     aria-invalid={!!fieldErrors.studentId}
+                    readOnly={!canEditProfileIds}
+                    title={!canEditProfileIds ? t('profileOnlySuperAdminCanChangeId') : undefined}
                   />
                 </FormGroup>
                 <FormGroup label={t('invitationChineseName')} htmlFor="account-chineseName">
@@ -499,6 +506,8 @@ export function UserViewPage() {
                     value={teacherData.teacherId}
                     onChange={(e) => setTeacherData({ ...teacherData, teacherId: e.target.value })}
                     aria-invalid={!!fieldErrors.teacherId}
+                    readOnly={!canEditProfileIds}
+                    title={!canEditProfileIds ? t('profileOnlySuperAdminCanChangeId') : undefined}
                   />
                 </FormGroup>
                 <FormGroup label={t('invitationFaculty')} htmlFor="account-teacherFaculty" error={hasTeacher(currentRoles) ? fieldErrors.faculty : undefined}>
