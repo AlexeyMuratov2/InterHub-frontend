@@ -565,6 +565,7 @@
   "lessonModalGroup": "Группа",
   "lessonModalGroupNone": "—",
   "lessonModalGoToLesson": "Перейти к уроку",
+  "studentLessonViewFullDetails": "Подробнее об уроке",
 
   "menuSystemSettings": "Настройки системы",
   "systemSettingsTitle": "Настройки системы",
@@ -1077,6 +1078,7 @@
   "lessonHomeworkSubmissionsGradeMax": "макс",
   "lessonHomeworkSubmissionsGradeDescription": "Комментарий (необязательно)",
   "lessonHomeworkSubmissionsGradeDescriptionPlaceholder": "Комментарий преподавателя или заметки…",
+  "lessonHomeworkSubmissionsDownloadArchive": "Скачать архив",
   "setPointsTitle": "Баллы за урок",
   "setPointsStudentLabel": "Студент",
   "setPointsValueLabel": "Баллы",

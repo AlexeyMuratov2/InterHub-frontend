@@ -42,14 +42,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    me().then((result) => {
-      if (result.ok) {
-        setUserState(result.data);
-      } else {
-        setUserState(null);
-      }
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return;
       setLoading(false);
-    });
+    }, 15000);
+
+    me()
+      .then((result) => {
+        if (cancelled) return;
+        if (result.ok) {
+          setUserState(result.data);
+        } else {
+          setUserState(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setUserState(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   return (

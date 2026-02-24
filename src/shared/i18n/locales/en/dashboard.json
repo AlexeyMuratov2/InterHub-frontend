@@ -565,6 +565,7 @@
   "lessonModalGroup": "Group",
   "lessonModalGroupNone": "—",
   "lessonModalGoToLesson": "Go to lesson",
+  "studentLessonViewFullDetails": "View full lesson details",
 
   "menuSystemSettings": "System settings",
   "systemSettingsTitle": "System settings",
@@ -1077,6 +1078,7 @@
   "lessonHomeworkSubmissionsGradeMax": "max",
   "lessonHomeworkSubmissionsGradeDescription": "Comment (optional)",
   "lessonHomeworkSubmissionsGradeDescriptionPlaceholder": "Teacher feedback or notes…",
+  "lessonHomeworkSubmissionsDownloadArchive": "Download ZIP",
   "setPointsTitle": "Set points for lesson",
   "setPointsStudentLabel": "Student",
   "setPointsValueLabel": "Points",

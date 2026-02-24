@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, BookMarked } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
@@ -16,6 +16,7 @@ const STUDENT_MENU: Array<{
 }> = [
   { path: '/dashboards/student', labelKey: 'menuDashboard', end: true, icon: LayoutDashboard },
   { path: '/dashboards/student/schedule', labelKey: 'menuSchedule', end: false, icon: Calendar },
+  { path: '/dashboards/student/lessons', labelKey: 'menuLessons', end: false, icon: BookMarked },
   { path: '/dashboards/student/subjects', labelKey: 'menuStudentSubjects', end: false, icon: BookOpen },
 ] as const;
 
@@ -48,11 +49,14 @@ export function StudentDashboardLayout() {
   const isSchedule = location.pathname.startsWith('/dashboards/student/schedule');
   const isProfile = location.pathname.startsWith('/dashboards/student/profile');
   const isSubjects = location.pathname.startsWith('/dashboards/student/subjects');
+  const isLessons = location.pathname.startsWith('/dashboards/student/lessons');
 
   const headerSectionTitle = isProfile
     ? t('profilePageTitleShort')
     : isSubjects
     ? t('menuStudentSubjects')
+    : isLessons
+    ? t('menuLessons')
     : isSchedule
     ? t('menuSchedule')
     : t('menuDashboard');

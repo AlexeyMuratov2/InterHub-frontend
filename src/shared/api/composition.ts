@@ -94,17 +94,22 @@ export async function getTeacherStudentGroups(): Promise<
   };
 }
 
+export type GetStudentSubjectsParams = {
+  semesterNo?: number;
+};
+
 /**
  * Все предметы, по которым у текущего студента есть хотя бы один урок.
- * GET /api/composition/student/subjects
+ * GET /api/composition/student/subjects?semesterNo=...
  */
-export async function getStudentSubjects(): Promise<
-  CompositionApiResult<StudentSubjectsDto>
-> {
-  const result = await request<StudentSubjectsDto>(
-    '/api/composition/student/subjects',
-    { method: 'GET' }
-  );
+export async function getStudentSubjects(
+  params?: GetStudentSubjectsParams
+): Promise<CompositionApiResult<StudentSubjectsDto>> {
+  const search = new URLSearchParams();
+  if (params?.semesterNo != null) search.set('semesterNo', String(params.semesterNo));
+  const query = search.toString();
+  const path = `/api/composition/student/subjects${query ? `?${query}` : ''}`;
+  const result = await request<StudentSubjectsDto>(path, { method: 'GET' });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

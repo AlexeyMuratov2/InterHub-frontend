@@ -8,9 +8,13 @@ export interface SubjectCardProps {
   /** Подпись и значение строки «Кафедра» (опционально) */
   departmentLabel?: string;
   departmentName?: string | null;
+  /** Иконка для строки кафедры (опционально) */
+  departmentIcon?: React.ReactNode;
   /** Подпись и значение второй строки (например «Группы» или «Преподаватель») */
   secondaryLabel: string;
   secondaryValue: string;
+  /** Иконка для второй строки (опционально) */
+  secondaryIcon?: React.ReactNode;
   /** Ссылка (если задана, карточка рендерится как Link) */
   to?: string;
   className?: string;
@@ -27,8 +31,10 @@ export function SubjectCard({
   subjectCode,
   departmentLabel,
   departmentName,
+  departmentIcon,
   secondaryLabel,
   secondaryValue,
+  secondaryIcon,
   to,
   className = '',
   children,
@@ -39,12 +45,14 @@ export function SubjectCard({
       <p className="subject-card-code">{subjectCode ?? '—'}</p>
       {departmentLabel != null && departmentName != null && departmentName !== '' && (
         <div className="subject-card-row">
-          <span className="subject-card-label">{departmentLabel}</span>
+          {departmentIcon && <span className="subject-card-row-icon" aria-hidden>{departmentIcon}</span>}
+          <span className="subject-card-label">{departmentLabel}:</span>
           <span className="subject-card-value">{departmentName}</span>
         </div>
       )}
       <div className="subject-card-row">
-        <span className="subject-card-label">{secondaryLabel}</span>
+        {secondaryIcon && <span className="subject-card-row-icon" aria-hidden>{secondaryIcon}</span>}
+        <span className="subject-card-label">{secondaryLabel}:</span>
         <span className="subject-card-value">{secondaryValue}</span>
       </div>
       {children}

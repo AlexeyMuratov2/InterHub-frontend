@@ -736,14 +736,15 @@ export interface AddLessonMaterialFilesRequest {
   storedFileIds: string[];
 }
 
-/** Домашнее задание (HomeworkDto) */
+/** Домашнее задание (HomeworkDto) — ответ GET /api/composition/lessons/{id}/full-details и др. */
 export interface CompositionHomeworkDto {
   id: string;
   lessonId: string;
   title: string | null;
   description: string | null;
   points: number | null;
-  file: CompositionStoredFileDto | null;
+  /** Список прикреплённых файлов (бэкенд отдаёт files[]) */
+  files: CompositionStoredFileDto[];
   createdAt: string;
   updatedAt: string;
 }

@@ -118,7 +118,7 @@ export type {
 } from './types';
 
 export { getLessonFullDetails, getLessonRosterAttendance, getLessonHomeworkSubmissions, getTeacherStudentGroups, getStudentSubjects, getGroupSubjectInfo, getStudentGradeHistory, getStudentAttendanceHistory, getStudentHomeworkHistory } from './composition';
-export type { CompositionApiResult } from './composition';
+export type { CompositionApiResult, GetStudentSubjectsParams } from './composition';
 export {
   listLessonMaterials,
   createLessonMaterial,
@@ -134,8 +134,9 @@ export {
   createHomework,
   updateHomework,
   deleteHomework,
+  downloadHomeworkSubmissionsArchive,
 } from './homework';
-export type { HomeworkApiResult } from './homework';
+export type { HomeworkApiResult, DownloadArchiveResult } from './homework';
 export type {
   LessonFullDetailsDto,
   CompositionLessonDto,

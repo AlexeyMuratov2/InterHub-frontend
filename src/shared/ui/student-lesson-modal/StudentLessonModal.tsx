@@ -1,12 +1,14 @@
 /**
  * Модалка урока для студента: только просмотр.
  * Показывает предмет, дату/время, тип, преподавателя, аудиторию, группу, тему.
- * Без кнопки «Перейти к уроку» (в отличие от TeacherLessonModal).
+ * Ссылка «Подробнее об уроке» ведёт на страницу полной информации (материалы, ДЗ).
  */
+import { Link } from 'react-router-dom';
 import { useTranslation, useI18n, formatDate, formatTime } from '../../i18n';
 import { getDisplayTeacher, formatRoomLine, formatGroupLine } from '../../lib/schedule';
 import { Modal } from '../Modal';
 import type { LessonForScheduleDto } from '../../api/types';
+import { ExternalLink } from 'lucide-react';
 import '../lesson-modal/lesson-modal.css';
 import './student-lesson-modal.css';
 
@@ -87,7 +89,16 @@ export function StudentLessonModal({
         <div className="lesson-modal-details-muted">
           <span>{t('lessonModalDetails')}:</span> ID {lesson.id}
         </div>
-        <div className="lesson-modal-actions">
+        <div className="lesson-modal-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+          <Link
+            to={`/dashboards/student/lessons/${lesson.id}`}
+            className="btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+            onClick={onClose}
+          >
+            <ExternalLink style={{ width: '1rem', height: '1rem' }} aria-hidden />
+            {t('studentLessonViewFullDetails')}
+          </Link>
           <button type="button" className="btn-secondary" onClick={onClose}>
             {t('lessonModalClose')}
           </button>

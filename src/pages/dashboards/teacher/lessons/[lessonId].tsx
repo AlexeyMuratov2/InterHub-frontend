@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useTranslation, formatDate, formatTime } from '../../../../shared/i18n';
+import { useTranslation } from '../../../../shared/i18n';
 import {
   getLessonFullDetails,
   getFileDownloadUrl,
@@ -28,21 +28,15 @@ import type {
 } from '../../../../shared/api';
 import {
   Alert,
-  FileCard,
   LessonEditModal,
   LessonMaterialModal,
   ConfirmModal,
   HomeworkModal,
+  LessonOverviewCard,
+  LessonMaterialItemView,
+  HomeworkItemView,
 } from '../../../../shared/ui';
-import {
-  getSubjectDisplayName,
-  getTeacherDisplayName,
-  getStudentDisplayName,
-  getLessonTypeDisplayKey,
-  isNonStandardLessonStatus,
-  getLessonStatusDisplayKey,
-  formatCompositionRoomLine,
-} from '../../../../shared/lib';
+import { getSubjectDisplayName, getStudentDisplayName } from '../../../../shared/lib';
 import { ArrowLeft, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
 
 const LESSONS_LIST_PATH = '/dashboards/teacher/lessons';
@@ -199,61 +193,76 @@ export function LessonFullDetailsPage() {
     if (!lessonId) return;
     setAttendanceLoading(true);
     setAttendanceError(null);
-    const res = await getLessonRosterAttendance(lessonId, { includeCanceled: true });
-    setAttendanceLoading(false);
-    if (res.error) {
-      setAttendanceError(res.error.message ?? tRef.current('attendanceErrorLoad'));
+    try {
+      const res = await getLessonRosterAttendance(lessonId, { includeCanceled: true });
+      if (res.error) {
+        setAttendanceError(res.error.message ?? tRef.current('attendanceErrorLoad'));
+        setRosterData(null);
+      } else {
+        setRosterData(res.data ?? null);
+      }
+    } catch (err) {
+      setAttendanceError(err instanceof Error ? err.message : tRef.current('attendanceErrorLoad'));
       setRosterData(null);
-    } else {
-      setRosterData(res.data ?? null);
+    } finally {
+      setAttendanceLoading(false);
     }
   }, [lessonId]);
 
   const loadDetails = useCallback(async () => {
-    if (!lessonId) return;
+    if (!lessonId) {
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
     setLoading(true);
     setError(null);
     setNotFound(false);
-    
-    const [detailsRes, lessonRes, roomsRes, homeworkRes] = await Promise.all([
-      getLessonFullDetails(lessonId),
-      getLesson(lessonId),
-      listRooms(),
-      listLessonHomework(lessonId),
-    ]);
-    
-    if (detailsRes.error) {
-      if (detailsRes.status === 404 || detailsRes.error.status === 404) {
-        setNotFound(true);
-      } else {
-        setError(detailsRes.error.message ?? tRef.current('teacherSubjectDetailErrorLoad'));
-      }
-      setData(null);
-    } else {
-      setData(detailsRes.data ?? null);
-    }
-    
-    if (lessonRes.error) {
-      if (lessonRes.status === 404 || lessonRes.error.status === 404) {
-        setNotFound(true);
-      }
-      setLesson(null);
-    } else {
-      setLesson(lessonRes.data ?? null);
-    }
-    
-    if (roomsRes.data) {
-      setRooms(roomsRes.data);
-    }
 
-    if (homeworkRes.data) {
-      setHomeworkList(homeworkRes.data);
-    } else if (homeworkRes.error && homeworkRes.status !== 404) {
-      // Ignore 404 for homework list (empty is fine)
-      console.warn('Failed to load homework:', homeworkRes.error);
+    try {
+      const [detailsRes, lessonRes, roomsRes, homeworkRes] = await Promise.all([
+        getLessonFullDetails(lessonId),
+        getLesson(lessonId),
+        listRooms(),
+        listLessonHomework(lessonId),
+      ]);
+
+      if (detailsRes.error) {
+        if (detailsRes.status === 404 || detailsRes.error.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(detailsRes.error.message ?? tRef.current('teacherSubjectDetailErrorLoad'));
+        }
+        setData(null);
+      } else {
+        setData(detailsRes.data ?? null);
+      }
+
+      if (lessonRes.error) {
+        if (lessonRes.status === 404) {
+          setNotFound(true);
+        }
+        setLesson(null);
+      } else {
+        setLesson(lessonRes.data ?? null);
+      }
+
+      if (roomsRes.data) {
+        setRooms(roomsRes.data);
+      }
+
+      if (homeworkRes.data) {
+        setHomeworkList(homeworkRes.data);
+      } else if (homeworkRes.error && homeworkRes.error.status !== 404) {
+        console.warn('Failed to load homework:', homeworkRes.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tRef.current('teacherSubjectDetailErrorLoad'));
+      setData(null);
+      setLesson(null);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, [lessonId]);
 
   useEffect(() => {
@@ -437,22 +446,7 @@ export function LessonFullDetailsPage() {
     return null;
   }
 
-  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials, homework } = data;
-  const subjectName = getSubjectDisplayName(subject, locale);
-  const teacherDisplay = mainTeacher ? getTeacherDisplayName(mainTeacher) : '—';
-  const roomDisplay = formatCompositionRoomLine(room);
-  const dateTimeLine = [
-    formatDate(lessonDetails.date, locale),
-    lessonDetails.startTime && lessonDetails.endTime
-      ? `${formatTime(`${lessonDetails.date}T${lessonDetails.startTime}`, locale)} – ${formatTime(`${lessonDetails.date}T${lessonDetails.endTime}`, locale)}`
-      : `${lessonDetails.startTime?.slice(0, 5) ?? ''} – ${lessonDetails.endTime?.slice(0, 5) ?? ''}`,
-  ].filter(Boolean).join(' • ');
-  const showStatus = isNonStandardLessonStatus(lessonDetails.status);
-  const statusKey = getLessonStatusDisplayKey(lessonDetails.status);
-  const lessonTypeKey = getLessonTypeDisplayKey(offeringSlot?.lessonType ?? null);
-
-  // Group files by material for better display
-  const materialsWithFiles = materials.filter((mat) => mat.files.length > 0);
+  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials } = data;
 
   return (
     <div className="entity-view-page department-form-page">
@@ -467,63 +461,13 @@ export function LessonFullDetailsPage() {
         </Link>
       </div>
 
-      {/* Lesson overview card */}
-      <section
-        className="entity-view-card"
-        style={{
-          marginBottom: '1.5rem',
-          padding: '1.25rem 1.5rem',
-        }}
-      >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem 1rem', marginBottom: '0.75rem' }}>
-          <span
-            style={{
-              display: 'inline-block',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '9999px',
-              backgroundColor: '#3b82f6',
-              color: '#fff',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-            }}
-          >
-            {subjectName}
-          </span>
-          {dateTimeLine && (
-            <span style={{ fontSize: '0.9375rem', color: '#475569' }}>{dateTimeLine}</span>
-          )}
-          {showStatus && statusKey && (
-            <span
-              style={{
-                padding: '0.2rem 0.6rem',
-                borderRadius: '6px',
-                backgroundColor: '#fef2f2',
-                color: '#b91c1c',
-                fontSize: '0.8125rem',
-                fontWeight: 500,
-              }}
-            >
-              {t(statusKey as 'lessonModalStatusCancelled')}
-            </span>
-          )}
-          {offeringSlot?.lessonType && (
-            <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-              {t(lessonTypeKey as 'scheduleLessonTypeLecture')}
-            </span>
-          )}
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.25rem', fontSize: '0.9375rem', color: '#334155' }}>
-          {roomDisplay !== '—' && (
-            <span>{roomDisplay}</span>
-          )}
-          <span>
-            {t('lessonDetailsTeacherLabel')}: {teacherDisplay}
-          </span>
-        </div>
-        {lessonDetails.topic?.trim() && (
-          <p style={{ margin: '0.75rem 0 0', fontSize: '0.9375rem', color: '#475569' }}>{lessonDetails.topic.trim()}</p>
-        )}
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <LessonOverviewCard
+        lesson={lessonDetails}
+        subject={subject}
+        room={room}
+        mainTeacher={mainTeacher}
+        offeringSlot={offeringSlot}
+        actions={
           <button
             type="button"
             className="btn-secondary"
@@ -534,8 +478,8 @@ export function LessonFullDetailsPage() {
             <Pencil style={{ width: '1rem', height: '1rem' }} aria-hidden />
             {t('lessonDetailsEditLesson')}
           </button>
-        </div>
-      </section>
+        }
+      />
 
       {/* Edit Lesson Modal */}
       {lesson && (
@@ -544,7 +488,7 @@ export function LessonFullDetailsPage() {
           onClose={() => setEditModalOpen(false)}
           lesson={lesson}
           rooms={rooms}
-          subjectName={subjectName}
+          subjectName={getSubjectDisplayName(subject, locale)}
           onUpdated={handleLessonUpdated}
           onDeleted={handleLessonDeleted}
         />
@@ -634,19 +578,13 @@ export function LessonFullDetailsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {materials.map((material) => (
-                <div key={material.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
-                        {material.name?.trim() || t('lessonMaterialUntitled')}
-                      </h3>
-                      {material.description?.trim() && (
-                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
-                          {material.description.trim()}
-                        </p>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <LessonMaterialItemView
+                  key={material.id}
+                  material={material}
+                  onDownload={handleDownloadFile}
+                  onDelete={(file) => handleDeleteFileClick(material, file)}
+                  actions={
+                    <>
                       <button
                         type="button"
                         className="btn-secondary"
@@ -665,24 +603,9 @@ export function LessonFullDetailsPage() {
                       >
                         <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
                       </button>
-                    </div>
-                  </div>
-                  {material.files.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {material.files.map((file) => (
-                        <FileCard
-                          key={file.id}
-                          title={file.originalName?.trim() || t('lessonMaterialFile')}
-                          size={file.size}
-                          uploadedAt={file.uploadedAt}
-                          description={file.contentType || undefined}
-                          onDownload={() => handleDownloadFile(file)}
-                          onDelete={() => handleDeleteFileClick(material, file)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                    </>
+                  }
+                />
               ))}
             </div>
           )}
@@ -709,24 +632,26 @@ export function LessonFullDetailsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {homeworkList.map((hw) => (
-                <div key={hw.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
-                        {hw.title?.trim() || t('homeworkUntitled')}
-                      </h3>
-                      {hw.description?.trim() && (
-                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
-                          {hw.description.trim()}
-                        </p>
-                      )}
-                      {hw.points != null && (
-                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
-                          {t('homeworkPoints')}: {hw.points}
-                        </p>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <HomeworkItemView
+                  key={hw.id}
+                  title={hw.title ?? null}
+                  description={hw.description ?? null}
+                  points={hw.points ?? null}
+                  files={hw.files?.length ? hw.files : hw.file ? [hw.file] : []}
+                  onDownload={async (file) => {
+                    try {
+                      const res = await getFileDownloadUrl(file.id);
+                      if (res.data?.url) {
+                        window.open(res.data.url, '_blank');
+                      } else {
+                        alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+                      }
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
+                    }
+                  }}
+                  actions={
+                    <>
                       <button
                         type="button"
                         className="btn-secondary"
@@ -745,32 +670,9 @@ export function LessonFullDetailsPage() {
                       >
                         <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
                       </button>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {(hw.files?.length ? hw.files : hw.file ? [hw.file] : []).map((file) => (
-                      <FileCard
-                        key={file.id}
-                        title={file.originalName || t('homeworkFile')}
-                        size={file.size}
-                        uploadedAt={file.uploadedAt}
-                        description={file.contentType || undefined}
-                        onDownload={async () => {
-                          try {
-                            const res = await getFileDownloadUrl(file.id);
-                            if (res.data?.url) {
-                              window.open(res.data.url, '_blank');
-                            } else {
-                              alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
-                            }
-                          } catch (err) {
-                            alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
-                          }
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                    </>
+                  }
+                />
               ))}
             </div>
           )}

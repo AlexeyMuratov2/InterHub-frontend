@@ -18,9 +18,6 @@ import type {
 import { Alert, FileCard, FileUploadArea } from '../../../../shared/ui';
 import { BookOpen, Plus, X } from 'lucide-react';
 
-const TAB_STUDENTS = 'students';
-const TAB_COURSE_MATERIALS = 'course-materials';
-
 function subjectDisplayNameByLocale(
   subject: TeacherSubjectDetailDto['subject'],
   locale: Locale
@@ -43,7 +40,6 @@ export function SubjectDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const [activeTab, setActiveTab] = useState(TAB_STUDENTS);
   const [selectedOffering, setSelectedOffering] = useState<GroupSubjectOfferingInfoDto | null>(null);
 
   // Material upload state
@@ -289,180 +285,173 @@ export function SubjectDetailPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="entity-view-tabs" style={{ marginTop: '2rem' }}>
-        <div role="tablist" className="entity-view-tablist" style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e2e8f0' }}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === TAB_STUDENTS}
-            aria-controls="panel-students"
-            id="tab-students"
-            className="entity-view-tab"
+      {/* Materials section */}
+      <div
+        className="subject-materials-section"
+        style={{
+          marginTop: '2rem',
+          paddingTop: '1.5rem',
+          borderTop: '1px solid #e2e8f0',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <h2
             style={{
-              padding: '0.75rem 1.25rem',
-              border: 'none',
-              borderBottom: activeTab === TAB_STUDENTS ? '2px solid #0284c7' : '2px solid transparent',
-              background: 'none',
-              cursor: 'pointer',
-              fontWeight: activeTab === TAB_STUDENTS ? 600 : 400,
-              color: activeTab === TAB_STUDENTS ? '#0284c7' : '#64748b',
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              margin: 0,
+              color: '#0f172a',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
             }}
-            onClick={() => setActiveTab(TAB_STUDENTS)}
           >
-            {t('teacherSubjectTabStudents')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === TAB_COURSE_MATERIALS}
-            aria-controls="panel-course-materials"
-            id="tab-course-materials"
-            className="entity-view-tab"
-            style={{
-              padding: '0.75rem 1.25rem',
-              border: 'none',
-              borderBottom: activeTab === TAB_COURSE_MATERIALS ? '2px solid #0284c7' : '2px solid transparent',
-              background: 'none',
-              cursor: 'pointer',
-              fontWeight: activeTab === TAB_COURSE_MATERIALS ? 600 : 400,
-              color: activeTab === TAB_COURSE_MATERIALS ? '#0284c7' : '#64748b',
-            }}
-            onClick={() => setActiveTab(TAB_COURSE_MATERIALS)}
-          >
+            <BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#0284c7' }} />
             {t('teacherSubjectTabCourseMaterials')}
-          </button>
-        </div>
-
-        {/* Students Tab */}
-        <div id="panel-students" role="tabpanel" aria-labelledby="tab-students" hidden={activeTab !== TAB_STUDENTS}>
-          {activeTab === TAB_STUDENTS && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-              <p>TODO: Список студентов будет здесь</p>
-            </div>
+          </h2>
+          {subjectDetail.offerings.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAddMaterialOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                backgroundColor: '#0284c7',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}
+            >
+              <Plus style={{ width: '1rem', height: '1rem' }} />
+              {t('teacherSubjectAddMaterial')}
+            </button>
           )}
         </div>
 
-        {/* Course Materials Tab */}
-        <div id="panel-course-materials" role="tabpanel" aria-labelledby="tab-course-materials" hidden={activeTab !== TAB_COURSE_MATERIALS}>
-          {activeTab === TAB_COURSE_MATERIALS && (
-            <div style={{ padding: '1.5rem 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>{t('teacherSubjectTabCourseMaterials')}</h3>
-                {subjectDetail.offerings.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setAddMaterialOpen(true)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.5rem 1rem',
-                      backgroundColor: '#1e40af',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      fontSize: '0.9375rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Plus style={{ width: '1.125rem', height: '1.125rem' }} />
-                    {t('teacherSubjectAddMaterial')}
-                  </button>
-                )}
-              </div>
+        {/* Offering selector */}
+        {subjectDetail.offerings.length > 1 && (
+          <div
+            style={{
+              marginBottom: '1.25rem',
+              padding: '1rem',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <label
+              htmlFor="offering-select"
+              style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#475569' }}
+            >
+              {t('teacherSubjectSelectGroup')}
+            </label>
+            <select
+              id="offering-select"
+              value={selectedOffering?.id ?? ''}
+              onChange={(e) => {
+                const offering = subjectDetail.offerings.find((o) => o.id === e.target.value);
+                setSelectedOffering(offering ?? null);
+              }}
+              style={{
+                padding: '0.5rem 0.75rem',
+                borderRadius: '6px',
+                border: '1px solid #e2e8f0',
+                width: '100%',
+                maxWidth: '320px',
+                fontSize: '0.9375rem',
+                backgroundColor: '#fff',
+                color: '#0f172a',
+              }}
+            >
+              {subjectDetail.offerings.map((offering) => (
+                <option key={offering.id} value={offering.id}>
+                  {offering.groupCode || offering.groupName || offering.id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-              {/* Offering selector */}
-              {subjectDetail.offerings.length > 1 && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <label htmlFor="offering-select" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-                    {t('teacherSubjectSelectGroup')}:
-                  </label>
-                  <select
-                    id="offering-select"
-                    value={selectedOffering?.id ?? ''}
-                    onChange={(e) => {
-                      const offering = subjectDetail.offerings.find((o) => o.id === e.target.value);
-                      setSelectedOffering(offering ?? null);
-                    }}
-                    style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #e2e8f0', width: '100%', maxWidth: '400px' }}
-                  >
-                    {subjectDetail.offerings.map((offering) => (
-                      <option key={offering.id} value={offering.id}>
-                        {offering.groupCode || offering.groupName || offering.id}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Add Material Modal */}
-              {addMaterialOpen && (
-                <div
+        {/* Add Material Modal */}
+        {addMaterialOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+            onClick={() => {
+              if (!uploading) {
+                setAddMaterialOpen(false);
+                setUploadError(null);
+              }
+            }}
+          >
+            <div
+              role="dialog"
+              aria-labelledby="add-material-title"
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                padding: 0,
+                maxWidth: '480px',
+                width: '90%',
+                maxHeight: '90vh',
+                overflow: 'auto',
+                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+                <h3 id="add-material-title" style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#0f172a' }}>
+                  {t('teacherSubjectAddMaterial')}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { if (!uploading) { setAddMaterialOpen(false); setUploadError(null); } }}
+                  disabled={uploading}
+                  aria-label={t('lessonModalClose')}
                   style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: 1000,
-                  }}
-                  onClick={() => {
-                    if (!uploading) {
-                      setAddMaterialOpen(false);
-                      setUploadError(null);
-                    }
+                    width: '2rem',
+                    height: '2rem',
+                    padding: 0,
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#64748b',
+                    cursor: uploading ? 'not-allowed' : 'pointer',
+                    borderRadius: '6px',
                   }}
                 >
-                  <div
-                    role="dialog"
-                    aria-labelledby="add-material-title"
-                    style={{
-                      backgroundColor: '#fff',
-                      borderRadius: '12px',
-                      padding: 0,
-                      maxWidth: '480px',
-                      width: '90%',
-                      maxHeight: '90vh',
-                      overflow: 'auto',
-                      boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Header: title + close */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0' }}>
-                      <h3 id="add-material-title" style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#0f172a' }}>
-                        {t('teacherSubjectAddMaterial')}
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => { if (!uploading) { setAddMaterialOpen(false); setUploadError(null); } }}
-                        disabled={uploading}
-                        aria-label={t('lessonModalClose')}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '2rem',
-                          height: '2rem',
-                          padding: 0,
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#64748b',
-                          cursor: uploading ? 'not-allowed' : 'pointer',
-                          borderRadius: '6px',
-                        }}
-                      >
-                        <X style={{ width: '1.25rem', height: '1.25rem' }} />
-                      </button>
-                    </div>
+                  <X style={{ width: '1.25rem', height: '1.25rem' }} />
+                </button>
+              </div>
 
-                    <div style={{ padding: '1.5rem' }}>
+              <div style={{ padding: '1.5rem' }}>
                       {uploadError && (
                         <div style={{ marginBottom: '1rem' }}>
                           <Alert variant="error" role="alert">
@@ -566,7 +555,7 @@ export function SubjectDetailPage() {
                             padding: '0.5rem 1.25rem',
                             border: 'none',
                             borderRadius: '8px',
-                            backgroundColor: '#345FE7',
+                            backgroundColor: '#0284c7',
                             color: '#fff',
                             fontSize: '0.9375rem',
                             fontWeight: 600,
@@ -576,40 +565,80 @@ export function SubjectDetailPage() {
                           {uploading ? t('uploading') : t('teacherSubjectAddMaterial')}
                         </button>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
+            </div>
+          </div>
+        )}
 
-              {/* Materials List */}
-              {selectedOffering ? (
-                selectedOffering.materials.length === 0 ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-                    <p>{t('teacherSubjectNoMaterials')}</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {selectedOffering.materials.map((material) => (
-                      <FileCard
-                        key={material.id}
-                        title={material.title}
-                        size={material.file.size}
-                        uploadedAt={material.uploadedAt}
-                        description={material.description}
-                        onDownload={() => handleDownloadMaterial(material)}
-                        onDelete={() => handleDeleteMaterial(material)}
-                      />
-                    ))}
-                  </div>
-                )
-              ) : (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-                  <p>{t('teacherSubjectNoOfferings')}</p>
-                </div>
+        {/* Materials List */}
+        {selectedOffering ? (
+          selectedOffering.materials.length === 0 ? (
+            <div
+              style={{
+                padding: '2.5rem 1.5rem',
+                textAlign: 'center',
+                color: '#64748b',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px dashed #e2e8f0',
+              }}
+            >
+              <p style={{ margin: 0, fontSize: '0.9375rem' }}>{t('teacherSubjectNoMaterials')}</p>
+              {subjectDetail.offerings.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAddMaterialOpen(true)}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    color: '#0284c7',
+                    border: '1px solid #0284c7',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('teacherSubjectAddMaterial')}
+                </button>
               )}
             </div>
-          )}
-        </div>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              {selectedOffering.materials.map((material) => (
+                <FileCard
+                  key={material.id}
+                  title={material.title}
+                  size={material.file.size}
+                  uploadedAt={material.uploadedAt}
+                  description={material.description}
+                  onDownload={() => handleDownloadMaterial(material)}
+                  onDelete={() => handleDeleteMaterial(material)}
+                />
+              ))}
+            </div>
+          )
+        ) : (
+          <div
+            style={{
+              padding: '2.5rem 1.5rem',
+              textAlign: 'center',
+              color: '#64748b',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              border: '1px dashed #e2e8f0',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.9375rem' }}>{t('teacherSubjectNoOfferings')}</p>
+          </div>
+        )}
       </div>
     </section>
   );

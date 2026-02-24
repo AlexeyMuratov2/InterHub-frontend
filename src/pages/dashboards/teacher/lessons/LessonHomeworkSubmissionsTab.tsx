@@ -6,6 +6,7 @@ import {
   createGradeEntry,
   updateGradeEntry,
   getStudentOfferingGrades,
+  downloadHomeworkSubmissionsArchive,
 } from '../../../../shared/api';
 import type {
   LessonHomeworkSubmissionsDto,
@@ -17,7 +18,7 @@ import type {
 } from '../../../../shared/api';
 import { Alert, Modal, FileCard } from '../../../../shared/ui';
 import { getStudentDisplayName, truncate } from '../../../../shared/lib';
-import { FileText, Pencil } from 'lucide-react';
+import { FileText, Pencil, Download } from 'lucide-react';
 
 export interface LessonHomeworkSubmissionsTabProps {
   lessonId: string;
@@ -36,6 +37,7 @@ export function LessonHomeworkSubmissionsTab({
   const [filesModalOpen, setFilesModalOpen] = useState(false);
   const [filesModalItems, setFilesModalItems] = useState<CompositionStoredFileDto[]>([]);
   const [savingPointsKey, setSavingPointsKey] = useState<string | null>(null);
+  const [downloadingArchiveHomeworkId, setDownloadingArchiveHomeworkId] = useState<string | null>(null);
 
   /** Состояние диалога оценки: при открытии заданы контекст ячейки и данные для формы */
   const [gradeDialog, setGradeDialog] = useState<{
@@ -56,13 +58,19 @@ export function LessonHomeworkSubmissionsTab({
     if (!lessonId) return;
     setLoading(true);
     setError(null);
-    const res = await getLessonHomeworkSubmissions(lessonId);
-    setLoading(false);
-    if (res.error) {
-      setError(res.error.message ?? tRef.current('attendanceErrorLoad'));
+    try {
+      const res = await getLessonHomeworkSubmissions(lessonId);
+      if (res.error) {
+        setError(res.error.message ?? tRef.current('attendanceErrorLoad'));
+        setData(null);
+      } else {
+        setData(res.data ?? null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tRef.current('attendanceErrorLoad'));
       setData(null);
-    } else {
-      setData(res.data ?? null);
+    } finally {
+      setLoading(false);
     }
   }, [lessonId]);
 
@@ -126,6 +134,19 @@ export function LessonHomeworkSubmissionsTab({
     setGradeDialog(null);
   }, []);
 
+  const handleDownloadArchive = useCallback(
+    async (homeworkId: string) => {
+      if (downloadingArchiveHomeworkId) return;
+      setDownloadingArchiveHomeworkId(homeworkId);
+      const res = await downloadHomeworkSubmissionsArchive(homeworkId);
+      setDownloadingArchiveHomeworkId(null);
+      if (res.error) {
+        alert(res.error.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+      }
+    },
+    [downloadingArchiveHomeworkId]
+  );
+
   if (loading) {
     return (
       <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('loading')}</p>
@@ -180,9 +201,46 @@ export function LessonHomeworkSubmissionsTab({
                       fontWeight: 600,
                       color: '#475569',
                       borderLeft: '1px solid #e2e8f0',
+                      verticalAlign: 'top',
                     }}
                   >
-                    {hw.title?.trim() || t('homeworkUntitled')}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <span>{hw.title?.trim() || t('homeworkUntitled')}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadArchive(hw.id)}
+                        disabled={downloadingArchiveHomeworkId !== null}
+                        title={t('lessonHomeworkSubmissionsDownloadArchive')}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.375rem',
+                          padding: '0.25rem 0.5rem',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '6px',
+                          background: downloadingArchiveHomeworkId === hw.id ? '#f1f5f9' : '#f8fafc',
+                          cursor: downloadingArchiveHomeworkId !== null ? 'wait' : 'pointer',
+                          fontSize: '0.8125rem',
+                          color: '#475569',
+                        }}
+                      >
+                        <Download
+                          style={{
+                            width: '0.875rem',
+                            height: '0.875rem',
+                            flexShrink: 0,
+                          }}
+                        />
+                        {t('lessonHomeworkSubmissionsDownloadArchive')}
+                      </button>
+                    </div>
                   </th>
                 ))}
               </tr>

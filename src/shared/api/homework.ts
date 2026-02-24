@@ -1,4 +1,4 @@
-import { request } from './client';
+import { request, API_BASE } from './client';
 import type { ErrorResponse } from './types';
 import type {
   HomeworkDto,
@@ -91,4 +91,57 @@ export async function deleteHomework(
   return {
     error: result.error ? { ...result.error, status: result.status } : undefined,
   };
+}
+
+export type DownloadArchiveResult = { error?: ErrorResponse };
+
+/**
+ * Скачать ZIP-архив всех отправленных решений по домашнему заданию.
+ * GET /api/homework/{homeworkId}/submissions/archive
+ * Требуются права преподавателя урока или админа.
+ */
+export async function downloadHomeworkSubmissionsArchive(
+  homeworkId: string
+): Promise<DownloadArchiveResult> {
+  const path = `/api/homework/${encodeURIComponent(homeworkId)}/submissions/archive`;
+  const url = `${API_BASE}${path}`;
+  try {
+    const res = await fetch(url, { method: 'GET', credentials: 'include' });
+    if (!res.ok) {
+      const text = await res.text();
+      let message = text || res.statusText;
+      try {
+        const j = JSON.parse(text) as { message?: string };
+        if (j.message) message = j.message;
+      } catch {
+        // ignore
+      }
+      return { error: { message } };
+    }
+    const blob = await res.blob();
+    let filename = 'submissions.zip';
+    const disp = res.headers.get('Content-Disposition');
+    if (disp) {
+      const utf8Match = disp.match(/filename\*=UTF-8''([^;]+)/i);
+      const fallbackMatch = disp.match(/filename="?([^";]+)"?/i);
+      if (utf8Match) {
+        try {
+          filename = decodeURIComponent(utf8Match[1].trim());
+        } catch {
+          // keep default
+        }
+      } else if (fallbackMatch) {
+        filename = fallbackMatch[1].trim().replace(/^"|"$/g, '');
+      }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return {};
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Network error';
+    return { error: { message } };
+  }
 }

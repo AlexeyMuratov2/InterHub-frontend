@@ -565,6 +565,7 @@
   "lessonModalGroup": "小组",
   "lessonModalGroupNone": "—",
   "lessonModalGoToLesson": "前往课程",
+  "studentLessonViewFullDetails": "查看课程详情",
 
   "menuSystemSettings": "系统设置",
   "systemSettingsTitle": "系统设置",
@@ -1077,6 +1078,7 @@
   "lessonHomeworkSubmissionsGradeMax": "满分",
   "lessonHomeworkSubmissionsGradeDescription": "评语（选填）",
   "lessonHomeworkSubmissionsGradeDescriptionPlaceholder": "教师反馈或备注…",
+  "lessonHomeworkSubmissionsDownloadArchive": "下载压缩包",
   "setPointsTitle": "课堂得分",
   "setPointsStudentLabel": "学生",
   "setPointsValueLabel": "分数",
