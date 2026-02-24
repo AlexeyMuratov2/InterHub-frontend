@@ -77,6 +77,33 @@ export function getSubjectDisplayName(
 }
 
 /**
+ * Название предмета по локали для элементов списка (TeacherSubjectListItemDto / StudentSubjectListItemDto).
+ */
+export function getSubjectDisplayNameFromListItem(
+  item: {
+    subjectChineseName?: string | null;
+    subjectEnglishName?: string | null;
+    subjectCode?: string | null;
+  },
+  locale: SubjectLocale
+): string {
+  if (locale === 'zh-Hans') {
+    return (
+      item.subjectChineseName?.trim() ||
+      item.subjectEnglishName?.trim() ||
+      item.subjectCode?.trim() ||
+      '—'
+    );
+  }
+  return (
+    item.subjectEnglishName?.trim() ||
+    item.subjectChineseName?.trim() ||
+    item.subjectCode?.trim() ||
+    '—'
+  );
+}
+
+/**
  * Строка для отображения аудитории (composition RoomDto): "buildingName number" или "number".
  */
 export function formatCompositionRoomLine(room: {

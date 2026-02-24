@@ -982,6 +982,25 @@ export interface TeacherStudentGroupsDto {
   groups: TeacherStudentGroupItemDto[];
 }
 
+// --- Student subjects (GET /api/composition/student/subjects) ---
+
+/** Элемент списка предметов студента (StudentSubjectListItemDto) */
+export interface StudentSubjectListItemDto {
+  offeringId: string;
+  curriculumSubjectId: string;
+  subjectId: string;
+  subjectCode: string | null;
+  subjectChineseName: string | null;
+  subjectEnglishName: string | null;
+  departmentName: string | null;
+  teacherDisplayName: string;
+}
+
+/** Ответ GET /api/composition/student/subjects (StudentSubjectsDto) */
+export interface StudentSubjectsDto {
+  items: StudentSubjectListItemDto[];
+}
+
 // --- Group subject info (GET /api/composition/groups/{groupId}/subjects/{subjectId}/info) ---
 
 /** User in group subject student item (UserDto) */

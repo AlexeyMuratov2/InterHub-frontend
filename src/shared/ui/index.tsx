@@ -35,3 +35,5 @@ export { StudentAttendanceHistoryModal } from './student-attendance-history-moda
 export type { StudentAttendanceHistoryModalProps } from './student-attendance-history-modal';
 export { StudentHomeworkHistoryModal } from './student-homework-history-modal';
 export type { StudentHomeworkHistoryModalProps } from './student-homework-history-modal';
+export { SubjectCard } from './subject-card';
+export type { SubjectCardProps } from './subject-card';

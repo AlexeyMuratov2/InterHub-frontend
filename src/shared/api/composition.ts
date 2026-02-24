@@ -5,6 +5,7 @@ import type {
   LessonRosterAttendanceDto,
   LessonHomeworkSubmissionsDto,
   TeacherStudentGroupsDto,
+  StudentSubjectsDto,
   GroupSubjectInfoDto,
   StudentGradeHistoryDto,
   StudentAttendanceHistoryDto,
@@ -84,6 +85,24 @@ export async function getTeacherStudentGroups(): Promise<
 > {
   const result = await request<TeacherStudentGroupsDto>(
     '/api/composition/teacher/student-groups',
+    { method: 'GET' }
+  );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * Все предметы, по которым у текущего студента есть хотя бы один урок.
+ * GET /api/composition/student/subjects
+ */
+export async function getStudentSubjects(): Promise<
+  CompositionApiResult<StudentSubjectsDto>
+> {
+  const result = await request<StudentSubjectsDto>(
+    '/api/composition/student/subjects',
     { method: 'GET' }
   );
   return {

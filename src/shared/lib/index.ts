@@ -33,6 +33,7 @@ export {
   getLessonTypeDisplayKey,
   getTeacherDisplayName,
   getSubjectDisplayName,
+  getSubjectDisplayNameFromListItem,
   formatCompositionRoomLine,
   getStudentDisplayName,
 } from './lessonDisplay';

@@ -1,7 +1,8 @@
 import { Navigate } from 'react-router-dom';
 
-/** Страницы студентского дашборда: модуль Schedule (расписание) */
+/** Страницы студентского дашборда */
 export { SchedulePage } from './schedule';
+export { StudentSubjectsPage } from './subjects';
 
 /** Для реестра дашбордов: редирект на расписание (основной экран студента) */
 export function StudentDashboardPage() {

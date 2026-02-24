@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
 import {
@@ -13,27 +12,8 @@ import type {
   TeacherSubjectListItemDto,
   GroupInfoDto,
 } from '../../../../shared/api';
-import { Alert } from '../../../../shared/ui';
-
-function subjectDisplayNameByLocale(
-  item: TeacherSubjectListItemDto,
-  locale: Locale
-): string {
-  if (locale === 'zh-Hans') {
-    return (
-      item.subjectChineseName ||
-      item.subjectEnglishName ||
-      item.subjectCode ||
-      '—'
-    );
-  }
-  return (
-    item.subjectEnglishName ||
-    item.subjectChineseName ||
-    item.subjectCode ||
-    '—'
-  );
-}
+import { Alert, SubjectCard } from '../../../../shared/ui';
+import { getSubjectDisplayNameFromListItem } from '../../../../shared/lib';
 
 function formatGroupDisplay(g: GroupInfoDto): string {
   const parts = [g.code, g.name].filter(Boolean);
@@ -192,37 +172,18 @@ export function SubjectsPage() {
           {t('teacherSubjectsEmpty')}
         </div>
       ) : (
-        <div className="teacher-subjects-grid">
+        <div className="subject-card-grid">
           {filteredSubjects.map((item) => (
-            <Link
+            <SubjectCard
               key={item.curriculumSubjectId}
+              title={getSubjectDisplayNameFromListItem(item, locale)}
+              subjectCode={item.subjectCode}
+              departmentLabel={t('teacherSubjectDepartment')}
+              departmentName={item.departmentName}
+              secondaryLabel={t('teacherSubjectGroups')}
+              secondaryValue={groupDisplayList(item.groups)}
               to={`/dashboards/teacher/subjects/${item.curriculumSubjectId}`}
-              className="teacher-subject-card"
-              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-            >
-              <h3 className="teacher-subject-card-title">
-                {subjectDisplayNameByLocale(item, locale)}
-              </h3>
-              <p className="teacher-subject-card-code">{item.subjectCode}</p>
-              {item.departmentName && (
-                <div className="teacher-subject-card-row">
-                  <span className="teacher-subject-card-label">
-                    {t('teacherSubjectDepartment')}:
-                  </span>
-                  <span className="teacher-subject-card-value">
-                    {item.departmentName}
-                  </span>
-                </div>
-              )}
-              <div className="teacher-subject-card-row">
-                <span className="teacher-subject-card-label">
-                  {t('teacherSubjectGroups')}:
-                </span>
-                <span className="teacher-subject-card-value">
-                  {groupDisplayList(item.groups)}
-                </span>
-              </div>
-            </Link>
+            />
           ))}
         </div>
       )}

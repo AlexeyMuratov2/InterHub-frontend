@@ -43,7 +43,7 @@ import {
   BuildingEditPage,
   ImplementationPage,
 } from './pages/dashboards/admin';
-import { SchedulePage as StudentSchedulePage } from './pages/dashboards/student';
+import { SchedulePage as StudentSchedulePage, StudentSubjectsPage } from './pages/dashboards/student';
 import { SchedulePage as TeacherSchedulePage, SubjectsPage as TeacherSubjectsPage, StudentGroupsPage as TeacherStudentGroupsPage, GroupSubjectInfoPage as TeacherGroupSubjectInfoPage, AbsenceRequestsPage as TeacherAbsenceRequestsPage, TeacherProfilePage } from './pages/dashboards/teacher';
 import { SubjectDetailPage } from './pages/dashboards/teacher/subjects/[id]';
 import { LessonFullDetailsPage } from './pages/dashboards/teacher/lessons/[lessonId]';
@@ -153,6 +153,7 @@ function App() {
           >
             <Route index element={<Navigate to="schedule" replace />} />
             <Route path="schedule" element={<StudentSchedulePage />} />
+            <Route path="subjects" element={<StudentSubjectsPage />} />
           </Route>
           <Route path="*" element={<RequireAuth><Navigate to="/" replace /></RequireAuth>} />
         </Routes>

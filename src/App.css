@@ -4042,6 +4042,65 @@ a.btn-secondary {
   word-break: break-word;
 }
 
+/* Shared subject card (teacher + student subjects lists) */
+.subject-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.subject-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.subject-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.subject-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.35;
+}
+
+.subject-card-code {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+}
+
+.subject-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.subject-card-row:last-child {
+  margin-bottom: 0;
+}
+
+.subject-card-label {
+  flex-shrink: 0;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.subject-card-value {
+  color: #334155;
+  word-break: break-word;
+}
+
 /* Teacher student groups page */
 .teacher-student-groups-filters {
   display: flex;
