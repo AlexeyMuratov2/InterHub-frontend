@@ -43,6 +43,20 @@ export async function getTeacherLessonsWeek(
 }
 
 /**
+ * Занятия студента на неделю (ISO: понедельник–воскресенье) по всем его группам.
+ * GET /api/schedule/lessons/week/student?date=YYYY-MM-DD
+ */
+export async function getStudentLessonsWeek(
+  date: string
+): Promise<{ data?: LessonForScheduleDto[]; error?: { message?: string; code?: string }; status?: number }> {
+  const result = await request<LessonForScheduleDto[]>(
+    `/api/schedule/lessons/week/student?date=${encodeURIComponent(date)}`,
+    { method: 'GET' }
+  );
+  return wrapResult(result);
+}
+
+/**
  * Занятие по id. GET /api/schedule/lessons/{id}
  */
 export async function getLesson(

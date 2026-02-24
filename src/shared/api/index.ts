@@ -78,6 +78,7 @@ export { INVITATION_STATUS, INVITATION_VALIDATION_CODE } from './types';
 export {
   getGroupLessonsWeek,
   getTeacherLessonsWeek,
+  getStudentLessonsWeek,
   getLesson,
   updateLesson,
   deleteLesson,

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { getTeacherLessonsWeek, getSemesterByDate } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
-import { ScheduleGrid, Alert, TeacherLessonModal } from '../../../../shared/ui';
+import { ScheduleGrid, Alert, TeacherLessonModal, ScheduleToolbar } from '../../../../shared/ui';
 import type { ScheduleEvent } from '../../../../shared/ui';
 import { mapLessonsForScheduleToEventsForTeacher } from '../../../../shared/lib';
 import { getIsoWeekStart, getIsoWeekEnd } from '../../../../shared/lib';
@@ -122,34 +122,18 @@ export function SchedulePage() {
     <section className="entity-view-card" style={{ marginTop: '1rem' }}>
       <h2 className="entity-view-card-title">{t('groupTabSchedule')}</h2>
 
-      <div className="schedule-tab-toolbar">
-        <input
-          type="date"
-          value={anchorDate}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v === '') return;
-            const d = new Date(v + 'T12:00:00');
-            const normalized = d.toISOString().slice(0, 10);
-            if (!Number.isNaN(d.getTime()) && normalized === v) setAnchorDate(v);
-          }}
-          aria-label={t('dateFormat')}
-        />
-        <span className="schedule-tab-week-range">
-          {formatDate(weekStart, locale)} — {formatDate(weekEnd, locale)}
-        </span>
-        <div className="schedule-tab-toolbar-buttons">
-          <button type="button" className="btn-schedule-primary" onClick={handleToday}>
-            {t('scheduleToday')}
-          </button>
-          <button type="button" className="btn-schedule-secondary" onClick={handlePrev} aria-label={t('schedulePrev')}>
-            ‹ {t('schedulePrev')}
-          </button>
-          <button type="button" className="btn-schedule-secondary" onClick={handleNext} aria-label={t('scheduleNext')}>
-            {t('scheduleNext')} ›
-          </button>
-        </div>
-      </div>
+      <ScheduleToolbar
+        anchorDate={anchorDate}
+        onAnchorDateChange={setAnchorDate}
+        weekRangeText={`${formatDate(weekStart, locale)} — ${formatDate(weekEnd, locale)}`}
+        dateFormatAriaLabel={t('dateFormat')}
+        todayLabel={t('scheduleToday')}
+        prevLabel={t('schedulePrev')}
+        nextLabel={t('scheduleNext')}
+        onToday={handleToday}
+        onPrev={handlePrev}
+        onNext={handleNext}
+      />
 
       {semesterError && (
         <div style={{ marginBottom: '1rem' }}>
