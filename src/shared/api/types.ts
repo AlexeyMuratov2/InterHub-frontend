@@ -890,6 +890,96 @@ export interface LessonHomeworkSubmissionsDto {
   studentRows: StudentHomeworkRowDto[];
 }
 
+// --- Teacher student groups (GET /api/composition/teacher/student-groups) ---
+
+/** Группа в ответе teacher/student-groups (StudentGroupDto) */
+export interface TeacherStudentGroupDto {
+  id: string;
+  programId: string;
+  curriculumId: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  startYear: number;
+  graduationYear: number | null;
+  curatorUserId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Программа в ответе teacher/student-groups (ProgramDto) */
+export interface TeacherStudentProgramDto {
+  id: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  degreeLevel: string | null;
+  departmentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Учебный план в ответе teacher/student-groups (CurriculumDto) */
+export interface TeacherStudentCurriculumDto {
+  id: string;
+  programId: string;
+  version: string | null;
+  durationYears: number;
+  isActive: boolean;
+  status: string | null;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Куратор в ответе teacher/student-groups (UserDto) */
+export interface TeacherStudentCuratorDto {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  roles?: string[];
+  status?: string;
+}
+
+/** Элемент списка групп преподавателя (TeacherStudentGroupItemDto) */
+export interface TeacherStudentGroupItemDto {
+  group: TeacherStudentGroupDto;
+  program: TeacherStudentProgramDto;
+  curriculum: TeacherStudentCurriculumDto;
+  curatorUser: TeacherStudentCuratorDto | null;
+  studentCount: number | null;
+  /** Semesters where the teacher has at least one lesson with this group. */
+  semesters: SemesterDto[];
+  /** Subject IDs the teacher teaches in this group. */
+  subjectIds: string[];
+}
+
+/** Subject in teacher student groups filter (SubjectDto from subject module). */
+export interface TeacherStudentGroupSubjectDto {
+  id: string;
+  code: string | null;
+  chineseName: string | null;
+  englishName: string | null;
+  description: string | null;
+  departmentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Ответ GET /api/composition/teacher/student-groups (TeacherStudentGroupsDto) */
+export interface TeacherStudentGroupsDto {
+  /** Distinct academic years for filter dropdown. */
+  academicYears: AcademicYearDto[];
+  /** Distinct semesters for filter dropdown. */
+  semesters: SemesterDto[];
+  /** Distinct subjects for filter dropdown. */
+  subjects: TeacherStudentGroupSubjectDto[];
+  groups: TeacherStudentGroupItemDto[];
+}
+
 // --- Grades module (POST/PUT/GET /api/grades/entries, etc.) ---
 
 /** Запись баллов (GradeEntryDto) */

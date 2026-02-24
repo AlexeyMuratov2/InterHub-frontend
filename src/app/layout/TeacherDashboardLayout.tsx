@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen, BookMarked, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, BookMarked, Users2, ClipboardList } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
@@ -18,6 +18,7 @@ const TEACHER_MENU: Array<{
   { path: '/dashboards/teacher/schedule', labelKey: 'menuSchedule', end: false, icon: Calendar },
   { path: '/dashboards/teacher/subjects', labelKey: 'menuTeacherSubjects', end: false, icon: BookOpen },
   { path: '/dashboards/teacher/lessons', labelKey: 'menuLessons', end: false, icon: BookMarked },
+  { path: '/dashboards/teacher/student-groups', labelKey: 'menuTeacherStudentGroups', end: false, icon: Users2 },
   { path: '/dashboards/teacher/absence-requests', labelKey: 'menuAbsenceRequests', end: false, icon: ClipboardList },
 ] as const;
 
@@ -51,6 +52,7 @@ export function TeacherDashboardLayout() {
   const isProfile = location.pathname.startsWith('/dashboards/teacher/profile');
   const isSubjects = location.pathname.startsWith('/dashboards/teacher/subjects');
   const isLessons = location.pathname.startsWith('/dashboards/teacher/lessons');
+  const isStudentGroups = location.pathname.startsWith('/dashboards/teacher/student-groups');
   const isAbsenceRequests = location.pathname.startsWith('/dashboards/teacher/absence-requests');
 
   const headerSectionTitle = isProfile
@@ -59,11 +61,13 @@ export function TeacherDashboardLayout() {
       ? t('menuTeacherSubjects')
       : isLessons
         ? t('menuLessons')
-        : isAbsenceRequests
-          ? t('menuAbsenceRequests')
-          : isSchedule
-            ? t('menuSchedule')
-            : t('menuDashboard');
+        : isStudentGroups
+          ? t('menuTeacherStudentGroups')
+          : isAbsenceRequests
+            ? t('menuAbsenceRequests')
+            : isSchedule
+              ? t('menuSchedule')
+              : t('menuDashboard');
 
   return (
     <div className="app-dashboard-layout">

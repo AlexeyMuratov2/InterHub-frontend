@@ -4,6 +4,7 @@ import type {
   LessonFullDetailsDto,
   LessonRosterAttendanceDto,
   LessonHomeworkSubmissionsDto,
+  TeacherStudentGroupsDto,
 } from './types';
 
 export type CompositionApiResult<T> = {
@@ -61,6 +62,24 @@ export async function getLessonHomeworkSubmissions(
 ): Promise<CompositionApiResult<LessonHomeworkSubmissionsDto>> {
   const result = await request<LessonHomeworkSubmissionsDto>(
     `/api/composition/lessons/${encodeURIComponent(lessonId)}/homework-submissions`,
+    { method: 'GET' }
+  );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * Группы студентов, в которых у текущего преподавателя есть хотя бы один урок.
+ * GET /api/composition/teacher/student-groups
+ */
+export async function getTeacherStudentGroups(): Promise<
+  CompositionApiResult<TeacherStudentGroupsDto>
+> {
+  const result = await request<TeacherStudentGroupsDto>(
+    '/api/composition/teacher/student-groups',
     { method: 'GET' }
   );
   return {

@@ -231,7 +231,7 @@ export function LessonHomeworkSubmissionsTab({
             <tbody>
               {studentRows.map((row) => (
                 <StudentHomeworkRow
-                  key={row.student.id}
+                  key={row.student.studentId}
                   row={row}
                   homeworks={homeworks}
                   offeringId={data.lesson.offeringId}
@@ -323,7 +323,7 @@ function StudentHomeworkRow({
   setSavingPointsKey,
 }: StudentHomeworkRowProps) {
   const displayName = getStudentDisplayName(row.student);
-  const studentId = row.student.id;
+  const studentId = row.student.studentId;
 
   return (
     <tr style={{ borderBottom: '1px solid #e2e8f0' }}>

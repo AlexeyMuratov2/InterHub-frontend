@@ -44,7 +44,7 @@ import {
   ImplementationPage,
 } from './pages/dashboards/admin';
 import { SchedulePage as StudentSchedulePage } from './pages/dashboards/student';
-import { SchedulePage as TeacherSchedulePage, SubjectsPage as TeacherSubjectsPage, AbsenceRequestsPage as TeacherAbsenceRequestsPage } from './pages/dashboards/teacher';
+import { SchedulePage as TeacherSchedulePage, SubjectsPage as TeacherSubjectsPage, StudentGroupsPage as TeacherStudentGroupsPage, AbsenceRequestsPage as TeacherAbsenceRequestsPage } from './pages/dashboards/teacher';
 import { SubjectDetailPage } from './pages/dashboards/teacher/subjects/[id]';
 import { LessonFullDetailsPage } from './pages/dashboards/teacher/lessons/[lessonId]';
 import { LessonsListPage } from './pages/dashboards/teacher/lessons';
@@ -134,6 +134,7 @@ function App() {
             <Route path="schedule" element={<TeacherSchedulePage />} />
             <Route path="subjects" element={<TeacherSubjectsPage />} />
             <Route path="subjects/:id" element={<SubjectDetailPage />} />
+            <Route path="student-groups" element={<TeacherStudentGroupsPage />} />
             <Route path="lessons" element={<LessonsListPage />} />
             <Route path="lessons/:lessonId" element={<LessonFullDetailsPage />} />
             <Route path="absence-requests" element={<TeacherAbsenceRequestsPage />} />
