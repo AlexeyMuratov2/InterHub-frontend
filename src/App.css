@@ -3529,6 +3529,243 @@ a.btn-secondary {
   word-break: break-word;
 }
 
+/* Group subject info page (full group info for teacher) */
+.group-subject-info-page {
+  padding: 1.5rem 1.75rem;
+  max-width: 1200px;
+}
+
+.group-subject-info-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #4f46e5;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  transition: color 0.15s;
+}
+
+.group-subject-info-back-link:hover {
+  color: #3730a3;
+}
+
+.group-subject-info-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.group-subject-info-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.group-subject-info-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+.group-subject-info-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.group-subject-info-meta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.group-subject-info-meta-value {
+  font-size: 0.9375rem;
+  color: #1f2937;
+}
+
+.group-subject-info-subjects-section,
+.group-subject-info-students-section {
+  margin-bottom: 1.75rem;
+}
+
+.group-subject-info-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.75rem;
+}
+
+.group-subject-info-carousel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.group-subject-info-carousel-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.group-subject-info-carousel-btn:hover:not(:disabled) {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+.group-subject-info-carousel-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.group-subject-info-carousel-track {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.group-subject-info-carousel-card {
+  padding: 0.6rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.group-subject-info-carousel-card:hover {
+  border-color: #c7d2fe;
+  background: #f5f3ff;
+  color: #4338ca;
+}
+
+.group-subject-info-carousel-card.active {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.group-subject-info-single-subject {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  padding: 0.5rem 0;
+}
+
+.group-subject-info-semester-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.group-subject-info-semester-name {
+  font-weight: 600;
+  color: #374151;
+}
+
+.group-subject-info-homework-count {
+  margin-left: auto;
+}
+
+.group-subject-info-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.group-subject-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.group-subject-info-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.group-subject-info-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.group-subject-info-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1f2937;
+}
+
+.group-subject-info-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.group-subject-info-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.group-subject-info-cell-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+}
+
+.group-subject-info-empty-cell {
+  text-align: center;
+  padding: 2rem !important;
+  color: #6b7280;
+}
+
+.group-subject-info-leader-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.group-subject-info-leader-badge.headman {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.group-subject-info-leader-badge.deputy {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
 /* Вкладка «Расписание» группы: тулбар и блок семестра */
 .schedule-tab-toolbar {
   display: flex;

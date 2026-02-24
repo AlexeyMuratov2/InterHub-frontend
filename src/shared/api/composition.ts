@@ -5,6 +5,7 @@ import type {
   LessonRosterAttendanceDto,
   LessonHomeworkSubmissionsDto,
   TeacherStudentGroupsDto,
+  GroupSubjectInfoDto,
 } from './types';
 
 export type CompositionApiResult<T> = {
@@ -82,6 +83,29 @@ export async function getTeacherStudentGroups(): Promise<
     '/api/composition/teacher/student-groups',
     { method: 'GET' }
   );
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * Полная информация по группе и предмету (экран «Информация по группе и предмету»).
+ * GET /api/composition/groups/{groupId}/subjects/{subjectId}/info
+ */
+export async function getGroupSubjectInfo(
+  groupId: string,
+  subjectId: string,
+  params?: { semesterId?: string | null }
+): Promise<CompositionApiResult<GroupSubjectInfoDto>> {
+  const search = new URLSearchParams();
+  if (params?.semesterId) {
+    search.set('semesterId', params.semesterId);
+  }
+  const query = search.toString();
+  const path = `/api/composition/groups/${encodeURIComponent(groupId)}/subjects/${encodeURIComponent(subjectId)}/info${query ? `?${query}` : ''}`;
+  const result = await request<GroupSubjectInfoDto>(path, { method: 'GET' });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

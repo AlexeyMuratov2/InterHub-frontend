@@ -114,7 +114,7 @@ export type {
   PresignedUrlResponse,
 } from './types';
 
-export { getLessonFullDetails, getLessonRosterAttendance, getLessonHomeworkSubmissions, getTeacherStudentGroups } from './composition';
+export { getLessonFullDetails, getLessonRosterAttendance, getLessonHomeworkSubmissions, getTeacherStudentGroups, getGroupSubjectInfo } from './composition';
 export type { CompositionApiResult } from './composition';
 export {
   listLessonMaterials,
@@ -170,6 +170,9 @@ export type {
   TeacherStudentProgramDto,
   TeacherStudentCurriculumDto,
   TeacherStudentCuratorDto,
+  GroupSubjectInfoDto,
+  GroupSubjectStudentItemDto,
+  GroupSubjectLeaderDto,
   GradeEntryDto,
   CreateGradeEntryRequest,
   UpdateGradeEntryRequest,

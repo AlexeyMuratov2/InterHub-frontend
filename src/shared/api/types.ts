@@ -980,6 +980,116 @@ export interface TeacherStudentGroupsDto {
   groups: TeacherStudentGroupItemDto[];
 }
 
+// --- Group subject info (GET /api/composition/groups/{groupId}/subjects/{subjectId}/info) ---
+
+/** User in group subject student item (UserDto) */
+export interface GroupSubjectUserDto {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+/** One student row in group subject info (GroupSubjectStudentItemDto) */
+export interface GroupSubjectStudentItemDto {
+  student: StudentDto;
+  user: GroupSubjectUserDto | null;
+  totalPoints: number;
+  submittedHomeworkCount: number;
+  /** Attendance percentage; null if no sessions. */
+  attendancePercent: number | null;
+}
+
+/** Program in group subject info (ProgramDto) */
+export interface GroupSubjectProgramDto {
+  id: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  degreeLevel: string | null;
+  departmentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Curriculum in group subject info (CurriculumDto) */
+export interface GroupSubjectCurriculumDto {
+  id: string;
+  programId: string;
+  version: string | null;
+  durationYears: number;
+  isActive: boolean;
+  status: string | null;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Offering in group subject info (GroupSubjectOfferingDto) */
+export interface GroupSubjectOfferingDto {
+  id: string;
+  groupId: string;
+  curriculumSubjectId: string;
+  teacherId: string | null;
+  roomId: string | null;
+  format: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Offering slot (OfferingSlotDto) */
+export interface GroupSubjectOfferingSlotDto {
+  id: string;
+  offeringId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  timeslotId: string | null;
+  lessonType: string | null;
+  roomId: string | null;
+  teacherId: string | null;
+  createdAt: string;
+}
+
+/** Teacher in offering (OfferingTeacherItemDto) */
+export interface GroupSubjectTeacherItemDto {
+  teacherId: string;
+  lessonType: string | null;
+}
+
+/** Group leader with student and user (GroupLeaderDetailDto) */
+export interface GroupSubjectLeaderDto {
+  id: string;
+  groupId: string;
+  studentId: string;
+  role: 'headman' | 'deputy';
+  fromDate: string | null;
+  toDate: string | null;
+  createdAt: string;
+  student: StudentDto | null;
+  user: GroupSubjectUserDto | null;
+}
+
+/** Full group subject info (GroupSubjectInfoDto) */
+export interface GroupSubjectInfoDto {
+  subject: TeacherStudentGroupSubjectDto;
+  group: CompositionStudentGroupDto;
+  leaders: GroupSubjectLeaderDto[];
+  program: GroupSubjectProgramDto;
+  offering: GroupSubjectOfferingDto;
+  slots: GroupSubjectOfferingSlotDto[];
+  teachers: GroupSubjectTeacherItemDto[];
+  curriculumSubject: CompositionCurriculumSubjectDto;
+  curriculum: GroupSubjectCurriculumDto;
+  curriculumSubjects: CompositionCurriculumSubjectDto[];
+  semester: SemesterDto;
+  totalHomeworkCount: number;
+  students: GroupSubjectStudentItemDto[];
+}
+
 // --- Grades module (POST/PUT/GET /api/grades/entries, etc.) ---
 
 /** Запись баллов (GradeEntryDto) */

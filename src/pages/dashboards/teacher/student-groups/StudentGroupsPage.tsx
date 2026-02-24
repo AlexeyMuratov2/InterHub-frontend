@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import { getTeacherStudentGroups } from '../../../../shared/api';
 import type {
@@ -189,8 +190,9 @@ export function StudentGroupsPage() {
       ) : (
         <div className="teacher-student-groups-grid">
           {filteredGroups.map((item) => (
-            <article
+            <Link
               key={item.group.id}
+              to={`/dashboards/teacher/student-groups/${item.group.id}`}
               className="teacher-student-group-card"
               style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
             >
@@ -222,7 +224,7 @@ export function StudentGroupsPage() {
                   {curatorDisplayName(item)}
                 </span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}

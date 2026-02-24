@@ -52,10 +52,14 @@ export function TeacherDashboardLayout() {
   const isProfile = location.pathname.startsWith('/dashboards/teacher/profile');
   const isSubjects = location.pathname.startsWith('/dashboards/teacher/subjects');
   const isLessons = location.pathname.startsWith('/dashboards/teacher/lessons');
-  const isStudentGroups = location.pathname.startsWith('/dashboards/teacher/student-groups');
+  const isStudentGroupsList = location.pathname === '/dashboards/teacher/student-groups';
+  const isStudentGroupDetail = location.pathname.startsWith('/dashboards/teacher/student-groups/') && location.pathname !== '/dashboards/teacher/student-groups';
+  const isStudentGroups = isStudentGroupsList || isStudentGroupDetail;
   const isAbsenceRequests = location.pathname.startsWith('/dashboards/teacher/absence-requests');
 
-  const headerSectionTitle = isProfile
+  const headerSectionTitle = isStudentGroupDetail
+    ? t('groupSubjectInfoPageTitle')
+    : isProfile
     ? t('profilePageTitleShort')
     : isSubjects
       ? t('menuTeacherSubjects')
