@@ -3,7 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { BookOpen, FileText, ClipboardList, ArrowLeft, UserRound, Send } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
-import { getLessonFullDetails, getFileDownloadUrl } from '../../../../shared/api';
+import {
+  getLessonFullDetails,
+  getFileDownloadUrl,
+  getStudentSubjectInfo,
+  getStudentHomeworkHistory,
+} from '../../../../shared/api';
 import type {
   LessonFullDetailsDto,
   CompositionStoredFileDto,
@@ -11,6 +16,7 @@ import type {
   CompositionTeacherDto,
 } from '../../../../shared/api';
 import { getSubjectDisplayName, getTeacherDisplayName } from '../../../../shared/lib';
+import type { SubmissionWithFiles } from '../../../../shared/ui';
 import {
   Alert,
   BackLink,
@@ -19,6 +25,7 @@ import {
   LessonInfoGrid,
   LessonMaterialDetailView,
   HomeworkDetailView,
+  HomeworkSubmissionSection,
   AbsenceRequestDialog,
 } from '../../../../shared/ui';
 
@@ -108,6 +115,7 @@ export function StudentLessonFullDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
+  const [submissionByHomeworkId, setSubmissionByHomeworkId] = useState<Record<string, SubmissionWithFiles>>({});
 
   const loadDetails = useCallback(async () => {
     if (!lessonId) return;
@@ -134,6 +142,42 @@ export function StudentLessonFullDetailsPage() {
     loadDetails();
   }, [loadDetails]);
 
+  const loadSubmissionData = useCallback(async (offeringId: string, lessonId: string) => {
+    const subjectRes = await getStudentSubjectInfo(offeringId);
+    if (subjectRes.error || !subjectRes.data?.studentId) {
+      setSubmissionByHomeworkId({});
+      return;
+    }
+    const historyRes = await getStudentHomeworkHistory(subjectRes.data.studentId, offeringId);
+    if (historyRes.error || !historyRes.data?.items) {
+      setSubmissionByHomeworkId({});
+      return;
+    }
+    const record: Record<string, SubmissionWithFiles> = {};
+    for (const item of historyRes.data.items) {
+      if (item.lesson?.id !== lessonId || !item.submission) continue;
+      record[item.homework.id] = {
+        submission: item.submission,
+        files: item.submissionFiles ?? [],
+      };
+    }
+    setSubmissionByHomeworkId(record);
+  }, []);
+
+  useEffect(() => {
+    if (!data?.offering?.id || data.homework.length === 0) {
+      setSubmissionByHomeworkId({});
+      return;
+    }
+    loadSubmissionData(data.offering.id, data.lesson.id);
+  }, [data?.offering?.id, data?.lesson?.id, data?.homework?.length, loadSubmissionData]);
+
+  const handleRefreshSubmissions = useCallback(() => {
+    if (data?.offering?.id && data?.lesson?.id) {
+      loadSubmissionData(data.offering.id, data.lesson.id);
+    }
+  }, [data?.offering?.id, data?.lesson?.id, loadSubmissionData]);
+
   const handleDownloadFile = useCallback(
     async (file: CompositionStoredFileDto) => {
       try {
@@ -149,6 +193,15 @@ export function StudentLessonFullDetailsPage() {
     },
     []
   );
+
+  const handleDownloadSubmissionFile = useCallback(async (fileId: string) => {
+    try {
+      const res = await getFileDownloadUrl(fileId);
+      if (res.data?.url) window.open(res.data.url, '_blank');
+    } catch {
+      /* noop */
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -287,6 +340,14 @@ export function StudentLessonFullDetailsPage() {
           )}
         </SectionCard>
       </div>
+
+      <HomeworkSubmissionSection
+        homeworks={homework}
+        submissionByHomeworkId={submissionByHomeworkId}
+        onRefresh={handleRefreshSubmissions}
+        onDownloadFile={handleDownloadSubmissionFile}
+        locale={locale}
+      />
 
       {lessonId && (
         <AbsenceRequestDialog

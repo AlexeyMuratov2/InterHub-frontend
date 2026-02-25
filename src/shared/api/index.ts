@@ -137,6 +137,8 @@ export {
   downloadHomeworkSubmissionsArchive,
 } from './homework';
 export type { HomeworkApiResult, DownloadArchiveResult } from './homework';
+export { createSubmission, deleteSubmission } from './submission';
+export type { SubmissionApiResult, CreateSubmissionRequestBody } from './submission';
 export type {
   LessonFullDetailsDto,
   CompositionLessonDto,
