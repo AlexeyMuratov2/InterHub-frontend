@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   listTeacherNotices,
@@ -9,10 +9,9 @@ import {
   type AbsenceNoticeStatus,
 } from '../../../../shared/api';
 import { useTranslation, formatDate, formatDateTime } from '../../../../shared/i18n';
-import { EntityListLayout } from '../../../../widgets/entity-list-layout';
-import { Modal, FormGroup } from '../../../../shared/ui';
+import { Modal, FormGroup, PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar } from '../../../../shared/ui';
 import { getLessonTypeDisplayKey } from '../../../../shared/lib';
-import { Check, Clock, X, ChevronDown, Calendar } from 'lucide-react';
+import { Check, Clock, X, ClipboardList } from 'lucide-react';
 
 const LIMIT = 30;
 const MAX_COMMENT_LENGTH = 2000;
@@ -66,6 +65,10 @@ function getLessonType(item: TeacherAbsenceNoticeItemDto): string | null {
   return item.slot?.lessonType ?? item.lesson?.lessonType ?? null;
 }
 
+const TEACHER_STATUS_OPTIONS = [
+  { value: ABSENCE_NOTICE_STATUS.SUBMITTED, labelKey: 'absenceRequestsStatusPending' },
+];
+
 export function AbsenceRequestsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -93,27 +96,17 @@ export function AbsenceRequestsPage() {
   const [respondLoading, setRespondLoading] = useState<'approve' | 'reject' | null>(null);
   const [respondError, setRespondError] = useState<string | null>(null);
 
-  const dateFromInputRef = useRef<HTMLInputElement>(null);
-  const dateToInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const from = searchParams.get('dateFrom') ?? '';
     const to = searchParams.get('dateTo') ?? '';
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:searchParams effect',message:'searchParams effect ran',data:{from,to,willSetState:!!(from||to)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     if (from || to) {
       setDateFrom(from);
       setDateTo(to);
-      // Do not set statusFilter to '' — it triggers a second load() that overwrites items with empty API result
     }
   }, [searchParams]);
 
   const load = async (cursor?: string | null) => {
     const isFirst = cursor == null;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:load() entry',message:'load called',data:{statusFilter,isFirst,cursor:!!cursor},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (isFirst) setLoading(true);
     else setLoadingMore(true);
     setError(null);
@@ -135,9 +128,6 @@ export function AbsenceRequestsPage() {
     }
     const list = data?.items ?? [];
     const next = data?.nextCursor ?? null;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:load() done',message:'load completed',data:{listLength:list.length,isFirst,hadError:!!err},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (isFirst) {
       setItems(list);
       setNextCursor(next);
@@ -153,9 +143,6 @@ export function AbsenceRequestsPage() {
 
   const filtered = useMemo(() => {
     let list = items;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:useMemo filtered',message:'filtered memo',data:{itemsLength:items.length,dateFrom,dateTo,subjectFilter,groupFilter},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     if (subjectFilter) {
       list = list.filter((item) => getSubjectDisplay(item) === subjectFilter);
     }
@@ -168,9 +155,6 @@ export function AbsenceRequestsPage() {
     if (dateTo) {
       list = list.filter((item) => item.lesson && item.lesson.date <= dateTo);
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/c470b1f7-aa7f-426b-ab37-21c24aa9760e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AbsenceRequestsPage.tsx:filtered result',message:'filtered length',data:{filteredLength:list.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     return list;
   }, [items, subjectFilter, groupFilter, dateFrom, dateTo]);
 
@@ -257,211 +241,158 @@ export function AbsenceRequestsPage() {
   const lessonTypeValue = reviewItem ? getLessonType(reviewItem) : null;
   const lessonTypeLabel = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
 
-  return (
-    <EntityListLayout
-      title={t('absenceRequestsTitle')}
-      subtitle={t('absenceRequestsSubtitle')}
-      viewOnly={false}
-      error={error}
-      success={success}
-      showToolbar={false}
-      searchValue=""
-      onSearchChange={() => {}}
-      searchPlaceholder=""
-      showCreate={false}
-    >
-      <div className="absence-requests-filters-card">
-        <div className="absence-requests-filters-inner">
-          <div className="absence-requests-filter-field absence-requests-filter-field--select">
-            <select
-              className="absence-requests-select"
-              value={subjectFilter}
-              onChange={(e) => setSubjectFilter(e.target.value)}
-              aria-label={t('absenceRequestsFilterAllSubjects')}
-            >
-              <option value="">{t('absenceRequestsFilterAllSubjects')}</option>
-              {uniqueSubjects.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absence-requests-select-icon" aria-hidden />
-          </div>
-          <div className="absence-requests-filter-field absence-requests-filter-field--select">
-            <select
-              className="absence-requests-select"
-              value={groupFilter}
-              onChange={(e) => setGroupFilter(e.target.value)}
-              aria-label={t('absenceRequestsFilterAllGroups')}
-            >
-              <option value="">{t('absenceRequestsFilterAllGroups')}</option>
-              {uniqueGroups.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absence-requests-select-icon" aria-hidden />
-          </div>
-          <div className="absence-requests-filter-field absence-requests-filter-field--select">
-            <select
-              className="absence-requests-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilterValue)}
-              aria-label={t('absenceRequestsStatus')}
-            >
-              <option value="">{t('absenceRequestsFilterAllStatus')}</option>
-              <option value={ABSENCE_NOTICE_STATUS.SUBMITTED}>{t('absenceRequestsStatusPending')}</option>
-            </select>
-            <ChevronDown className="absence-requests-select-icon" aria-hidden />
-          </div>
-          <div className="absence-requests-filter-field absence-requests-filter-field--date">
-            <input
-              ref={dateFromInputRef}
-              type="date"
-              className="absence-requests-date-input"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              aria-label={t('absenceRequestsDateFrom')}
-              id="absence-requests-date-from"
-            />
-            <button
-              type="button"
-              className="absence-requests-date-trigger"
-              onClick={() => dateFromInputRef.current?.showPicker?.() ?? dateFromInputRef.current?.click()}
-              aria-label={t('absenceRequestsDateFrom')}
-              title={t('absenceRequestsDateFrom')}
-            >
-              <Calendar className="absence-requests-date-icon" aria-hidden />
-            </button>
-          </div>
-          <div className="absence-requests-filter-field absence-requests-filter-field--date">
-            <input
-              ref={dateToInputRef}
-              type="date"
-              className="absence-requests-date-input"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              aria-label={t('absenceRequestsDateTo')}
-              id="absence-requests-date-to"
-            />
-            <button
-              type="button"
-              className="absence-requests-date-trigger"
-              onClick={() => dateToInputRef.current?.showPicker?.() ?? dateToInputRef.current?.click()}
-              aria-label={t('absenceRequestsDateTo')}
-              title={t('absenceRequestsDateTo')}
-            >
-              <Calendar className="absence-requests-date-icon" aria-hidden />
-            </button>
-          </div>
-        </div>
-      </div>
+  const subjectOptions = useMemo(
+    () => uniqueSubjects.map((s) => ({ value: s, label: s })),
+    [uniqueSubjects]
+  );
+  const groupOptions = useMemo(
+    () => uniqueGroups.map((g) => ({ value: g, label: g })),
+    [uniqueGroups]
+  );
 
-      <div className="department-table-wrap">
-        {loading ? (
-          <div className="department-empty">
-            <p>{t('loadingList')}</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="department-empty">
-            <p>{items.length === 0 ? t('absenceRequestsNoNotices') : t('noResults')}</p>
-          </div>
-        ) : (
-          <table className="department-table">
-            <thead>
-              <tr>
-                <th>{t('absenceRequestsStudent')}</th>
-                <th>{t('absenceRequestsDate')}</th>
-                <th>{t('absenceRequestsSubject')}</th>
-                <th>{t('absenceRequestsLessonType')}</th>
-                <th>{t('absenceRequestsStatus')}</th>
-                <th>{t('absenceRequestsActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((item) => {
-                const studentName = item.student?.displayName ?? item.student?.studentId ?? '—';
-                const lessonDate = item.lesson?.date ?? item.notice.submittedAt.slice(0, 10);
-                const subject = getSubjectDisplay(item);
-                const status = item.notice.status;
-                const variant = getStatusBadgeVariant(status);
-                const lessonLink = lessonUrl(item.notice.lessonSessionId);
-                const lessonTypeValue = getLessonType(item);
-                const lessonTypeLabelRow = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
-                return (
-                  <tr key={item.notice.id}>
-                    <td>
-                      <Link to={lessonLink} className="absence-requests-student-link">
-                        {studentName}
-                      </Link>
-                    </td>
-                    <td>{formatDate(lessonDate, locale)}</td>
-                    <td>{subject}</td>
-                    <td>{lessonTypeLabelRow}</td>
-                    <td>
-                      <span className={`absence-status-badge absence-status-badge--${variant}`}>
-                        {variant === 'approved' && <Check className="absence-status-icon" aria-hidden />}
-                        {variant === 'pending' && <Clock className="absence-status-icon" aria-hidden />}
-                        {variant === 'rejected' && <X className="absence-status-icon" aria-hidden />}
-                        {t(getStatusLabelKey(status))}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="department-table-actions">
-                        {isPending(status) ? (
-                          <button
-                            type="button"
-                            className="department-table-btn department-table-btn--primary"
-                            onClick={() => openReview(item)}
-                            title={t('absenceRequestsActionReview')}
-                            aria-label={t('absenceRequestsActionReview')}
-                          >
-                            {t('absenceRequestsActionReview')}
-                          </button>
-                        ) : (
-                          <>
+  return (
+    <div className="entity-view-page department-form-page ed-page">
+      <PageHero
+        icon={<ClipboardList size={28} />}
+        title={t('absenceRequestsTitle')}
+        subtitle={t('absenceRequestsSubtitle')}
+      />
+
+      <AbsenceRequestsFiltersBar
+        statusValue={statusFilter}
+        onStatusChange={(v) => setStatusFilter(v as StatusFilterValue)}
+        statusOptions={TEACHER_STATUS_OPTIONS}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        showSubjectSelect
+        subjectValue={subjectFilter}
+        onSubjectChange={setSubjectFilter}
+        subjectOptions={subjectOptions}
+        showGroupSelect
+        groupValue={groupFilter}
+        onGroupChange={setGroupFilter}
+        groupOptions={groupOptions}
+        t={t}
+      />
+
+      {error && (
+        <Alert variant="error" role="alert" className="ed-card">
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert variant="success" role="status" className="ed-card">
+          {success}
+        </Alert>
+      )}
+
+      <SectionCard icon={<ClipboardList size={18} />} title={t('absenceRequestsTitle')}>
+        <div className="department-table-wrap">
+          {loading ? (
+            <div className="department-empty">
+              <p>{t('loadingList')}</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="department-empty">
+              <p>{items.length === 0 ? t('absenceRequestsNoNotices') : t('noResults')}</p>
+            </div>
+          ) : (
+            <table className="department-table">
+              <thead>
+                <tr>
+                  <th>{t('absenceRequestsStudent')}</th>
+                  <th>{t('absenceRequestsDate')}</th>
+                  <th>{t('absenceRequestsSubject')}</th>
+                  <th>{t('absenceRequestsLessonType')}</th>
+                  <th>{t('absenceRequestsStatus')}</th>
+                  <th>{t('absenceRequestsActions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((item) => {
+                  const studentName = item.student?.displayName ?? item.student?.studentId ?? '—';
+                  const lessonDate = item.lesson?.date ?? item.notice.submittedAt.slice(0, 10);
+                  const subject = getSubjectDisplay(item);
+                  const status = item.notice.status;
+                  const variant = getStatusBadgeVariant(status);
+                  const lessonLink = lessonUrl(item.notice.lessonSessionId);
+                  const lessonTypeValue = getLessonType(item);
+                  const lessonTypeLabelRow = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
+                  return (
+                    <tr key={item.notice.id}>
+                      <td>
+                        <Link to={lessonLink} className="absence-requests-student-link">
+                          {studentName}
+                        </Link>
+                      </td>
+                      <td>{formatDate(lessonDate, locale)}</td>
+                      <td>{subject}</td>
+                      <td>{lessonTypeLabelRow}</td>
+                      <td>
+                        <span className={`absence-status-badge absence-status-badge--${variant}`}>
+                          {variant === 'approved' && <Check className="absence-status-icon" aria-hidden />}
+                          {variant === 'pending' && <Clock className="absence-status-icon" aria-hidden />}
+                          {variant === 'rejected' && <X className="absence-status-icon" aria-hidden />}
+                          {t(getStatusLabelKey(status))}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="department-table-actions">
+                          {isPending(status) ? (
                             <button
                               type="button"
-                              className="department-table-btn"
+                              className="department-table-btn department-table-btn--primary"
                               onClick={() => openReview(item)}
-                              title={t('absenceRequestsActionView')}
-                              aria-label={t('absenceRequestsActionView')}
+                              title={t('absenceRequestsActionReview')}
+                              aria-label={t('absenceRequestsActionReview')}
                             >
-                              {t('absenceRequestsActionView')}
+                              {t('absenceRequestsActionReview')}
                             </button>
-                            <Link
-                              to={lessonLink}
-                              className="department-table-btn department-table-btn-link"
-                              title={t('absenceRequestsGoToLesson')}
-                            >
-                              {t('absenceRequestsGoToLesson')}
-                            </Link>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {!loading && nextCursor != null && (
-        <div className="department-page-load-more">
-          <button
-            type="button"
-            className="department-page-load-more-btn"
-            disabled={loadingMore}
-            onClick={loadMore}
-          >
-            {loadingMore ? t('loadingList') : t('absenceRequestsLoadMore')}
-          </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="department-table-btn"
+                                onClick={() => openReview(item)}
+                                title={t('absenceRequestsActionView')}
+                                aria-label={t('absenceRequestsActionView')}
+                              >
+                                {t('absenceRequestsActionView')}
+                              </button>
+                              <Link
+                                to={lessonLink}
+                                className="department-table-btn department-table-btn-link"
+                                title={t('absenceRequestsGoToLesson')}
+                              >
+                                {t('absenceRequestsGoToLesson')}
+                              </Link>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
-      )}
+
+        {!loading && nextCursor != null && (
+          <div className="department-page-load-more">
+            <button
+              type="button"
+              className="department-page-load-more-btn"
+              disabled={loadingMore}
+              onClick={loadMore}
+            >
+              {loadingMore ? t('loadingList') : t('absenceRequestsLoadMore')}
+            </button>
+          </div>
+        )}
+      </SectionCard>
 
       <Modal
         open={reviewItem != null}
@@ -588,6 +519,6 @@ export function AbsenceRequestsPage() {
           </div>
         )}
       </Modal>
-    </EntityListLayout>
+    </div>
   );
 }

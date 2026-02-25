@@ -6,6 +6,7 @@ export interface AlertProps {
   variant: AlertVariant;
   children: ReactNode;
   role?: string;
+  className?: string;
 }
 
 const variantClass: Record<AlertVariant, string> = {
@@ -14,9 +15,10 @@ const variantClass: Record<AlertVariant, string> = {
   info: 'department-alert department-alert--info',
 };
 
-export function Alert({ variant, children, role = 'alert' }: AlertProps) {
+export function Alert({ variant, children, role = 'alert', className }: AlertProps) {
+  const cn = [variantClass[variant], className].filter(Boolean).join(' ');
   return (
-    <div className={variantClass[variant]} role={role}>
+    <div className={cn} role={role}>
       {children}
     </div>
   );

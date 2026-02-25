@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { BookOpen, Users } from 'lucide-react';
+import { BookOpen, Calendar, GraduationCap, Users } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
 import { getTeacherMySubjects } from '../../../../shared/api';
 import type { TeacherSubjectListItemDto, GroupInfoDto } from '../../../../shared/api';
-import { Alert, SubjectCard, SemesterFilterSelect } from '../../../../shared/ui';
+import {
+  Alert,
+  SubjectCard,
+  SemesterFilterSelect,
+  PageHero,
+  SectionCard,
+} from '../../../../shared/ui';
 import { useSemesterFilter } from '../../../../shared/hooks/useSemesterFilter';
 import { getSubjectDisplayNameFromListItem } from '../../../../shared/lib';
 
@@ -54,14 +60,26 @@ export function SubjectsPage() {
     loadSubjects(selectedSemesterNumber);
   }, [filterLoading, selectedSemesterNumber, loadSubjects]);
 
-  const filteredSubjects = subjects;
-
   return (
-    <section className="entity-view-card" style={{ marginTop: '1rem' }}>
-      <h2 className="entity-view-card-title">{t('teacherSubjectsTitle')}</h2>
-      <p className="entity-view-card-subtitle">{t('teacherSubjectsSubtitle')}</p>
+    <div className="entity-view-page department-form-page ed-page">
+      <PageHero
+        icon={<GraduationCap size={28} />}
+        title={t('teacherSubjectsTitle')}
+        subtitle={t('teacherSubjectsSubtitle')}
+      />
 
-      <div className="teacher-subjects-page-header">
+      {error && (
+        <div style={{ marginBottom: '1rem' }}>
+          <Alert variant="error" role="alert">
+            {error}
+          </Alert>
+        </div>
+      )}
+
+      <SectionCard
+        icon={<Calendar size={18} />}
+        title={t('teacherSubjectSemesterLabel')}
+      >
         <SemesterFilterSelect
           id="teacher-subjects-semester"
           label={t('teacherSubjectSemesterLabel')}
@@ -73,44 +91,38 @@ export function SubjectsPage() {
           onChange={handleSemesterChange}
           options={semesterOptions}
           ariaLabel={t('teacherSubjectsSemesterPlaceholder')}
-          className="teacher-subjects-semester-row"
         />
-      </div>
+      </SectionCard>
 
-      {error && (
-        <div style={{ marginBottom: '1rem' }}>
-          <Alert variant="error" role="alert">
-            {error}
-          </Alert>
-        </div>
-      )}
-
-      {loading ? (
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-          {t('loading')}
-        </p>
-      ) : filteredSubjects.length === 0 ? (
-        <div className="curriculum-subjects-empty" style={{ padding: '2rem 0' }}>
-          {t('teacherSubjectsEmpty')}
-        </div>
-      ) : (
-        <div className="subject-card-grid">
-          {filteredSubjects.map((item) => (
-            <SubjectCard
-              key={item.curriculumSubjectId}
-              title={getSubjectDisplayNameFromListItem(item, locale)}
-              subjectCode={item.subjectCode}
-              departmentLabel={t('teacherSubjectDepartment')}
-              departmentName={item.departmentName}
-              departmentIcon={<BookOpen />}
-              secondaryLabel={t('teacherSubjectGroups')}
-              secondaryValue={groupDisplayList(item.groups)}
-              secondaryIcon={<Users />}
-              to={`/dashboards/teacher/subjects/${item.curriculumSubjectId}`}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('teacherSubjectsTitle')}
+      >
+        {loading ? (
+          <p className="ed-empty" style={{ margin: 0, color: '#6b7280' }}>
+            {t('loading')}
+          </p>
+        ) : subjects.length === 0 ? (
+          <p className="ed-empty">{t('teacherSubjectsEmpty')}</p>
+        ) : (
+          <div className="subject-card-grid">
+            {subjects.map((item) => (
+              <SubjectCard
+                key={item.curriculumSubjectId}
+                title={getSubjectDisplayNameFromListItem(item, locale)}
+                subjectCode={item.subjectCode}
+                departmentLabel={t('teacherSubjectDepartment')}
+                departmentName={item.departmentName}
+                departmentIcon={<BookOpen />}
+                secondaryLabel={t('teacherSubjectGroups')}
+                secondaryValue={groupDisplayList(item.groups)}
+                secondaryIcon={<Users />}
+                to={`/dashboards/teacher/subjects/${item.curriculumSubjectId}`}
+              />
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </div>
   );
 }

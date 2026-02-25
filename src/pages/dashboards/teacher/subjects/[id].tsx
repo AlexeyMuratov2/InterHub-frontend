@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { ArrowLeft, BookOpen, FileText, Plus, X } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
-import type { Locale } from '../../../../shared/i18n';
 import {
   getTeacherSubjectDetail,
   uploadFile,
@@ -15,22 +15,21 @@ import type {
   CourseMaterialInfoDto,
   GroupSubjectOfferingInfoDto,
 } from '../../../../shared/api';
-import { Alert, FileCard, FileUploadArea } from '../../../../shared/ui';
-import { BookOpen, Plus, X } from 'lucide-react';
+import {
+  Alert,
+  BackLink,
+  PageHero,
+  SectionCard,
+  InfoTile,
+  FileCard,
+  FileUploadArea,
+} from '../../../../shared/ui';
+import { getSubjectDisplayName } from '../../../../shared/lib';
 
-function subjectDisplayNameByLocale(
-  subject: TeacherSubjectDetailDto['subject'],
-  locale: Locale
-): string {
-  if (locale === 'zh-Hans') {
-    return subject.chineseName || subject.englishName || subject.code || '—';
-  }
-  return subject.englishName || subject.chineseName || subject.code || '—';
-}
+const SUBJECTS_BACK_PATH = '/dashboards/teacher/subjects';
 
 export function SubjectDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
@@ -42,7 +41,6 @@ export function SubjectDetailPage() {
 
   const [selectedOffering, setSelectedOffering] = useState<GroupSubjectOfferingInfoDto | null>(null);
 
-  // Material upload state
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [addMaterialOpen, setAddMaterialOpen] = useState(false);
@@ -66,7 +64,6 @@ export function SubjectDetailPage() {
       setSubjectDetail(null);
     } else {
       setSubjectDetail(res.data ?? null);
-      // Set first offering as selected for course materials tab
       if (res.data?.offerings?.[0]) {
         setSelectedOffering(res.data.offerings[0]);
       }
@@ -163,7 +160,6 @@ export function SubjectDetailPage() {
         return;
       }
 
-      // Reload materials
       if (selectedOffering) {
         const materialsRes = await getOfferingMaterials(selectedOffering.id);
         if (materialsRes.data) {
@@ -181,182 +177,108 @@ export function SubjectDetailPage() {
 
   if (loading) {
     return (
-      <section className="entity-view-card" style={{ marginTop: '1rem' }}>
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('loading')}</p>
-      </section>
+      <div className="entity-view-page department-form-page">
+        <div className="entity-view-card">
+          <p style={{ margin: 0, color: '#6b7280' }}>{t('loading')}</p>
+        </div>
+      </div>
     );
   }
 
-  if (notFound) {
+  if (notFound || error) {
     return (
-      <section className="entity-view-card" style={{ marginTop: '1rem' }}>
-        <h2 className="entity-view-card-title">{t('teacherSubjectDetailNotFound')}</h2>
-        <p>{t('teacherSubjectDetailNotFoundMessage')}</p>
-        <Link to="/dashboards/teacher/subjects" className="btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
-          {t('backToSubjects')}
-        </Link>
-      </section>
-    );
-  }
-
-  if (error || !subjectDetail) {
-    return (
-      <section className="entity-view-card" style={{ marginTop: '1rem' }}>
+      <div className="entity-view-page department-form-page">
         <Alert variant="error" role="alert">
-          {error ?? t('teacherSubjectDetailErrorLoad')}
+          {notFound ? t('teacherSubjectDetailNotFound') : error}
         </Alert>
-        <Link to="/dashboards/teacher/subjects" className="btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
+        <BackLink to={SUBJECTS_BACK_PATH} icon={<ArrowLeft size={16} />}>
           {t('backToSubjects')}
-        </Link>
-      </section>
+        </BackLink>
+      </div>
     );
   }
+
+  if (!subjectDetail) return null;
 
   const { subject, curriculumSubject } = subjectDetail;
+  const subjectName = getSubjectDisplayName(subject, locale);
 
   return (
-    <section className="entity-view-card" style={{ marginTop: '1rem' }}>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link to="/dashboards/teacher/subjects" style={{ color: '#0284c7', textDecoration: 'none' }}>
-          ← {t('backToSubjects')}
-        </Link>
-      </div>
+    <div className="entity-view-page department-form-page ed-page">
+      <BackLink to={SUBJECTS_BACK_PATH} icon={<ArrowLeft size={16} />}>
+        {t('backToSubjects')}
+      </BackLink>
 
-      {/* Subject Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem' }}>
-        <BookOpen style={{ width: '2rem', height: '2rem', color: '#64748b', marginTop: '0.25rem' }} />
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, marginBottom: '0.5rem' }}>
-            {subjectDisplayNameByLocale(subject, locale)}
-          </h1>
-          <p style={{ fontSize: '1rem', color: '#64748b', margin: 0, marginBottom: '0.25rem' }}>
-            {subject.code}
-          </p>
+      <PageHero
+        icon={<BookOpen size={28} />}
+        title={subjectName}
+        subtitle={subject.code ?? undefined}
+        meta={
+          subject.departmentName
+            ? curriculumSubject.credits != null
+              ? `${subject.departmentName} · ${curriculumSubject.credits} ${t('credits')}`
+              : subject.departmentName
+            : curriculumSubject.credits != null
+              ? `${curriculumSubject.credits} ${t('credits')}`
+              : undefined
+        }
+      />
+
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('studentSubjectInfoSubjectTitle')}
+      >
+        <div className="ed-info-grid">
+          {subject.departmentName && (
+            <InfoTile label={t('teacherSubjectDepartment')} value={subject.departmentName} />
+          )}
           {curriculumSubject.credits != null && (
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-              {curriculumSubject.credits} {t('credits')}
-            </p>
+            <InfoTile label={t('credits')} value={String(curriculumSubject.credits)} />
+          )}
+          {curriculumSubject.hoursTotal != null && (
+            <InfoTile label={t('teacherSubjectTotalHours')} value={`${curriculumSubject.hoursTotal}h`} />
+          )}
+          {curriculumSubject.durationWeeks != null && (
+            <InfoTile
+              label={t('teacherSubjectDuration')}
+              value={`${t('week')} ${curriculumSubject.semesterNo}-${curriculumSubject.semesterNo + curriculumSubject.durationWeeks - 1}`}
+            />
+          )}
+          {curriculumSubject.assessmentTypeName && (
+            <InfoTile
+              label={t('teacherSubjectAssessmentType')}
+              value={curriculumSubject.assessmentTypeName}
+            />
           )}
         </div>
-      </div>
+        {subject.description && (
+          <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <p style={{ margin: 0, color: '#475569', lineHeight: '1.6', fontSize: '0.9375rem' }}>{subject.description}</p>
+          </div>
+        )}
+      </SectionCard>
 
-      {/* Description */}
-      {subject.description && (
-        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-          <p style={{ margin: 0, color: '#475569', lineHeight: '1.6' }}>{subject.description}</p>
-        </div>
-      )}
-
-      {/* Info Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        {subject.departmentName && (
-          <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-              {t('teacherSubjectDepartment')}
-            </div>
-            <div style={{ fontSize: '1rem', fontWeight: 500 }}>{subject.departmentName}</div>
-          </div>
-        )}
-        {curriculumSubject.hoursTotal != null && (
-          <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-              {t('teacherSubjectTotalHours')}
-            </div>
-            <div style={{ fontSize: '1rem', fontWeight: 500 }}>{curriculumSubject.hoursTotal}h</div>
-          </div>
-        )}
-        {curriculumSubject.durationWeeks && (
-          <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-              {t('teacherSubjectDuration')}
-            </div>
-            <div style={{ fontSize: '1rem', fontWeight: 500 }}>
-              {t('week')} {curriculumSubject.semesterNo}-{curriculumSubject.semesterNo + curriculumSubject.durationWeeks - 1}
-            </div>
-          </div>
-        )}
-        {curriculumSubject.assessmentTypeName && (
-          <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
-              {t('teacherSubjectAssessmentType')}
-            </div>
-            <div style={{ fontSize: '1rem', fontWeight: 500 }}>{curriculumSubject.assessmentTypeName}</div>
-          </div>
-        )}
-      </div>
-
-      {/* Materials section */}
-      <div
-        className="subject-materials-section"
-        style={{
-          marginTop: '2rem',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid #e2e8f0',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            marginBottom: '1.25rem',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 600,
-              margin: 0,
-              color: '#0f172a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#0284c7' }} />
-            {t('teacherSubjectTabCourseMaterials')}
-          </h2>
-          {subjectDetail.offerings.length > 0 && (
+      <SectionCard
+        icon={<FileText size={18} />}
+        title={t('teacherSubjectTabCourseMaterials')}
+        action={
+          subjectDetail.offerings.length > 0 ? (
             <button
               type="button"
+              className="ed-absence-action__btn"
               onClick={() => setAddMaterialOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 1rem',
-                backgroundColor: '#0284c7',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              }}
             >
-              <Plus style={{ width: '1rem', height: '1rem' }} />
+              <Plus size={18} />
               {t('teacherSubjectAddMaterial')}
             </button>
-          )}
-        </div>
-
-        {/* Offering selector */}
+          ) : undefined
+        }
+      >
         {subjectDetail.offerings.length > 1 && (
-          <div
-            style={{
-              marginBottom: '1.25rem',
-              padding: '1rem',
-              backgroundColor: '#f8fafc',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-            }}
-          >
+          <div style={{ marginBottom: '1rem' }}>
             <label
               htmlFor="offering-select"
-              style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#475569' }}
+              style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}
             >
               {t('teacherSubjectSelectGroup')}
             </label>
@@ -367,16 +289,8 @@ export function SubjectDetailPage() {
                 const offering = subjectDetail.offerings.find((o) => o.id === e.target.value);
                 setSelectedOffering(offering ?? null);
               }}
-              style={{
-                padding: '0.5rem 0.75rem',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                width: '100%',
-                maxWidth: '320px',
-                fontSize: '0.9375rem',
-                backgroundColor: '#fff',
-                color: '#0f172a',
-              }}
+              className="form-control"
+              style={{ maxWidth: '320px' }}
             >
               {subjectDetail.offerings.map((offering) => (
                 <option key={offering.id} value={offering.id}>
@@ -387,7 +301,6 @@ export function SubjectDetailPage() {
           </div>
         )}
 
-        {/* Add Material Modal */}
         {addMaterialOpen && (
           <div
             style={{
@@ -412,6 +325,7 @@ export function SubjectDetailPage() {
             <div
               role="dialog"
               aria-labelledby="add-material-title"
+              className="department-modal"
               style={{
                 backgroundColor: '#fff',
                 borderRadius: '12px',
@@ -430,7 +344,12 @@ export function SubjectDetailPage() {
                 </h3>
                 <button
                   type="button"
-                  onClick={() => { if (!uploading) { setAddMaterialOpen(false); setUploadError(null); } }}
+                  onClick={() => {
+                    if (!uploading) {
+                      setAddMaterialOpen(false);
+                      setUploadError(null);
+                    }
+                  }}
                   disabled={uploading}
                   aria-label={t('lessonModalClose')}
                   style={{
@@ -452,166 +371,113 @@ export function SubjectDetailPage() {
               </div>
 
               <div style={{ padding: '1.5rem' }}>
-                      {uploadError && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <Alert variant="error" role="alert">
-                            {uploadError}
-                          </Alert>
-                        </div>
-                      )}
+                {uploadError && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <Alert variant="error" role="alert">
+                      {uploadError}
+                    </Alert>
+                  </div>
+                )}
 
-                      {/* Material Name */}
-                      <div style={{ marginBottom: '1.25rem' }}>
-                        <label htmlFor="material-title" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                          {t('teacherSubjectMaterialTitle')}
-                        </label>
-                        <input
-                          id="material-title"
-                          type="text"
-                          value={materialTitle}
-                          onChange={(e) => setMaterialTitle(e.target.value)}
-                          disabled={uploading}
-                          placeholder={t('teacherSubjectMaterialTitlePlaceholder')}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '8px',
-                            border: '1px solid #d1d5db',
-                            backgroundColor: '#fff',
-                            fontSize: '0.9375rem',
-                            color: '#0f172a',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                  <label htmlFor="material-title" className="form-label">
+                    {t('teacherSubjectMaterialTitle')}
+                  </label>
+                  <input
+                    id="material-title"
+                    type="text"
+                    className="form-control"
+                    value={materialTitle}
+                    onChange={(e) => setMaterialTitle(e.target.value)}
+                    disabled={uploading}
+                    placeholder={t('teacherSubjectMaterialTitlePlaceholder')}
+                  />
+                </div>
 
-                      {/* Description */}
-                      <div style={{ marginBottom: '1.25rem' }}>
-                        <label htmlFor="material-description" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                          {t('teacherSubjectMaterialDescription')}
-                        </label>
-                        <textarea
-                          id="material-description"
-                          value={materialDescription}
-                          onChange={(e) => setMaterialDescription(e.target.value)}
-                          disabled={uploading}
-                          placeholder={t('teacherSubjectMaterialDescriptionPlaceholder')}
-                          rows={3}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '8px',
-                            border: '1px solid #d1d5db',
-                            backgroundColor: '#fff',
-                            fontSize: '0.9375rem',
-                            color: '#0f172a',
-                            resize: 'vertical',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                  <label htmlFor="material-description" className="form-label">
+                    {t('teacherSubjectMaterialDescription')}
+                  </label>
+                  <textarea
+                    id="material-description"
+                    className="form-control"
+                    value={materialDescription}
+                    onChange={(e) => setMaterialDescription(e.target.value)}
+                    disabled={uploading}
+                    placeholder={t('teacherSubjectMaterialDescriptionPlaceholder')}
+                    rows={3}
+                    style={{ resize: 'vertical' }}
+                  />
+                </div>
 
-                      {/* Upload files: multiple allowed, list with remove */}
-                      <div style={{ marginBottom: '1.5rem' }}>
-                        <FileUploadArea
-                          items={selectedFiles.map((file) => ({ file }))}
-                          onAdd={handleFilesAdd}
-                          onRemove={handleFileRemove}
-                          disabled={uploading}
-                          multiple
-                          label={t('teacherSubjectMaterialFile')}
-                          dropZoneText={t('teacherSubjectClickToUploadMultiple')}
-                          buttonText={t('teacherSubjectUploadFile')}
-                          inputId="material-files"
-                          deleteTitle={t('remove')}
-                          uploadingText={t('uploading')}
-                        />
-                      </div>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <FileUploadArea
+                    items={selectedFiles.map((file) => ({ file }))}
+                    onAdd={handleFilesAdd}
+                    onRemove={handleFileRemove}
+                    disabled={uploading}
+                    multiple
+                    label={t('teacherSubjectMaterialFile')}
+                    dropZoneText={t('teacherSubjectClickToUploadMultiple')}
+                    buttonText={t('teacherSubjectUploadFile')}
+                    inputId="material-files"
+                    deleteTitle={t('remove')}
+                    uploadingText={t('uploading')}
+                  />
+                </div>
 
-                      {/* Actions */}
-                      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                        <button
-                          type="button"
-                          onClick={() => { setAddMaterialOpen(false); setUploadError(null); }}
-                          disabled={uploading}
-                          style={{
-                            padding: '0.5rem 1.25rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            backgroundColor: '#fff',
-                            color: '#374151',
-                            fontSize: '0.9375rem',
-                            fontWeight: 500,
-                            cursor: uploading ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          {t('cancel')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleUploadMaterial}
-                          disabled={uploading || selectedFiles.length === 0 || !materialTitle.trim()}
-                          style={{
-                            padding: '0.5rem 1.25rem',
-                            border: 'none',
-                            borderRadius: '8px',
-                            backgroundColor: '#0284c7',
-                            color: '#fff',
-                            fontSize: '0.9375rem',
-                            fontWeight: 600,
-                            cursor: uploading ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          {uploading ? t('uploading') : t('teacherSubjectAddMaterial')}
-                        </button>
-                      </div>
+                <div className="form-actions" style={{ justifyContent: 'flex-end', gap: '0.75rem' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      setAddMaterialOpen(false);
+                      setUploadError(null);
+                    }}
+                    disabled={uploading}
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleUploadMaterial}
+                    disabled={uploading || selectedFiles.length === 0 || !materialTitle.trim()}
+                  >
+                    {uploading ? t('uploading') : t('teacherSubjectAddMaterial')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Materials List */}
         {selectedOffering ? (
           selectedOffering.materials.length === 0 ? (
-            <div
-              style={{
-                padding: '2.5rem 1.5rem',
-                textAlign: 'center',
-                color: '#64748b',
-                backgroundColor: '#f8fafc',
-                borderRadius: '8px',
-                border: '1px dashed #e2e8f0',
-              }}
-            >
-              <p style={{ margin: 0, fontSize: '0.9375rem' }}>{t('teacherSubjectNoMaterials')}</p>
+            <p className="ed-empty">
+              {t('teacherSubjectNoMaterials')}
               {subjectDetail.offerings.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setAddMaterialOpen(true)}
                   style={{
-                    marginTop: '1rem',
-                    padding: '0.5rem 1rem',
-                    backgroundColor: 'transparent',
-                    color: '#0284c7',
-                    border: '1px solid #0284c7',
-                    borderRadius: '6px',
+                    marginLeft: '0.75rem',
+                    padding: '0.35rem 0.75rem',
                     fontSize: '0.875rem',
                     fontWeight: 500,
+                    color: '#2563eb',
+                    background: 'transparent',
+                    border: '1px solid #2563eb',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                   }}
                 >
                   {t('teacherSubjectAddMaterial')}
                 </button>
               )}
-            </div>
+            </p>
           ) : (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              }}
-            >
+            <div className="ed-material-list">
               {selectedOffering.materials.map((material) => (
                 <FileCard
                   key={material.id}
@@ -626,20 +492,9 @@ export function SubjectDetailPage() {
             </div>
           )
         ) : (
-          <div
-            style={{
-              padding: '2.5rem 1.5rem',
-              textAlign: 'center',
-              color: '#64748b',
-              backgroundColor: '#f8fafc',
-              borderRadius: '8px',
-              border: '1px dashed #e2e8f0',
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '0.9375rem' }}>{t('teacherSubjectNoOfferings')}</p>
-          </div>
+          <p className="ed-empty">{t('teacherSubjectNoOfferings')}</p>
         )}
-      </div>
-    </section>
+      </SectionCard>
+    </div>
   );
 }

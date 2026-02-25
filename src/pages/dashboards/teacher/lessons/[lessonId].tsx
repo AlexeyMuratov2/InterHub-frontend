@@ -28,16 +28,19 @@ import type {
 } from '../../../../shared/api';
 import {
   Alert,
+  BackLink,
+  PageHero,
+  SectionCard,
+  LessonInfoGrid,
   LessonEditModal,
   LessonMaterialModal,
   ConfirmModal,
   HomeworkModal,
-  LessonOverviewCard,
   LessonMaterialItemView,
   HomeworkItemView,
 } from '../../../../shared/ui';
 import { getSubjectDisplayName, getStudentDisplayName } from '../../../../shared/lib';
-import { ArrowLeft, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, ClipboardList, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
 
 const LESSONS_LIST_PATH = '/dashboards/teacher/lessons';
 
@@ -420,9 +423,9 @@ export function LessonFullDetailsPage() {
 
   if (loading) {
     return (
-      <div className="entity-view-page department-form-page">
-        <div className="entity-view-card">
-          <p style={{ margin: 0, color: '#6b7280' }}>{t('loading')}</p>
+      <div className="entity-view-page department-form-page ed-page">
+        <div className="entity-view-card ed-card">
+          <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
         </div>
       </div>
     );
@@ -430,14 +433,13 @@ export function LessonFullDetailsPage() {
 
   if (notFound || error) {
     return (
-      <div className="entity-view-page department-form-page">
+      <div className="entity-view-page department-form-page ed-page">
         <Alert variant="error" role="alert">
           {notFound ? t('teacherSubjectDetailNotFoundMessage') : error}
         </Alert>
-        <Link to={LESSONS_LIST_PATH} className="btn-secondary" style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ArrowLeft style={{ width: '1rem', height: '1rem' }} />
+        <BackLink to={LESSONS_LIST_PATH} icon={<ArrowLeft size={16} />}>
           {t('lessonDetailsBackToLessons')}
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -447,39 +449,48 @@ export function LessonFullDetailsPage() {
   }
 
   const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials } = data;
+  const subjectName = getSubjectDisplayName(subject, locale);
+  const dateTimeSubtitle =
+    lessonDetails.date && lessonDetails.startTime && lessonDetails.endTime
+      ? `${lessonDetails.date} ${lessonDetails.startTime.slice(0, 5)} – ${lessonDetails.endTime.slice(0, 5)}`
+      : lessonDetails.date ?? '';
 
   return (
-    <div className="entity-view-page department-form-page">
-      <div style={{ marginBottom: '1.25rem' }}>
-        <Link
-          to={LESSONS_LIST_PATH}
-          className="btn-secondary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
-        >
-          <ArrowLeft style={{ width: '1rem', height: '1rem' }} aria-hidden />
-          {t('lessonDetailsBackToLessons')}
-        </Link>
-      </div>
+    <div className="entity-view-page department-form-page ed-page">
+      <BackLink to={LESSONS_LIST_PATH} icon={<ArrowLeft size={16} />}>
+        {t('lessonDetailsBackToLessons')}
+      </BackLink>
 
-      <LessonOverviewCard
-        lesson={lessonDetails}
-        subject={subject}
-        room={room}
-        mainTeacher={mainTeacher}
-        offeringSlot={offeringSlot}
-        actions={
-          <button
-            type="button"
-            className="btn-secondary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-            onClick={handleEditClick}
-            disabled={!lesson}
-          >
-            <Pencil style={{ width: '1rem', height: '1rem' }} aria-hidden />
-            {t('lessonDetailsEditLesson')}
-          </button>
-        }
-      />
+      <PageHero
+        icon={<BookOpen size={28} />}
+        title={subjectName}
+        subtitle={dateTimeSubtitle}
+      >
+        <button
+          type="button"
+          className="btn-secondary"
+          style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          onClick={handleEditClick}
+          disabled={!lesson}
+        >
+          <Pencil size={16} aria-hidden />
+          {t('lessonDetailsEditLesson')}
+        </button>
+      </PageHero>
+
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('groupSubjectInfoSubject')}
+      >
+        <LessonInfoGrid
+          lesson={lessonDetails}
+          subject={subject}
+          room={room}
+          mainTeacher={mainTeacher}
+          offeringSlot={offeringSlot}
+          showTeacherTile={true}
+        />
+      </SectionCard>
 
       {/* Edit Lesson Modal */}
       {lesson && (
@@ -555,28 +566,26 @@ export function LessonFullDetailsPage() {
         confirmDisabled={deleting}
       />
 
-      {/* Two columns: Materials | Homework */}
-      <div className="lesson-details-grid">
-        {/* Lesson Materials */}
-        <section className="entity-view-card" style={{ padding: '1.25rem 1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className="entity-view-card-title" style={{ margin: 0 }}>
-              {t('lessonDetailsLessonMaterials')}
-            </h2>
+      <div className="ed-content-grid">
+        <SectionCard
+          icon={<FileText size={18} />}
+          title={t('lessonDetailsLessonMaterials')}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               type="button"
               className="btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
               onClick={handleAddMaterialClick}
             >
-              <Plus style={{ width: '1rem', height: '1rem' }} aria-hidden />
+              <Plus size={16} aria-hidden />
               {t('lessonDetailsAddMaterial')}
             </button>
           </div>
           {materials.length === 0 ? (
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('lessonDetailsNoMaterials')}</p>
+            <p className="ed-empty">{t('lessonDetailsNoMaterials')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {materials.map((material) => (
                 <LessonMaterialItemView
                   key={material.id}
@@ -592,7 +601,7 @@ export function LessonFullDetailsPage() {
                         onClick={() => handleEditMaterialClick(material)}
                         title={t('edit')}
                       >
-                        <Pencil style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                        <Pencil size={14} aria-hidden />
                       </button>
                       <button
                         type="button"
@@ -601,7 +610,7 @@ export function LessonFullDetailsPage() {
                         onClick={() => handleDeleteMaterialClick(material)}
                         title={t('delete')}
                       >
-                        <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                        <Trash2 size={14} aria-hidden />
                       </button>
                     </>
                   }
@@ -609,28 +618,27 @@ export function LessonFullDetailsPage() {
               ))}
             </div>
           )}
-        </section>
+        </SectionCard>
 
-        {/* Homework Assignment */}
-        <section className="entity-view-card" style={{ padding: '1.25rem 1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className="entity-view-card-title" style={{ margin: 0 }}>
-              {t('lessonDetailsHomeworkAssignment')}
-            </h2>
+        <SectionCard
+          icon={<ClipboardList size={18} />}
+          title={t('lessonDetailsHomeworkAssignment')}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               type="button"
               className="btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
               onClick={handleAddHomeworkClick}
             >
-              <Plus style={{ width: '1rem', height: '1rem' }} aria-hidden />
+              <Plus size={16} aria-hidden />
               {t('lessonDetailsAddHomework')}
             </button>
           </div>
           {homeworkList.length === 0 ? (
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('lessonDetailsNoHomework')}</p>
+            <p className="ed-empty">{t('lessonDetailsNoHomework')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {homeworkList.map((hw) => (
                 <HomeworkItemView
                   key={hw.id}
@@ -659,7 +667,7 @@ export function LessonFullDetailsPage() {
                         onClick={() => handleEditHomeworkClick(hw)}
                         title={t('edit')}
                       >
-                        <Pencil style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                        <Pencil size={14} aria-hidden />
                       </button>
                       <button
                         type="button"
@@ -668,7 +676,7 @@ export function LessonFullDetailsPage() {
                         onClick={() => handleDeleteHomeworkClick(hw)}
                         title={t('delete')}
                       >
-                        <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} aria-hidden />
+                        <Trash2 size={14} aria-hidden />
                       </button>
                     </>
                   }
@@ -676,74 +684,32 @@ export function LessonFullDetailsPage() {
               ))}
             </div>
           )}
-        </section>
+        </SectionCard>
       </div>
 
-      {/* Carousel: Students (attendance) + future tabs */}
-      <section
-        className="entity-view-card"
-        style={{
-          marginTop: '1.5rem',
-          padding: 0,
-          overflow: 'hidden',
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-        }}
+      <SectionCard
+        icon={<Users size={18} />}
+        title={t('lessonAttendanceCarouselStudents')}
       >
-        <div
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
-            padding: '0.25rem 0.5rem 0 0.5rem',
-            gap: '0.25rem',
-          }}
-        >
+        <div className="ed-lesson-tabs">
           <button
             type="button"
+            className={'ed-lesson-tabs__btn' + (activeTab === 0 ? ' ed-lesson-tabs__btn--active' : '')}
             onClick={() => setActiveTab(0)}
-            style={{
-              padding: '0.625rem 1rem',
-              border: 'none',
-              borderBottom: activeTab === 0 ? '2px solid #3b82f6' : '2px solid transparent',
-              background: activeTab === 0 ? '#fff' : 'transparent',
-              borderRadius: '8px 8px 0 0',
-              fontWeight: 600,
-              fontSize: '0.9375rem',
-              color: activeTab === 0 ? '#1e40af' : '#64748b',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
           >
-            <Users style={{ width: '1.125rem', height: '1.125rem' }} aria-hidden />
+            <Users size={18} aria-hidden />
             {t('lessonAttendanceCarouselStudents')}
           </button>
           <button
             type="button"
+            className={'ed-lesson-tabs__btn' + (activeTab === 1 ? ' ed-lesson-tabs__btn--active' : '')}
             onClick={() => setActiveTab(1)}
-            style={{
-              padding: '0.625rem 1rem',
-              border: 'none',
-              borderBottom: activeTab === 1 ? '2px solid #3b82f6' : '2px solid transparent',
-              background: activeTab === 1 ? '#fff' : 'transparent',
-              borderRadius: '8px 8px 0 0',
-              fontWeight: 600,
-              fontSize: '0.9375rem',
-              color: activeTab === 1 ? '#1e40af' : '#64748b',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
           >
-            <FileCheck style={{ width: '1.125rem', height: '1.125rem' }} aria-hidden />
+            <FileCheck size={18} aria-hidden />
             {t('lessonHomeworkSubmissionsTab')}
           </button>
         </div>
-
-        <div style={{ padding: '1.25rem 1.5rem', minHeight: '200px' }}>
+        <div className="ed-lesson-tabs-content">
           {activeTab === 0 && (
             <>
               {attendanceError && (
@@ -752,30 +718,16 @@ export function LessonFullDetailsPage() {
                 </div>
               )}
               {attendanceLoading ? (
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>{t('loading')}</p>
+                <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
               ) : rosterData?.rows && rosterData.rows.length > 0 ? (
                 <div style={{ overflowX: 'auto' }}>
-                  <table
-                    style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      fontSize: '0.9375rem',
-                    }}
-                  >
-<thead>
-                    <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                        <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: '#475569' }}>
-                          {t('lessonAttendanceCarouselStudents')}
-                        </th>
-                        <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: '#475569', minWidth: '140px' }}>
-                          {t('attendanceStatusColumn')}
-                        </th>
-                        <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: '#475569', width: '100px' }}>
-                          {t('homeworkPoints')}
-                        </th>
-                        <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: '#475569', minWidth: '140px' }}>
-                          {t('attendanceAbsenceNotice')}
-                        </th>
+                  <table className="ed-attendance-table">
+                    <thead>
+                      <tr>
+                        <th>{t('lessonAttendanceCarouselStudents')}</th>
+                        <th style={{ minWidth: '140px' }}>{t('attendanceStatusColumn')}</th>
+                        <th style={{ width: '100px' }}>{t('homeworkPoints')}</th>
+                        <th style={{ minWidth: '140px' }}>{t('attendanceAbsenceNotice')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -796,7 +748,7 @@ export function LessonFullDetailsPage() {
                   </table>
                 </div>
               ) : (
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>
+                <p className="ed-empty" style={{ margin: 0 }}>
                   {!rosterData
                     ? null
                     : rosterData.rows.length === 0
@@ -810,8 +762,7 @@ export function LessonFullDetailsPage() {
             <LessonHomeworkSubmissionsTab lessonId={lessonId} />
           )}
         </div>
-      </section>
-
+      </SectionCard>
     </div>
   );
 }
