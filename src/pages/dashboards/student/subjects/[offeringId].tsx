@@ -399,7 +399,8 @@ function MaterialRow({
           onClick={() => onDownload(material.file.id)}
           title={t('download')}
         >
-          <Download size={16} />
+          <Download style={{ width: '1.25rem', height: '1.25rem' }} aria-hidden />
+          <span className="ssi-material-download-text">{t('download')}</span>
         </button>
       )}
     </div>
