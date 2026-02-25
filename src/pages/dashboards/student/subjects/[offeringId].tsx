@@ -9,6 +9,7 @@ import {
   FileText,
   BarChart3,
   UserRound,
+  ClipboardList,
 } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
@@ -26,6 +27,7 @@ import {
   InfoTile,
   DetailMaterialRow,
   StatCard,
+  HomeworkHistoryDialog,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -103,6 +105,7 @@ export function StudentSubjectInfoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [homeworkDialogOpen, setHomeworkDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!offeringId) return;
@@ -298,14 +301,34 @@ export function StudentSubjectInfoPage() {
             }
             accent={getAttendanceAccent(data.stats.attendancePercent)}
           />
-          <StatCard
-            label={t('studentSubjectInfoHomework')}
-            value={`${data.stats.submittedHomeworkCount} / ${data.stats.totalHomeworkCount}`}
-            accent={getHomeworkAccent(
-              data.stats.submittedHomeworkCount,
-              data.stats.totalHomeworkCount,
-            )}
-          />
+          {data.studentId ? (
+            <button
+              type="button"
+              className={`ed-stat-card ed-stat-card--${getHomeworkAccent(
+                data.stats.submittedHomeworkCount,
+                data.stats.totalHomeworkCount,
+              )} ed-stat-card--clickable`}
+              onClick={() => setHomeworkDialogOpen(true)}
+              title={t('studentSubjectInfoHomeworkHistoryTitle')}
+            >
+              <span className="ed-stat-value">
+                {data.stats.submittedHomeworkCount} / {data.stats.totalHomeworkCount}
+              </span>
+              <span className="ed-stat-label">
+                {t('studentSubjectInfoHomework')}
+                <ClipboardList size={14} className="ed-stat-icon" aria-hidden />
+              </span>
+            </button>
+          ) : (
+            <StatCard
+              label={t('studentSubjectInfoHomework')}
+              value={`${data.stats.submittedHomeworkCount} / ${data.stats.totalHomeworkCount}`}
+              accent={getHomeworkAccent(
+                data.stats.submittedHomeworkCount,
+                data.stats.totalHomeworkCount,
+              )}
+            />
+          )}
           <StatCard
             label={t('studentSubjectInfoTotalPoints')}
             value={String(data.stats.totalPoints)}
@@ -313,6 +336,17 @@ export function StudentSubjectInfoPage() {
           />
         </div>
       </SectionCard>
+
+      {data.studentId && offeringId && (
+        <HomeworkHistoryDialog
+          open={homeworkDialogOpen}
+          onClose={() => setHomeworkDialogOpen(false)}
+          studentId={data.studentId}
+          offeringId={offeringId}
+          title={subjectName}
+          lessonLinkBasePath="/dashboards/student/lessons"
+        />
+      )}
     </div>
   );
 }

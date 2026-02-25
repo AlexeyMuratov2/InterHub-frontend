@@ -1021,6 +1021,8 @@ export interface StudentSubjectStatsDto {
 
 /** Aggregated data for the student's "Subject detail" screen (StudentSubjectInfoDto). */
 export interface StudentSubjectInfoDto {
+  /** Current student's profile ID when requester is a student in the offering's group; null for admin. */
+  studentId?: string | null;
   subject: CompositionSubjectDto;
   departmentName: string | null;
   curriculumSubject: CompositionCurriculumSubjectDto;
