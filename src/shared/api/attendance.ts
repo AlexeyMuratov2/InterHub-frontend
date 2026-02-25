@@ -13,6 +13,22 @@ export const ABSENCE_NOTICE_STATUS = {
 
 export type AbsenceNoticeStatus = (typeof ABSENCE_NOTICE_STATUS)[keyof typeof ABSENCE_NOTICE_STATUS];
 
+/** Типы заявки об отсутствии (API) */
+export const ABSENCE_NOTICE_TYPE = {
+  ABSENT: 'ABSENT',
+  LATE: 'LATE',
+} as const;
+
+export type AbsenceNoticeType = (typeof ABSENCE_NOTICE_TYPE)[keyof typeof ABSENCE_NOTICE_TYPE];
+
+/** Тело запроса создания/обновления заявки об отсутствии: POST /api/attendance/notices */
+export interface SubmitAbsenceNoticeRequest {
+  lessonSessionId: string;
+  type: AbsenceNoticeType;
+  reasonText?: string | null;
+  fileIds?: string[] | null;
+}
+
 export interface AbsenceNoticeDto {
   id: string;
   lessonSessionId: string;
@@ -320,4 +336,14 @@ export async function getMyAbsenceNotices(
   const query = search.toString();
   const path = `/api/attendance/notices/mine${query ? `?${query}` : ''}`;
   return request<StudentAbsenceNoticePage>(path, { method: 'GET' });
+}
+
+/** POST /api/attendance/notices — create a new absence notice for the current student */
+export async function createAbsenceNotice(
+  body: SubmitAbsenceNoticeRequest
+): Promise<AttendanceApiResult<AbsenceNoticeDto>> {
+  return request<AbsenceNoticeDto>('/api/attendance/notices', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }

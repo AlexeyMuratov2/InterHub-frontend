@@ -76,3 +76,5 @@ export { LessonInfoGrid } from './lesson-info-grid';
 export type { LessonInfoGridProps } from './lesson-info-grid';
 export { AbsenceRequestsFiltersBar } from './absence-requests-filters';
 export type { AbsenceRequestsFiltersBarProps } from './absence-requests-filters';
+export { AbsenceRequestDialog } from './absence-request-dialog/AbsenceRequestDialog';
+export type { AbsenceRequestDialogProps } from './absence-request-dialog/AbsenceRequestDialog';

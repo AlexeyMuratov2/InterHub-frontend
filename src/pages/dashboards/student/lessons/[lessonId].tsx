@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, FileText, ClipboardList, ArrowLeft, UserRound } from 'lucide-react';
+import { BookOpen, FileText, ClipboardList, ArrowLeft, UserRound, Send } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
 import { getLessonFullDetails, getFileDownloadUrl } from '../../../../shared/api';
@@ -19,6 +19,7 @@ import {
   LessonInfoGrid,
   LessonMaterialDetailView,
   HomeworkDetailView,
+  AbsenceRequestDialog,
 } from '../../../../shared/ui';
 
 const LESSONS_BACK_PATH = '/dashboards/student/schedule';
@@ -106,6 +107,7 @@ export function StudentLessonFullDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
 
   const loadDetails = useCallback(async () => {
     if (!lessonId) return;
@@ -198,6 +200,17 @@ export function StudentLessonFullDetailsPage() {
         subtitle={dateTimeSubtitle}
       />
 
+      <div className="ed-absence-action">
+        <button
+          type="button"
+          className="ed-absence-action__btn"
+          onClick={() => setAbsenceDialogOpen(true)}
+        >
+          <Send size={20} aria-hidden />
+          <span>{t('lessonDetailsSubmitAbsenceRequest')}</span>
+        </button>
+      </div>
+
       <SectionCard
         icon={<BookOpen size={18} />}
         title={t('groupSubjectInfoSubject')}
@@ -274,6 +287,17 @@ export function StudentLessonFullDetailsPage() {
           )}
         </SectionCard>
       </div>
+
+      {lessonId && (
+        <AbsenceRequestDialog
+          open={absenceDialogOpen}
+          onClose={() => setAbsenceDialogOpen(false)}
+          onSuccess={loadDetails}
+          lessonId={lessonId}
+          subjectName={subjectName}
+          lessonDateTime={dateTimeSubtitle}
+        />
+      )}
     </div>
   );
 }

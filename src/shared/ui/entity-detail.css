@@ -6,6 +6,40 @@
   max-width: 860px;
 }
 
+/* Action strip: e.g. "Подать заявку об отсутствии" on student lesson page */
+.ed-absence-action {
+  margin-bottom: 1rem;
+}
+
+.ed-absence-action__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+.ed-absence-action__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.ed-absence-action__btn:active {
+  transform: translateY(0);
+}
+
+.ed-absence-action__btn svg {
+  flex-shrink: 0;
+}
+
 .ed-back-link {
   display: inline-flex;
   align-items: center;
@@ -1221,4 +1255,217 @@
 .ed-grade-dialog__graded-at {
   margin-left: auto;
   color: #94a3b8;
+}
+
+/* ========== Absence Request Dialog (ed-absence-request-dialog) ==========
+   Подача заявки об отсутствии на урок: hero с уроком, тип заявки (карточки), причина, кнопки. */
+
+.ed-absence-request-dialog.department-modal .department-modal-body {
+  max-width: 480px;
+  max-height: min(90vh, 560px);
+  overflow-y: auto;
+}
+
+.ed-absence-request-dialog__body {
+  padding: 0;
+}
+
+.ed-absence-request-dialog__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e0e7ff;
+}
+
+.ed-absence-request-dialog__hero-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb 0%, #ea580c 100%);
+  color: #fff;
+  border-radius: 10px;
+}
+
+.ed-absence-request-dialog__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ed-absence-request-dialog__hero-subject {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ed-absence-request-dialog__hero-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.ed-absence-request-dialog__hero-meta svg {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.ed-absence-request-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ed-absence-request-dialog__type-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ed-absence-request-dialog__type-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ed-absence-request-dialog__type-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.ed-absence-request-dialog__type-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.ed-absence-request-dialog__type-option:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.ed-absence-request-dialog__type-option--active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.ed-absence-request-dialog__type-option--active:hover {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+
+.ed-absence-request-dialog__type-option-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ed-absence-request-dialog__type-option-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.ed-absence-request-dialog__reason {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #1e293b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 96px;
+  transition: border-color 0.15s;
+}
+
+.ed-absence-request-dialog__reason:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.ed-absence-request-dialog__reason::placeholder {
+  color: #94a3b8;
+}
+
+.ed-absence-request-dialog__reason-footer {
+  margin-top: 0.35rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ed-absence-request-dialog__count--over {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.ed-absence-request-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ed-absence-request-dialog__btn-cancel {
+  min-width: 0;
+}
+
+.ed-absence-request-dialog__btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ed-absence-request-dialog__spinner {
+  animation: ed-spin 0.8s linear infinite;
+}
+
+@keyframes ed-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ed-absence-request-dialog__success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+.ed-absence-request-dialog__success svg {
+  flex-shrink: 0;
+  color: #16a34a;
 }
