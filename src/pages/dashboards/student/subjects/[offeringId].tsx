@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
+  Award,
   BookOpen,
   Calendar,
   Clock,
@@ -30,6 +31,7 @@ import {
   StatCard,
   HomeworkHistoryDialog,
   StudentAttendanceHistoryDialog,
+  StudentGradeHistoryDialog,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -109,6 +111,7 @@ export function StudentSubjectInfoPage() {
   const [notFound, setNotFound] = useState(false);
   const [homeworkDialogOpen, setHomeworkDialogOpen] = useState(false);
   const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
+  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!offeringId) return;
@@ -351,11 +354,28 @@ export function StudentSubjectInfoPage() {
               )}
             />
           )}
-          <StatCard
-            label={t('studentSubjectInfoTotalPoints')}
-            value={String(data.stats.totalPoints)}
-            accent="blue"
-          />
+          {data.studentId ? (
+            <button
+              type="button"
+              className="ed-stat-card ed-stat-card--blue ed-stat-card--clickable"
+              onClick={() => setGradeDialogOpen(true)}
+              title={t('studentSubjectInfoTotalPoints')}
+            >
+              <span className="ed-stat-value">
+                {String(data.stats.totalPoints)}
+              </span>
+              <span className="ed-stat-label">
+                {t('studentSubjectInfoTotalPoints')}
+                <Award size={14} className="ed-stat-icon" aria-hidden />
+              </span>
+            </button>
+          ) : (
+            <StatCard
+              label={t('studentSubjectInfoTotalPoints')}
+              value={String(data.stats.totalPoints)}
+              accent="blue"
+            />
+          )}
         </div>
       </SectionCard>
 
@@ -372,6 +392,14 @@ export function StudentSubjectInfoPage() {
           <StudentAttendanceHistoryDialog
             open={attendanceDialogOpen}
             onClose={() => setAttendanceDialogOpen(false)}
+            studentId={data.studentId}
+            offeringId={offeringId}
+            title={subjectName}
+            lessonLinkBasePath="/dashboards/student/lessons"
+          />
+          <StudentGradeHistoryDialog
+            open={gradeDialogOpen}
+            onClose={() => setGradeDialogOpen(false)}
             studentId={data.studentId}
             offeringId={offeringId}
             title={subjectName}

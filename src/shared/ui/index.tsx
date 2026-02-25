@@ -34,6 +34,8 @@ export { HomeworkModal } from './homework-modal';
 export type { HomeworkModalProps } from './homework-modal';
 export { StudentGradeHistoryModal } from './student-grade-history-modal';
 export type { StudentGradeHistoryModalProps } from './student-grade-history-modal';
+export { StudentGradeHistoryDialog } from './student-grade-history-dialog';
+export type { StudentGradeHistoryDialogProps } from './student-grade-history-dialog';
 export { StudentAttendanceHistoryModal } from './student-attendance-history-modal';
 export type { StudentAttendanceHistoryModalProps } from './student-attendance-history-modal';
 export { StudentHomeworkHistoryModal } from './student-homework-history-modal';

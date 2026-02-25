@@ -995,3 +995,230 @@
   font-size: 0.75rem;
   color: #94a3b8;
 }
+
+/* ========== Student Grade History Dialog (ed-grade-dialog) ==========
+   Entity-detail style: hero + cards per grade entry. Lesson = blue accent, Homework = green accent. */
+
+.ed-grade-dialog.department-modal .department-modal-body {
+  max-height: min(85vh, 640px);
+  overflow-y: auto;
+}
+
+.ed-grade-dialog__body {
+  padding: 0;
+}
+
+.ed-grade-dialog__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e7ff;
+}
+
+.ed-grade-dialog__hero-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff;
+  border-radius: 10px;
+}
+
+.ed-grade-dialog__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ed-grade-dialog__hero-subject {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ed-grade-dialog__hero-meta {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.ed-grade-dialog__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ed-grade-dialog__card {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-left-width: 4px;
+  transition: border-color 0.15s;
+}
+
+.ed-grade-dialog__card--lesson {
+  border-left-color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.ed-grade-dialog__card--homework {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.ed-grade-dialog__card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.ed-grade-dialog__points {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ed-grade-dialog__type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ed-grade-dialog__source {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: #475569;
+  flex-wrap: wrap;
+}
+
+.ed-grade-dialog__source svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.ed-grade-dialog__source-label {
+  font-weight: 600;
+}
+
+.ed-grade-dialog__homework-title {
+  color: #1e293b;
+}
+
+.ed-grade-dialog__homework-info {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.ed-grade-dialog__homework-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0 0 0.25rem;
+  line-height: 1.45;
+}
+
+.ed-grade-dialog__homework-max {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ed-grade-dialog__meta-row,
+.ed-grade-dialog__link-row,
+.ed-grade-dialog__comment,
+.ed-grade-dialog__graded {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  margin-top: 0.4rem;
+}
+
+.ed-grade-dialog__meta-row svg,
+.ed-grade-dialog__graded svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.ed-grade-dialog__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.ed-grade-dialog__link:hover {
+  color: #1d4ed8;
+}
+
+.ed-grade-dialog__link svg {
+  flex-shrink: 0;
+}
+
+.ed-grade-dialog__comment {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ed-grade-dialog__comment svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.ed-grade-dialog__comment-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ed-grade-dialog__comment-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.ed-grade-dialog__comment-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.ed-grade-dialog__graded {
+  align-items: center;
+  flex-wrap: wrap;
+  color: #64748b;
+}
+
+.ed-grade-dialog__graded-at {
+  margin-left: auto;
+  color: #94a3b8;
+}
