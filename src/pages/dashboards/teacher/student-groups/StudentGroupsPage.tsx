@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Calendar, GraduationCap, Users } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import { getTeacherStudentGroups } from '../../../../shared/api';
 import type {
@@ -8,7 +8,12 @@ import type {
   SemesterDto,
   TeacherStudentGroupSubjectDto,
 } from '../../../../shared/api';
-import { Alert } from '../../../../shared/ui';
+import {
+  Alert,
+  PageHero,
+  SectionCard,
+  SubjectCard,
+} from '../../../../shared/ui';
 
 function groupDisplayName(item: TeacherStudentGroupItemDto): string {
   const g = item.group;
@@ -117,13 +122,27 @@ export function StudentGroupsPage() {
   };
 
   return (
-    <section className="entity-view-card teacher-student-groups-page" style={{ marginTop: '1rem' }}>
-      <h2 className="entity-view-card-title">{t('teacherStudentGroupsTitle')}</h2>
-      <p className="entity-view-card-subtitle">{t('teacherStudentGroupsSubtitle')}</p>
+    <div className="entity-view-page department-form-page ed-page">
+      <PageHero
+        icon={<GraduationCap size={28} />}
+        title={t('teacherStudentGroupsTitle')}
+        subtitle={t('teacherStudentGroupsSubtitle')}
+      />
 
-      {!loading && !error && (academicYears.length > 0 || semesters.length > 0 || subjects.length > 0 || groups.length > 0) && (
-        <div className="teacher-student-groups-page-header teacher-student-groups-filters">
-          <div className="teacher-subjects-semester-row">
+      {error && (
+        <div style={{ marginBottom: '1rem' }}>
+          <Alert variant="error" role="alert">
+            {error}
+          </Alert>
+        </div>
+      )}
+
+      {!loading && !error && (academicYears.length > 0 || semesters.length > 0 || subjects.length > 0) && (
+        <SectionCard
+          icon={<Calendar size={18} />}
+          title={t('teacherStudentGroupsFiltersTitle')}
+        >
+          <div className="subjects-semester-row">
             <label htmlFor="teacher-student-groups-year">{t('teacherStudentGroupsYearLabel')}:</label>
             <select
               id="teacher-student-groups-year"
@@ -138,7 +157,7 @@ export function StudentGroupsPage() {
               ))}
             </select>
           </div>
-          <div className="teacher-subjects-semester-row">
+          <div className="subjects-semester-row">
             <label htmlFor="teacher-student-groups-semester">{t('teacherStudentGroupsSemesterLabel')}:</label>
             <select
               id="teacher-student-groups-semester"
@@ -155,7 +174,7 @@ export function StudentGroupsPage() {
               ))}
             </select>
           </div>
-          <div className="teacher-subjects-semester-row">
+          <div className="subjects-semester-row">
             <label htmlFor="teacher-student-groups-subject">{t('teacherStudentGroupsSubjectLabel')}:</label>
             <select
               id="teacher-student-groups-subject"
@@ -170,65 +189,51 @@ export function StudentGroupsPage() {
               ))}
             </select>
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {error && (
-        <div style={{ marginBottom: '1rem' }}>
-          <Alert variant="error" role="alert">
-            {error}
-          </Alert>
-        </div>
-      )}
-
-      {loading ? (
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('loading')}</p>
-      ) : filteredGroups.length === 0 ? (
-        <div className="teacher-student-groups-empty" style={{ padding: '2rem 0' }}>
-          {hasActiveFilters ? t('teacherStudentGroupsEmptyForFilters') : t('teacherStudentGroupsEmpty')}
-        </div>
-      ) : (
-        <div className="teacher-student-groups-grid">
-          {filteredGroups.map((item) => (
-            <Link
-              key={item.group.id}
-              to={`/dashboards/teacher/student-groups/${item.group.id}`}
-              className="teacher-student-group-card"
-              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-            >
-              <div className="teacher-student-group-card-header">
-                <h3 className="teacher-student-group-card-title">
-                  {groupDisplayName(item)}
-                </h3>
-                {item.studentCount != null && (
-                  <span className="teacher-student-group-card-count" aria-label={t('teacherStudentGroupsStudentsCount')}>
-                    {item.studentCount}
+      <SectionCard
+        icon={<Users size={18} />}
+        title={t('teacherStudentGroupsTitle')}
+      >
+        {loading ? (
+          <p className="ed-empty" style={{ margin: 0, color: '#6b7280' }}>
+            {t('loading')}
+          </p>
+        ) : filteredGroups.length === 0 ? (
+          <p className="ed-empty">
+            {hasActiveFilters ? t('teacherStudentGroupsEmptyForFilters') : t('teacherStudentGroupsEmpty')}
+          </p>
+        ) : (
+          <div className="subject-card-grid">
+            {filteredGroups.map((item) => (
+              <SubjectCard
+                key={item.group.id}
+                to={`/dashboards/teacher/student-groups/${item.group.id}`}
+                title={groupDisplayName(item)}
+                subjectCode={
+                  item.studentCount != null
+                    ? `${item.studentCount}`
+                    : null
+                }
+                departmentLabel={t('teacherStudentGroupsProgram')}
+                departmentName={item.program.name ?? item.program.code ?? null}
+                departmentIcon={null}
+                secondaryLabel={t('teacherStudentGroupsCurator')}
+                secondaryValue={curatorDisplayName(item)}
+                secondaryIcon={null}
+              >
+                <div className="subject-card-row">
+                  <span className="subject-card-label">{t('teacherStudentGroupsCurriculum')}:</span>
+                  <span className="subject-card-value">
+                    {item.curriculum.version ?? '—'}
                   </span>
-                )}
-              </div>
-              <div className="teacher-student-group-card-row">
-                <span className="teacher-student-group-card-label">{t('teacherStudentGroupsProgram')}:</span>
-                <span className="teacher-student-group-card-value">
-                  {item.program.name ?? item.program.code ?? '—'}
-                </span>
-              </div>
-              <div className="teacher-student-group-card-row">
-                <span className="teacher-student-group-card-label">{t('teacherStudentGroupsCurriculum')}:</span>
-                <span className="teacher-student-group-card-value">
-                  {item.curriculum.version ?? '—'}
-                </span>
-              </div>
-              <div className="teacher-student-group-card-row">
-                <span className="teacher-student-group-card-label">{t('teacherStudentGroupsCurator')}:</span>
-                <span className="teacher-student-group-card-value">
-                  {curatorDisplayName(item)}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </section>
+                </div>
+              </SubjectCard>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </div>
   );
 }
-

@@ -869,6 +869,7 @@
   "teacherStudentGroupsSubjectLabel": "Предмет",
   "teacherStudentGroupsSubjectPlaceholder": "Выберите предмет",
   "teacherStudentGroupsSubjectAll": "Все предметы",
+  "teacherStudentGroupsFiltersTitle": "Фильтры",
   "teacherStudentGroupsEmptyForFilters": "Нет групп по выбранным фильтрам",
   "groupSubjectInfoPageTitle": "Информация о группе",
   "groupSubjectInfoBackToGroups": "Назад к группам",

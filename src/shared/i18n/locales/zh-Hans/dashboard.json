@@ -869,6 +869,7 @@
   "teacherStudentGroupsSubjectLabel": "科目",
   "teacherStudentGroupsSubjectPlaceholder": "选择科目",
   "teacherStudentGroupsSubjectAll": "全部科目",
+  "teacherStudentGroupsFiltersTitle": "筛选",
   "teacherStudentGroupsEmptyForFilters": "没有符合筛选条件的班级",
   "groupSubjectInfoPageTitle": "班级详情",
   "groupSubjectInfoBackToGroups": "返回班级列表",

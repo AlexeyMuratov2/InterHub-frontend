@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import { getTeacherStudentGroups, getGroupSubjectInfo } from '../../../../shared/api';
 import type {
@@ -9,8 +9,17 @@ import type {
   GroupSubjectStudentItemDto,
   GroupSubjectLeaderDto,
 } from '../../../../shared/api';
-import { Alert, StudentGradeHistoryModal, StudentAttendanceHistoryModal, StudentHomeworkHistoryModal } from '../../../../shared/ui';
-import { ArrowLeft, UserCheck, BookOpen } from 'lucide-react';
+import {
+  Alert,
+  BackLink,
+  PageHero,
+  SectionCard,
+  InfoTile,
+  StudentGradeHistoryModal,
+  StudentAttendanceHistoryModal,
+  StudentHomeworkHistoryModal,
+} from '../../../../shared/ui';
+import { ArrowLeft, UserCheck, BookOpen, GraduationCap } from 'lucide-react';
 
 const STUDENT_GROUPS_PATH = '/dashboards/teacher/student-groups';
 
@@ -61,12 +70,12 @@ function studentEnglishName(user: GroupSubjectStudentItemDto['user']): string {
   return parts.length > 0 ? parts.join(' ').trim() : (user.email ?? '—');
 }
 
-/** Returns CSS class for progress/attendance: high (>85%), medium (>65%), low (≤65%). */
-function getProgressStatusClass(percent: number | null): 'high' | 'medium' | 'low' | null {
+/** Returns accent for stat buttons: high (>85%)=green, medium (>65%)=amber, low=red. */
+function getProgressAccent(percent: number | null): 'green' | 'amber' | 'red' | null {
   if (percent == null || percent < 0) return null;
-  if (percent > 85) return 'high';
-  if (percent > 65) return 'medium';
-  return 'low';
+  if (percent > 85) return 'green';
+  if (percent > 65) return 'amber';
+  return 'red';
 }
 
 export function GroupSubjectInfoPage() {
@@ -168,261 +177,266 @@ export function GroupSubjectInfoPage() {
 
   if (!groupId) {
     return (
-      <section className="entity-view-card" style={{ marginTop: '1rem' }}>
+      <div className="entity-view-page department-form-page">
         <Alert variant="error">{t('groupSubjectInfoNotFound')}</Alert>
-        <Link to={STUDENT_GROUPS_PATH} className="group-subject-info-back-link">
-          <ArrowLeft size={18} /> {t('groupSubjectInfoBackToGroups')}
-        </Link>
-      </section>
+        <BackLink to={STUDENT_GROUPS_PATH} icon={<ArrowLeft size={16} />}>
+          {t('groupSubjectInfoBackToGroups')}
+        </BackLink>
+      </div>
     );
   }
 
   if (loadingGroups) {
     return (
-      <section className="entity-view-card group-subject-info-page" style={{ marginTop: '1rem' }}>
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('loading')}</p>
-      </section>
+      <div className="entity-view-page department-form-page ed-page">
+        <div className="entity-view-card">
+          <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
+        </div>
+      </div>
     );
   }
 
   if (!groupItem) {
     return (
-      <section className="entity-view-card" style={{ marginTop: '1rem' }}>
+      <div className="entity-view-page department-form-page">
         <Alert variant="error">{t('groupSubjectInfoGroupNotFound')}</Alert>
-        <Link to={STUDENT_GROUPS_PATH} className="group-subject-info-back-link">
-          <ArrowLeft size={18} /> {t('groupSubjectInfoBackToGroups')}
-        </Link>
-      </section>
+        <BackLink to={STUDENT_GROUPS_PATH} icon={<ArrowLeft size={16} />}>
+          {t('groupSubjectInfoBackToGroups')}
+        </BackLink>
+      </div>
     );
   }
 
   const course = currentCourse(groupItem.group.startYear, groupItem.group.graduationYear ?? null);
   const hasMultipleSubjects = subjectsForGroup.length > 1;
   const hasNoSubjects = subjectsForGroup.length === 0;
+  const programName = groupItem.program.name ?? groupItem.program.code ?? '—';
+  const yearsOfStudy =
+    `${groupItem.group.startYear}${groupItem.group.graduationYear != null ? ` – ${groupItem.group.graduationYear}` : '+'}`;
 
   return (
-    <section className="entity-view-card group-subject-info-page" style={{ marginTop: '1rem' }}>
-      <Link to={STUDENT_GROUPS_PATH} className="group-subject-info-back-link">
-        <ArrowLeft size={18} /> {t('groupSubjectInfoBackToGroups')}
-      </Link>
+    <div className="entity-view-page department-form-page ed-page">
+      <BackLink to={STUDENT_GROUPS_PATH} icon={<ArrowLeft size={16} />}>
+        {t('groupSubjectInfoBackToGroups')}
+      </BackLink>
 
-      <header className="group-subject-info-header">
-        <h1 className="group-subject-info-title">{groupDisplayName(groupItem)}</h1>
-        <div className="group-subject-info-meta">
-          <div className="group-subject-info-meta-grid">
-            <div className="group-subject-info-meta-item">
-              <span className="group-subject-info-meta-label">{t('teacherStudentGroupsProgram')}</span>
-              <span className="group-subject-info-meta-value">
-                {groupItem.program.name ?? groupItem.program.code ?? '—'}
-              </span>
-            </div>
-            <div className="group-subject-info-meta-item">
-              <span className="group-subject-info-meta-label">{t('groupSubjectInfoYearsOfStudy')}</span>
-              <span className="group-subject-info-meta-value">
-                {groupItem.group.startYear}
-                {groupItem.group.graduationYear != null ? ` – ${groupItem.group.graduationYear}` : '+'}
-              </span>
-            </div>
-            <div className="group-subject-info-meta-item">
-              <span className="group-subject-info-meta-label">{t('groupSubjectInfoCurrentCourse')}</span>
-              <span className="group-subject-info-meta-value">{course}</span>
-            </div>
-            <div className="group-subject-info-meta-item">
-              <span className="group-subject-info-meta-label">{t('teacherStudentGroupsCurriculum')}</span>
-              <span className="group-subject-info-meta-value">
-                {groupItem.curriculum.version ?? '—'}
-              </span>
-            </div>
-            <div className="group-subject-info-meta-item">
-              <span className="group-subject-info-meta-label">{t('teacherStudentGroupsCurator')}</span>
-              <span className="group-subject-info-meta-value">{curatorDisplayName(groupItem)}</span>
-            </div>
-            {groupItem.studentCount != null && (
-              <div className="group-subject-info-meta-item">
-                <span className="group-subject-info-meta-label">{t('teacherStudentGroupsStudentsCount')}</span>
-                <span className="group-subject-info-meta-value">{groupItem.studentCount}</span>
-              </div>
-            )}
-          </div>
+      <PageHero
+        icon={<GraduationCap size={28} />}
+        title={groupDisplayName(groupItem)}
+        subtitle={groupItem.group.code ?? undefined}
+        meta={programName}
+      />
+
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('groupSubjectInfoPageTitle')}
+      >
+        <div className="ed-info-grid">
+          <InfoTile
+            label={t('teacherStudentGroupsProgram')}
+            value={programName}
+          />
+          <InfoTile
+            label={t('groupSubjectInfoYearsOfStudy')}
+            value={yearsOfStudy}
+          />
+          <InfoTile
+            label={t('groupSubjectInfoCurrentCourse')}
+            value={String(course)}
+          />
+          <InfoTile
+            label={t('teacherStudentGroupsCurriculum')}
+            value={groupItem.curriculum.version ?? '—'}
+          />
+          <InfoTile
+            label={t('teacherStudentGroupsCurator')}
+            value={curatorDisplayName(groupItem)}
+          />
+          {groupItem.studentCount != null && (
+            <InfoTile
+              label={t('teacherStudentGroupsStudentsCount')}
+              value={String(groupItem.studentCount)}
+            />
+          )}
         </div>
-      </header>
+      </SectionCard>
 
-      {/* Subject carousel / single subject */}
-      <div className="group-subject-info-subjects-section">
-        <h2 className="group-subject-info-section-title">
-          <BookOpen size={20} /> {t('groupSubjectInfoSubject')}
-        </h2>
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('groupSubjectInfoSubject')}
+      >
         {hasNoSubjects ? (
-          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>{t('groupSubjectInfoNoSubjects')}</p>
+          <p className="ed-empty">{t('groupSubjectInfoNoSubjects')}</p>
         ) : hasMultipleSubjects ? (
-          <div className="group-subject-info-carousel">
-            <div className="group-subject-info-carousel-track">
-              {subjectsForGroup.map((subj) => (
-                <button
-                  key={subj.id}
-                  type="button"
-                  className={`group-subject-info-carousel-card ${selectedSubjectId === subj.id ? 'active' : ''}`}
-                  onClick={() => setSelectedSubjectId(subj.id)}
-                >
-                  {subjectDisplayName(subj, locale)}
-                </button>
-              ))}
-            </div>
+          <div className="ed-chip-list">
+            {subjectsForGroup.map((subj) => (
+              <button
+                key={subj.id}
+                type="button"
+                className={`ed-chip ${selectedSubjectId === subj.id ? 'ed-chip--active' : ''}`}
+                onClick={() => setSelectedSubjectId(subj.id)}
+              >
+                {subjectDisplayName(subj, locale)}
+              </button>
+            ))}
           </div>
         ) : (
           selectedSubject && (
-            <div className="group-subject-info-single-subject">
+            <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
               {subjectDisplayName(selectedSubject, locale)}
-            </div>
+            </p>
           )
         )}
-      </div>
+      </SectionCard>
 
       {error && (
-        <Alert variant="error" role="alert" style={{ marginBottom: '1rem' }}>
-          {error}
-        </Alert>
+        <div style={{ marginBottom: '1rem' }}>
+          <Alert variant="error" role="alert">{error}</Alert>
+        </div>
       )}
 
-      {/* Students table for selected subject */}
       {!hasNoSubjects && (
-      <div className="group-subject-info-students-section">
-        <h2 className="group-subject-info-section-title">{t('groupSubjectInfoStudents')}</h2>
-        {loadingInfo ? (
-          <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('loading')}</p>
-        ) : subjectInfo ? (
-          <>
-            <div className="group-subject-info-semester-bar">
-              <span className="group-subject-info-semester-name">
-                {subjectInfo.semester.name ?? `${t('academicSemesterNumber')} ${subjectInfo.semester.number}`}
-              </span>
-              <span className="group-subject-info-homework-count">
-                {t('groupSubjectInfoTotalHomework')}: {subjectInfo.totalHomeworkCount}
-              </span>
-            </div>
-            <div className="group-subject-info-table-wrapper">
-              <table className="group-subject-info-table" role="table">
-                <thead>
-                  <tr>
-                    <th>{t('groupSubjectInfoStudentNameEn')}</th>
-                    <th>{t('groupSubjectInfoStudentNameCn')}</th>
-                    <th>{t('groupSubjectInfoStudentId')}</th>
-                    <th>{t('groupSubjectInfoPoints')}</th>
-                    <th>{t('groupSubjectInfoAttendance')}</th>
-                    <th>{t('groupSubjectInfoHomeworkSubmitted')}</th>
-                    <th>{t('groupSubjectInfoRole')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjectInfo.students.length === 0 ? (
+        <SectionCard
+          icon={<UserCheck size={18} />}
+          title={t('groupSubjectInfoStudents')}
+        >
+          {loadingInfo ? (
+            <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
+          ) : subjectInfo ? (
+            <>
+              <div className="ed-section-header" style={{ marginBottom: '0.75rem' }}>
+                <span style={{ fontWeight: 600, color: '#1e293b' }}>
+                  {subjectInfo.semester.name ?? `${t('academicSemesterNumber')} ${subjectInfo.semester.number}`}
+                </span>
+                <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                  {t('groupSubjectInfoTotalHomework')}: {subjectInfo.totalHomeworkCount}
+                </span>
+              </div>
+              <div className="ed-data-table-wrapper">
+                <table className="ed-data-table" role="table">
+                  <thead>
                     <tr>
-                      <td colSpan={7} className="group-subject-info-empty-cell">
-                        {t('groupSubjectInfoNoStudents')}
-                      </td>
+                      <th>{t('groupSubjectInfoStudentNameEn')}</th>
+                      <th>{t('groupSubjectInfoStudentNameCn')}</th>
+                      <th>{t('groupSubjectInfoStudentId')}</th>
+                      <th>{t('groupSubjectInfoPoints')}</th>
+                      <th>{t('groupSubjectInfoAttendance')}</th>
+                      <th>{t('groupSubjectInfoHomeworkSubmitted')}</th>
+                      <th>{t('groupSubjectInfoRole')}</th>
                     </tr>
-                  ) : (
-                    subjectInfo.students.map((row) => {
-                      const leaderRole = getLeaderRoleForStudent(row.student.id, subjectInfo.leaders);
-                      const attendanceStatus = getProgressStatusClass(row.attendancePercent ?? null);
-                      const totalHw = subjectInfo.totalHomeworkCount ?? 0;
-                      const homeworkPercent =
-                        totalHw > 0 ? (row.submittedHomeworkCount / totalHw) * 100 : null;
-                      const homeworkStatus = getProgressStatusClass(homeworkPercent);
-                      return (
-                        <tr key={row.student.id}>
-                          <td>{studentEnglishName(row.user)}</td>
-                          <td>{row.student.chineseName ?? '—'}</td>
-                          <td className="group-subject-info-cell-id">{row.student.studentId ?? '—'}</td>
-                          <td>
-                            <button
-                              type="button"
-                              className="group-subject-info-points-button"
-                              onClick={() =>
-                                setGradeHistoryStudent({
-                                  studentId: row.student.id,
-                                  offeringId: subjectInfo.offering.id,
-                                  studentDisplayName: studentEnglishName(row.user),
-                                })
-                              }
-                              title={t('groupSubjectInfoPoints')}
-                            >
-                              {row.totalPoints}
-                            </button>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className={
-                                attendanceStatus
-                                  ? `group-subject-info-points-button group-subject-info-stat group-subject-info-stat-${attendanceStatus}`
-                                  : 'group-subject-info-points-button group-subject-info-stat'
-                              }
-                              onClick={() =>
-                                setAttendanceHistoryStudent({
-                                  studentId: row.student.id,
-                                  offeringId: subjectInfo.offering.id,
-                                  studentDisplayName: studentEnglishName(row.user),
-                                })
-                              }
-                              title={t('groupSubjectInfoAttendance')}
-                            >
-                              {row.attendancePercent != null ? `${Math.round(row.attendancePercent)}%` : '—'}
-                            </button>
-                          </td>
-                          <td>
-                            {totalHw > 0 ? (
+                  </thead>
+                  <tbody>
+                    {subjectInfo.students.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="ed-cell-empty">
+                          {t('groupSubjectInfoNoStudents')}
+                        </td>
+                      </tr>
+                    ) : (
+                      subjectInfo.students.map((row) => {
+                        const leaderRole = getLeaderRoleForStudent(row.student.id, subjectInfo.leaders);
+                        const attendanceAccent = getProgressAccent(row.attendancePercent ?? null);
+                        const totalHw = subjectInfo.totalHomeworkCount ?? 0;
+                        const homeworkPercent =
+                          totalHw > 0 ? (row.submittedHomeworkCount / totalHw) * 100 : null;
+                        const homeworkAccent = getProgressAccent(homeworkPercent);
+                        return (
+                          <tr key={row.student.id}>
+                            <td>{studentEnglishName(row.user)}</td>
+                            <td>{row.student.chineseName ?? '—'}</td>
+                            <td className="ed-cell-mono">{row.student.studentId ?? '—'}</td>
+                            <td>
                               <button
                                 type="button"
-                                className={
-                                  homeworkStatus
-                                    ? `group-subject-info-points-button group-subject-info-stat group-subject-info-stat-${homeworkStatus}`
-                                    : 'group-subject-info-points-button group-subject-info-stat'
-                                }
+                                className="ed-table-stat-btn ed-table-stat-btn--blue"
                                 onClick={() =>
-                                  setHomeworkHistoryStudent({
+                                  setGradeHistoryStudent({
                                     studentId: row.student.id,
                                     offeringId: subjectInfo.offering.id,
                                     studentDisplayName: studentEnglishName(row.user),
                                   })
                                 }
-                                title={t('groupSubjectInfoHomeworkSubmitted')}
+                                title={t('groupSubjectInfoPoints')}
                               >
-                                {row.submittedHomeworkCount} / {totalHw}
-                                <span className="group-subject-info-stat-percent">
-                                  {' '}({Math.round(homeworkPercent ?? 0)}%)
-                                </span>
+                                {row.totalPoints}
                               </button>
-                            ) : (
-                              <span className="group-subject-info-stat">{row.submittedHomeworkCount} / 0</span>
-                            )}
-                          </td>
-                          <td>
-                            {leaderRole ? (
-                              <span
-                                className={`group-subject-info-leader-badge ${leaderRole}`}
-                                title={leaderRole === 'headman' ? t('groupSubjectInfoHeadman') : t('groupSubjectInfoDeputy')}
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className={
+                                  attendanceAccent
+                                    ? `ed-table-stat-btn ed-table-stat-btn--${attendanceAccent}`
+                                    : 'ed-table-stat-btn'
+                                }
+                                onClick={() =>
+                                  setAttendanceHistoryStudent({
+                                    studentId: row.student.id,
+                                    offeringId: subjectInfo.offering.id,
+                                    studentDisplayName: studentEnglishName(row.user),
+                                  })
+                                }
+                                title={t('groupSubjectInfoAttendance')}
                               >
-                                <UserCheck size={14} />
-                                {leaderRole === 'headman' ? t('groupSubjectInfoHeadman') : t('groupSubjectInfoDeputy')}
-                              </span>
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          selectedSubjectId && !loadingInfo && (
-            <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('groupSubjectInfoNoData')}</p>
-          )
-        )}
-      </div>
+                                {row.attendancePercent != null ? `${Math.round(row.attendancePercent)}%` : '—'}
+                              </button>
+                            </td>
+                            <td>
+                              {totalHw > 0 ? (
+                                <button
+                                  type="button"
+                                  className={
+                                    homeworkAccent
+                                      ? `ed-table-stat-btn ed-table-stat-btn--${homeworkAccent}`
+                                      : 'ed-table-stat-btn'
+                                  }
+                                  onClick={() =>
+                                    setHomeworkHistoryStudent({
+                                      studentId: row.student.id,
+                                      offeringId: subjectInfo.offering.id,
+                                      studentDisplayName: studentEnglishName(row.user),
+                                    })
+                                  }
+                                  title={t('groupSubjectInfoHomeworkSubmitted')}
+                                >
+                                  {row.submittedHomeworkCount} / {totalHw}
+                                  <span className="ed-table-stat-percent">
+                                    {' '}({Math.round(homeworkPercent ?? 0)}%)
+                                  </span>
+                                </button>
+                              ) : (
+                                <span className="ed-table-stat-btn" style={{ cursor: 'default' }}>
+                                  {row.submittedHomeworkCount} / 0
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {leaderRole ? (
+                                <span
+                                  className={`ed-leader-badge ed-leader-badge--${leaderRole}`}
+                                  title={leaderRole === 'headman' ? t('groupSubjectInfoHeadman') : t('groupSubjectInfoDeputy')}
+                                >
+                                  <UserCheck size={14} />
+                                  {leaderRole === 'headman' ? t('groupSubjectInfoHeadman') : t('groupSubjectInfoDeputy')}
+                                </span>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            selectedSubjectId && !loadingInfo && (
+              <p className="ed-empty" style={{ margin: 0 }}>{t('groupSubjectInfoNoData')}</p>
+            )
+          )}
+        </SectionCard>
       )}
 
       {gradeHistoryStudent && (
@@ -452,6 +466,6 @@ export function GroupSubjectInfoPage() {
           studentDisplayName={homeworkHistoryStudent.studentDisplayName}
         />
       )}
-    </section>
+    </div>
   );
 }

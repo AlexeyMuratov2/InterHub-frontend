@@ -869,6 +869,7 @@
   "teacherStudentGroupsSubjectLabel": "Subject",
   "teacherStudentGroupsSubjectPlaceholder": "Select subject",
   "teacherStudentGroupsSubjectAll": "All subjects",
+  "teacherStudentGroupsFiltersTitle": "Filters",
   "teacherStudentGroupsEmptyForFilters": "No groups match the selected filters",
   "groupSubjectInfoPageTitle": "Group info",
   "groupSubjectInfoBackToGroups": "Back to groups",
