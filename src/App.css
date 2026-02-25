@@ -3151,6 +3151,11 @@ img.app-dashboard-sidebar-logo {
   box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
 }
 
+.profile-avatar--student {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
 .profile-summary-name {
   margin: 0 0 0.25rem 0;
   font-size: 1.25rem;
@@ -3206,8 +3211,17 @@ img.app-dashboard-sidebar-logo {
   background: linear-gradient(to right, rgba(13, 148, 136, 0.04), #fff);
 }
 
+.profile-section--student-info {
+  border-left: 4px solid #2563eb;
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.04), #fff);
+}
+
 .profile-section-title--teacher {
   color: #0f766e;
+}
+
+.profile-section-title--student {
+  color: #1e40af;
 }
 
 .profile-section-title {

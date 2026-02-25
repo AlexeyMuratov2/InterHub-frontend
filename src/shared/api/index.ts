@@ -26,6 +26,8 @@ export {
   deleteUser,
   getMyTeacher,
   patchMyTeacherProfile,
+  getMyStudent,
+  patchMyStudentProfile,
   listTeachers,
   listStudents,
 } from './account';

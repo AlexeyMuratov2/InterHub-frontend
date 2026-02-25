@@ -144,6 +144,25 @@
   margin: 0;
 }
 
+/* Schedule page: alerts and empty state inside SectionCard */
+.ed-schedule-alerts {
+  margin-bottom: 1rem;
+}
+
+.ed-schedule-semester {
+  margin-bottom: 1rem;
+}
+
+.ed-schedule-empty {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
 /* Info tiles grid */
 .ed-info-grid {
   display: grid;

@@ -11,6 +11,9 @@ import type {
   TeacherDto,
   CreateTeacherRequest,
   StudentListPage,
+  StudentProfileItem,
+  StudentDto,
+  CreateStudentRequest,
 } from './types';
 
 const BASE = '/api/account';
@@ -106,6 +109,27 @@ export type ListTeachersParams = {
 
 export async function getMyTeacher(): Promise<ApiResult<TeacherProfileItem>> {
   const result = await request<TeacherProfileItem>(`${BASE}/teachers/me`, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+  };
+}
+
+export async function getMyStudent(): Promise<ApiResult<StudentProfileItem>> {
+  const result = await request<StudentProfileItem>(`${BASE}/students/me`, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+  };
+}
+
+export async function patchMyStudentProfile(
+  body: CreateStudentRequest
+): Promise<ApiResult<StudentDto>> {
+  const result = await request<StudentDto>(`${BASE}/students/me`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

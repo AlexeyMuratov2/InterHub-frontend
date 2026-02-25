@@ -14,6 +14,8 @@ export { ScheduleGrid } from './schedule-grid';
 export type { ScheduleGridProps, ScheduleEvent } from './schedule-grid';
 export { ScheduleToolbar } from './schedule-toolbar';
 export type { ScheduleToolbarProps } from './schedule-toolbar';
+export { SchedulePageContent } from './schedule-page-content';
+export type { SchedulePageContentProps } from './schedule-page-content';
 export { LessonModal } from './lesson-modal';
 export type { LessonModalProps } from './lesson-modal';
 export { TeacherLessonModal } from './teacher-lesson-modal';
