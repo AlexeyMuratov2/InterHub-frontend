@@ -707,3 +707,291 @@
   font-size: 0.8125rem;
   color: #64748b;
 }
+
+/* ========== Student Attendance History Dialog (ed-attendance-dialog) ==========
+   Same entity-detail style: hero + lesson cards. Present=green, Absent/Excused=red, Late=yellow, Unmarked=neutral. */
+
+.ed-attendance-dialog.department-modal .department-modal-body {
+  max-height: min(85vh, 640px);
+  overflow-y: auto;
+}
+
+.ed-attendance-dialog__body {
+  padding: 0;
+}
+
+.ed-attendance-dialog__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e7ff;
+}
+
+.ed-attendance-dialog__hero-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 10px;
+}
+
+.ed-attendance-dialog__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ed-attendance-dialog__hero-subject {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ed-attendance-dialog__hero-meta {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.ed-attendance-dialog__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ed-attendance-dialog__card {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-left-width: 4px;
+  transition: border-color 0.15s;
+}
+
+.ed-attendance-dialog__card--present {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.ed-attendance-dialog__card--absent {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.ed-attendance-dialog__card--late {
+  border-left-color: #ca8a04;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.ed-attendance-dialog__card--unmarked {
+  border-left-color: #94a3b8;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.ed-attendance-dialog__card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ed-attendance-dialog__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ed-attendance-dialog__card-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ed-attendance-dialog__card-datetime svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.ed-attendance-dialog__badge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ed-attendance-dialog__badge--present {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ed-attendance-dialog__badge--absent {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ed-attendance-dialog__badge--late {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.ed-attendance-dialog__badge--unmarked {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.ed-attendance-dialog__card-topic {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ed-attendance-dialog__card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.ed-attendance-dialog__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.ed-attendance-dialog__link:hover {
+  color: #1d4ed8;
+}
+
+.ed-attendance-dialog__link svg {
+  flex-shrink: 0;
+}
+
+.ed-attendance-dialog__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ed-attendance-dialog__toggle:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.ed-attendance-dialog__toggle svg {
+  flex-shrink: 0;
+}
+
+.ed-attendance-dialog__notices {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ed-attendance-dialog__notice {
+  padding: 0.625rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ed-attendance-dialog__notice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.ed-attendance-dialog__notice-header > svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.ed-attendance-dialog__notice-type {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ed-attendance-dialog__notice-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.ed-attendance-dialog__notice-status--approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ed-attendance-dialog__notice-status--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ed-attendance-dialog__notice-status--pending,
+.ed-attendance-dialog__notice-status--submitted {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.ed-attendance-dialog__notice-status--canceled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.ed-attendance-dialog__notice-reason {
+  font-size: 0.875rem;
+  color: #1e293b;
+  margin: 0 0 0.35rem;
+  line-height: 1.45;
+}
+
+.ed-attendance-dialog__notice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}

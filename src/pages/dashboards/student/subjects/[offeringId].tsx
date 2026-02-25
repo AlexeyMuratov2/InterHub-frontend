@@ -10,6 +10,7 @@ import {
   BarChart3,
   UserRound,
   ClipboardList,
+  UserCheck,
 } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
@@ -28,6 +29,7 @@ import {
   DetailMaterialRow,
   StatCard,
   HomeworkHistoryDialog,
+  StudentAttendanceHistoryDialog,
 } from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
@@ -106,6 +108,7 @@ export function StudentSubjectInfoPage() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [homeworkDialogOpen, setHomeworkDialogOpen] = useState(false);
+  const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!offeringId) return;
@@ -292,15 +295,34 @@ export function StudentSubjectInfoPage() {
         title={t('studentSubjectInfoStatsTitle')}
       >
         <div className="ed-stats-grid">
-          <StatCard
-            label={t('studentSubjectInfoAttendance')}
-            value={
-              data.stats.attendancePercent != null
-                ? `${data.stats.attendancePercent.toFixed(0)}%`
-                : t('studentSubjectInfoNoAttendanceData')
-            }
-            accent={getAttendanceAccent(data.stats.attendancePercent)}
-          />
+          {data.studentId ? (
+            <button
+              type="button"
+              className={`ed-stat-card ed-stat-card--${getAttendanceAccent(data.stats.attendancePercent)} ed-stat-card--clickable`}
+              onClick={() => setAttendanceDialogOpen(true)}
+              title={t('studentSubjectInfoAttendance')}
+            >
+              <span className="ed-stat-value">
+                {data.stats.attendancePercent != null
+                  ? `${data.stats.attendancePercent.toFixed(0)}%`
+                  : t('studentSubjectInfoNoAttendanceData')}
+              </span>
+              <span className="ed-stat-label">
+                {t('studentSubjectInfoAttendance')}
+                <UserCheck size={14} className="ed-stat-icon" aria-hidden />
+              </span>
+            </button>
+          ) : (
+            <StatCard
+              label={t('studentSubjectInfoAttendance')}
+              value={
+                data.stats.attendancePercent != null
+                  ? `${data.stats.attendancePercent.toFixed(0)}%`
+                  : t('studentSubjectInfoNoAttendanceData')
+              }
+              accent={getAttendanceAccent(data.stats.attendancePercent)}
+            />
+          )}
           {data.studentId ? (
             <button
               type="button"
@@ -338,14 +360,24 @@ export function StudentSubjectInfoPage() {
       </SectionCard>
 
       {data.studentId && offeringId && (
-        <HomeworkHistoryDialog
-          open={homeworkDialogOpen}
-          onClose={() => setHomeworkDialogOpen(false)}
-          studentId={data.studentId}
-          offeringId={offeringId}
-          title={subjectName}
-          lessonLinkBasePath="/dashboards/student/lessons"
-        />
+        <>
+          <HomeworkHistoryDialog
+            open={homeworkDialogOpen}
+            onClose={() => setHomeworkDialogOpen(false)}
+            studentId={data.studentId}
+            offeringId={offeringId}
+            title={subjectName}
+            lessonLinkBasePath="/dashboards/student/lessons"
+          />
+          <StudentAttendanceHistoryDialog
+            open={attendanceDialogOpen}
+            onClose={() => setAttendanceDialogOpen(false)}
+            studentId={data.studentId}
+            offeringId={offeringId}
+            title={subjectName}
+            lessonLinkBasePath="/dashboards/student/lessons"
+          />
+        </>
       )}
     </div>
   );

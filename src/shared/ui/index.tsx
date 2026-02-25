@@ -40,6 +40,8 @@ export { StudentHomeworkHistoryModal } from './student-homework-history-modal';
 export type { StudentHomeworkHistoryModalProps } from './student-homework-history-modal';
 export { HomeworkHistoryDialog } from './homework-history-dialog';
 export type { HomeworkHistoryDialogProps } from './homework-history-dialog';
+export { StudentAttendanceHistoryDialog } from './student-attendance-history-dialog';
+export type { StudentAttendanceHistoryDialogProps } from './student-attendance-history-dialog';
 export { SubjectCard } from './subject-card';
 export type { SubjectCardProps } from './subject-card';
 export { SemesterFilterSelect } from './semester-filter-select';
