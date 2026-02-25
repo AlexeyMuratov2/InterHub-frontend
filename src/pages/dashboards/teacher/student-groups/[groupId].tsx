@@ -15,11 +15,11 @@ import {
   PageHero,
   SectionCard,
   InfoTile,
-  StudentGradeHistoryModal,
-  StudentAttendanceHistoryModal,
-  StudentHomeworkHistoryModal,
+  HomeworkHistoryDialog,
+  StudentAttendanceHistoryDialog,
+  StudentGradeHistoryDialog,
 } from '../../../../shared/ui';
-import { ArrowLeft, UserCheck, BookOpen, GraduationCap } from 'lucide-react';
+import { ArrowLeft, UserCheck, BookOpen, GraduationCap, BarChart3 } from 'lucide-react';
 
 const STUDENT_GROUPS_PATH = '/dashboards/teacher/student-groups';
 
@@ -178,7 +178,9 @@ export function GroupSubjectInfoPage() {
   if (!groupId) {
     return (
       <div className="entity-view-page department-form-page">
-        <Alert variant="error">{t('groupSubjectInfoNotFound')}</Alert>
+        <Alert variant="error" role="alert">
+          {t('groupSubjectInfoNotFound')}
+        </Alert>
         <BackLink to={STUDENT_GROUPS_PATH} icon={<ArrowLeft size={16} />}>
           {t('groupSubjectInfoBackToGroups')}
         </BackLink>
@@ -188,9 +190,9 @@ export function GroupSubjectInfoPage() {
 
   if (loadingGroups) {
     return (
-      <div className="entity-view-page department-form-page ed-page">
+      <div className="entity-view-page department-form-page">
         <div className="entity-view-card">
-          <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
+          <p style={{ margin: 0, color: '#6b7280' }}>{t('loading')}</p>
         </div>
       </div>
     );
@@ -199,7 +201,9 @@ export function GroupSubjectInfoPage() {
   if (!groupItem) {
     return (
       <div className="entity-view-page department-form-page">
-        <Alert variant="error">{t('groupSubjectInfoGroupNotFound')}</Alert>
+        <Alert variant="error" role="alert">
+          {t('groupSubjectInfoGroupNotFound')}
+        </Alert>
         <BackLink to={STUDENT_GROUPS_PATH} icon={<ArrowLeft size={16} />}>
           {t('groupSubjectInfoBackToGroups')}
         </BackLink>
@@ -296,10 +300,10 @@ export function GroupSubjectInfoPage() {
       )}
 
       {!hasNoSubjects && (
-        <SectionCard
-          icon={<UserCheck size={18} />}
-          title={t('groupSubjectInfoStudents')}
-        >
+      <SectionCard
+        icon={<BarChart3 size={18} />}
+        title={t('groupSubjectInfoStudents')}
+      >
           {loadingInfo ? (
             <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
           ) : subjectInfo ? (
@@ -440,30 +444,33 @@ export function GroupSubjectInfoPage() {
       )}
 
       {gradeHistoryStudent && (
-        <StudentGradeHistoryModal
+        <StudentGradeHistoryDialog
           open={true}
           onClose={() => setGradeHistoryStudent(null)}
           studentId={gradeHistoryStudent.studentId}
           offeringId={gradeHistoryStudent.offeringId}
-          studentDisplayName={gradeHistoryStudent.studentDisplayName}
+          title={gradeHistoryStudent.studentDisplayName}
+          lessonLinkBasePath="/dashboards/teacher/lessons"
         />
       )}
       {attendanceHistoryStudent && (
-        <StudentAttendanceHistoryModal
+        <StudentAttendanceHistoryDialog
           open={true}
           onClose={() => setAttendanceHistoryStudent(null)}
           studentId={attendanceHistoryStudent.studentId}
           offeringId={attendanceHistoryStudent.offeringId}
-          studentDisplayName={attendanceHistoryStudent.studentDisplayName}
+          title={attendanceHistoryStudent.studentDisplayName}
+          lessonLinkBasePath="/dashboards/teacher/lessons"
         />
       )}
       {homeworkHistoryStudent && (
-        <StudentHomeworkHistoryModal
+        <HomeworkHistoryDialog
           open={true}
           onClose={() => setHomeworkHistoryStudent(null)}
           studentId={homeworkHistoryStudent.studentId}
           offeringId={homeworkHistoryStudent.offeringId}
-          studentDisplayName={homeworkHistoryStudent.studentDisplayName}
+          title={homeworkHistoryStudent.studentDisplayName}
+          lessonLinkBasePath="/dashboards/teacher/lessons"
         />
       )}
     </div>
