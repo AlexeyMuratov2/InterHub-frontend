@@ -759,6 +759,8 @@ export interface LessonFullDetailsDto {
   curriculumSubject: CompositionCurriculumSubjectDto;
   room: CompositionRoomDto | null;
   mainTeacher: CompositionTeacherDto | null;
+  /** Преподаватели с полным профилем и ролью (для отображения карточек). */
+  teachers?: StudentSubjectTeacherItemDto[];
   materials: CompositionLessonMaterialDto[];
   homework: CompositionHomeworkDto[];
 }

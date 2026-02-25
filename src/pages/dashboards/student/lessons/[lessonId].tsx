@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, FileText, ClipboardList, ArrowLeft } from 'lucide-react';
+import { BookOpen, FileText, ClipboardList, ArrowLeft, UserRound } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
+import type { Locale } from '../../../../shared/i18n';
 import { getLessonFullDetails, getFileDownloadUrl } from '../../../../shared/api';
-import type { LessonFullDetailsDto, CompositionStoredFileDto } from '../../../../shared/api';
-import { getSubjectDisplayName } from '../../../../shared/lib';
+import type {
+  LessonFullDetailsDto,
+  CompositionStoredFileDto,
+  StudentSubjectTeacherItemDto,
+  CompositionTeacherDto,
+} from '../../../../shared/api';
+import { getSubjectDisplayName, getTeacherDisplayName } from '../../../../shared/lib';
 import {
   Alert,
   BackLink,
@@ -16,6 +22,79 @@ import {
 } from '../../../../shared/ui';
 
 const LESSONS_BACK_PATH = '/dashboards/student/schedule';
+
+function getTeacherRoleKey(role: string | null): string {
+  switch (role) {
+    case 'MAIN':
+      return 'studentSubjectInfoTeacherRoleMain';
+    case 'LECTURE':
+      return 'studentSubjectInfoTeacherRoleLecture';
+    case 'PRACTICE':
+      return 'studentSubjectInfoTeacherRolePractice';
+    case 'LAB':
+      return 'studentSubjectInfoTeacherRoleLab';
+    case 'SEMINAR':
+      return 'studentSubjectInfoTeacherRoleSeminar';
+    default:
+      return 'studentSubjectInfoTeacherRoleMain';
+  }
+}
+
+function getTeacherName(
+  item: StudentSubjectTeacherItemDto,
+  _locale: Locale,
+): string {
+  if (item.user) {
+    const parts = [item.user.firstName, item.user.lastName].filter(Boolean);
+    if (parts.length) return parts.join(' ');
+  }
+  return getTeacherDisplayName({
+    englishName: item.teacher.englishName,
+    teacherId: item.teacher.teacherId,
+  });
+}
+
+function LessonTeacherCard({
+  item,
+  t,
+  locale,
+}: {
+  item: StudentSubjectTeacherItemDto;
+  t: (key: string) => string;
+  locale: Locale;
+}) {
+  const name = getTeacherName(item, locale);
+  const roleKey = getTeacherRoleKey(item.role);
+  return (
+    <div className="ed-teacher-card">
+      <div className="ed-teacher-avatar">
+        <UserRound size={20} />
+      </div>
+      <div className="ed-teacher-info">
+        <span className="ed-teacher-name">{name}</span>
+        <span className="ed-teacher-role">{t(roleKey)}</span>
+        {item.teacher.position && (
+          <span className="ed-teacher-position">{item.teacher.position}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Список преподавателей для отображения: teachers из API или один элемент из mainTeacher. */
+function getTeachersToShow(data: LessonFullDetailsDto): StudentSubjectTeacherItemDto[] {
+  if (data.teachers?.length) return data.teachers;
+  if (data.mainTeacher) {
+    return [
+      {
+        teacher: data.mainTeacher as CompositionTeacherDto,
+        user: null,
+        role: 'MAIN',
+      },
+    ];
+  }
+  return [];
+}
 
 export function StudentLessonFullDetailsPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -105,6 +184,7 @@ export function StudentLessonFullDetailsPage() {
     lesson.date && lesson.startTime && lesson.endTime
       ? `${lesson.date} ${lesson.startTime.slice(0, 5)} – ${lesson.endTime.slice(0, 5)}`
       : lesson.date ?? '';
+  const teachersToShow = getTeachersToShow(data);
 
   return (
     <div className="entity-view-page department-form-page ed-page">
@@ -128,7 +208,28 @@ export function StudentLessonFullDetailsPage() {
           room={room}
           mainTeacher={mainTeacher}
           offeringSlot={offeringSlot}
+          showTeacherTile={false}
         />
+      </SectionCard>
+
+      <SectionCard
+        icon={<UserRound size={18} />}
+        title={t('studentSubjectInfoTeachersTitle')}
+      >
+        {teachersToShow.length === 0 ? (
+          <p className="ed-empty">{t('studentSubjectInfoNoTeachers')}</p>
+        ) : (
+          <div className="ed-teachers-list">
+            {teachersToShow.map((item) => (
+              <LessonTeacherCard
+                key={item.teacher.id}
+                item={item}
+                t={t}
+                locale={locale}
+              />
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       <div className="ed-content-grid">

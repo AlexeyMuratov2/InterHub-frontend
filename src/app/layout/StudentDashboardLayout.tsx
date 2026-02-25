@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen, BookMarked } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, BookMarked, ClipboardList } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
@@ -18,6 +18,7 @@ const STUDENT_MENU: Array<{
   { path: '/dashboards/student/schedule', labelKey: 'menuSchedule', end: false, icon: Calendar },
   { path: '/dashboards/student/lessons', labelKey: 'menuLessons', end: false, icon: BookMarked },
   { path: '/dashboards/student/subjects', labelKey: 'menuStudentSubjects', end: false, icon: BookOpen },
+  { path: '/dashboards/student/absence-requests', labelKey: 'menuStudentAbsenceRequests', end: false, icon: ClipboardList },
 ] as const;
 
 /** Layout дашборда студента: сайдбар слева (тёмный), шапка + контент по центру. */
@@ -50,9 +51,12 @@ export function StudentDashboardLayout() {
   const isProfile = location.pathname.startsWith('/dashboards/student/profile');
   const isSubjects = location.pathname.startsWith('/dashboards/student/subjects');
   const isLessons = location.pathname.startsWith('/dashboards/student/lessons');
+  const isAbsenceRequests = location.pathname.startsWith('/dashboards/student/absence-requests');
 
   const headerSectionTitle = isProfile
     ? t('profilePageTitleShort')
+    : isAbsenceRequests
+    ? t('menuStudentAbsenceRequests')
     : isSubjects
     ? t('menuStudentSubjects')
     : isLessons

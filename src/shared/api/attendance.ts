@@ -90,6 +90,65 @@ export interface TeacherAbsenceNoticePage {
   nextCursor: string | null;
 }
 
+/** Student API: lesson summary for absence notice list */
+export interface StudentNoticeLessonSummary {
+  id: string;
+  offeringId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  topic: string | null;
+  status: string;
+  lessonType: string | null;
+}
+
+/** Student API: offering summary for absence notice list */
+export interface StudentNoticeOfferingSummary {
+  id: string;
+  groupId: string;
+  curriculumSubjectId: string;
+  subjectName: string | null;
+  format: string | null;
+  notes: string | null;
+}
+
+/** Student API: slot summary for absence notice list */
+export interface StudentNoticeSlotSummary {
+  id: string;
+  offeringId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  lessonType: string | null;
+  roomId: string | null;
+  teacherId: string | null;
+  timeslotId: string | null;
+}
+
+/** Student API: one item in "my absence notices" list */
+export interface StudentAbsenceNoticeItemDto {
+  notice: AbsenceNoticeDto;
+  lesson: StudentNoticeLessonSummary | null;
+  offering: StudentNoticeOfferingSummary | null;
+  slot: StudentNoticeSlotSummary | null;
+}
+
+/** Student API: paginated "my absence notices" */
+export interface StudentAbsenceNoticePage {
+  items: StudentAbsenceNoticeItemDto[];
+  nextCursor: string | null;
+}
+
+/** Params for GET /api/attendance/notices/mine */
+export interface GetMyAbsenceNoticesParams {
+  /** ISO datetime (e.g. 2025-01-01T00:00:00) */
+  from?: string | null;
+  /** ISO datetime (e.g. 2025-01-31T23:59:59) */
+  to?: string | null;
+  cursor?: string | null;
+  limit?: number;
+}
+
 export interface ListTeacherNoticesParams {
   /** Фильтр по статусам через запятую: SUBMITTED, CANCELED, ACKNOWLEDGED, ATTACHED, APPROVED, REJECTED. */
   statuses?: string;
@@ -239,4 +298,26 @@ export async function rejectNotice(
     method: 'POST',
     body: JSON.stringify(body ?? {}),
   });
+}
+
+/** GET /api/attendance/notices/mine — paginated list of current student's absence notices */
+export async function getMyAbsenceNotices(
+  params: GetMyAbsenceNoticesParams = {}
+): Promise<AttendanceApiResult<StudentAbsenceNoticePage>> {
+  const search = new URLSearchParams();
+  if (params.from != null && params.from !== '') {
+    search.set('from', params.from);
+  }
+  if (params.to != null && params.to !== '') {
+    search.set('to', params.to);
+  }
+  if (params.cursor != null && params.cursor !== '') {
+    search.set('cursor', params.cursor);
+  }
+  if (params.limit != null) {
+    search.set('limit', String(params.limit));
+  }
+  const query = search.toString();
+  const path = `/api/attendance/notices/mine${query ? `?${query}` : ''}`;
+  return request<StudentAbsenceNoticePage>(path, { method: 'GET' });
 }

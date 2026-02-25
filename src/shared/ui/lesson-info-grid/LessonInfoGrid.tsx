@@ -24,6 +24,8 @@ export interface LessonInfoGridProps {
   room: CompositionRoomDto | null;
   mainTeacher: CompositionTeacherDto | null;
   offeringSlot: CompositionOfferingSlotDto | null;
+  /** Показывать ли плитку «Преподаватель» в сетке (если false, преподаватель выводится отдельным блоком). */
+  showTeacherTile?: boolean;
 }
 
 export function LessonInfoGrid({
@@ -32,6 +34,7 @@ export function LessonInfoGrid({
   room,
   mainTeacher,
   offeringSlot,
+  showTeacherTile = true,
 }: LessonInfoGridProps) {
   const { t, locale } = useTranslation('dashboard');
   const subjectName = getSubjectDisplayName(subject, locale);
@@ -53,7 +56,9 @@ export function LessonInfoGrid({
         <InfoTile label={t('lessonModalDate')} value={dateStr} />
         <InfoTile label={t('lessonModalTime')} value={timeStr} />
         <InfoTile label={t('lessonDetailsRoomLabel')} value={roomDisplay} />
-        <InfoTile label={t('lessonDetailsTeacherLabel')} value={teacherDisplay} />
+        {showTeacherTile && (
+          <InfoTile label={t('lessonDetailsTeacherLabel')} value={teacherDisplay} />
+        )}
         {lessonTypeKey && (
           <InfoTile label={t('lessonModalType')} value={t(lessonTypeKey)} />
         )}

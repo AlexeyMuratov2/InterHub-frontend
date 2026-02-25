@@ -70,3 +70,5 @@ export { HomeworkDetailView } from './homework-detail-view';
 export type { HomeworkDetailViewProps } from './homework-detail-view';
 export { LessonInfoGrid } from './lesson-info-grid';
 export type { LessonInfoGridProps } from './lesson-info-grid';
+export { AbsenceRequestsFiltersBar } from './absence-requests-filters';
+export type { AbsenceRequestsFiltersBarProps } from './absence-requests-filters';
