@@ -2016,6 +2016,11 @@ img.app-dashboard-sidebar-logo {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.student-homework-history-modal__item--not-submitted {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
 .student-homework-history-modal__item-header {
   display: flex;
   flex-wrap: wrap;
@@ -2076,8 +2081,13 @@ img.app-dashboard-sidebar-logo {
 }
 
 .student-homework-history-modal__not-submitted {
-  color: #94a3b8;
+  color: #b91c1c;
   font-style: italic;
+  font-weight: 500;
+}
+
+.student-homework-history-modal__item--not-submitted .student-homework-history-modal__not-submitted {
+  color: #991b1b;
 }
 
 .student-homework-history-modal__grade-points {
@@ -4059,6 +4069,10 @@ a.btn-secondary {
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
+a.subject-card {
+  cursor: pointer;
+}
+
 .subject-card:hover {
   border-color: #c7d2fe;
   box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
@@ -5181,4 +5195,393 @@ a.btn-secondary {
 @keyframes app-drawer-panel-in {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+/* ========== Student Subject Info Page (ssi-*) ========== */
+
+.ssi-page {
+  max-width: 860px;
+}
+
+.ssi-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.15s;
+}
+
+.ssi-back-link:hover {
+  color: #1d4ed8;
+}
+
+/* Hero header */
+.ssi-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e7ff;
+}
+
+.ssi-hero-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 10px;
+}
+
+.ssi-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ssi-hero-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ssi-hero-code {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.ssi-hero-department {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+/* Section cards */
+.ssi-card {
+  margin-bottom: 1rem;
+}
+
+.ssi-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+}
+
+.ssi-section-title svg {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.ssi-empty {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Info tiles grid */
+.ssi-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.ssi-info-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ssi-info-tile-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ssi-info-tile-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Teachers */
+.ssi-teachers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ssi-teacher-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ssi-teacher-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e7ff;
+  color: #3b82f6;
+  border-radius: 50%;
+}
+
+.ssi-teacher-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ssi-teacher-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ssi-teacher-role {
+  font-size: 0.8125rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.ssi-teacher-position {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Schedule slots */
+.ssi-slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ssi-slot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #0c4a6e;
+}
+
+.ssi-slot-day {
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.ssi-slot-time {
+  font-weight: 500;
+}
+
+.ssi-slot-type {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  background: #e0f2fe;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #0369a1;
+}
+
+/* Materials */
+.ssi-materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ssi-material-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.15s;
+}
+
+.ssi-material-row:hover {
+  border-color: #cbd5e1;
+}
+
+.ssi-material-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef3c7;
+  color: #d97706;
+  border-radius: 6px;
+}
+
+.ssi-material-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ssi-material-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ssi-material-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ssi-material-file-name {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ssi-material-download {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #2563eb;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ssi-material-download:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/* Stats */
+.ssi-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.ssi-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.25rem 1rem;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.ssi-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ssi-stat-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.ssi-stat-card--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.ssi-stat-card--green .ssi-stat-value {
+  color: #15803d;
+}
+
+.ssi-stat-card--amber {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.ssi-stat-card--amber .ssi-stat-value {
+  color: #b45309;
+}
+
+.ssi-stat-card--red {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.ssi-stat-card--red .ssi-stat-value {
+  color: #b91c1c;
+}
+
+.ssi-stat-card--blue {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.ssi-stat-card--blue .ssi-stat-value {
+  color: #1d4ed8;
+}
+
+.ssi-stat-card--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.ssi-stat-card--neutral .ssi-stat-value {
+  color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ssi-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ssi-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ssi-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -6,6 +6,7 @@ import type {
   LessonHomeworkSubmissionsDto,
   TeacherStudentGroupsDto,
   StudentSubjectsDto,
+  StudentSubjectInfoDto,
   GroupSubjectInfoDto,
   StudentGradeHistoryDto,
   StudentAttendanceHistoryDto,
@@ -110,6 +111,28 @@ export async function getStudentSubjects(
   const query = search.toString();
   const path = `/api/composition/student/subjects${query ? `?${query}` : ''}`;
   const result = await request<StudentSubjectsDto>(path, { method: 'GET' });
+  return {
+    data: result.data,
+    error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
+  };
+}
+
+/**
+ * Полная информация по предмету для студента (экран «Детали предмета»).
+ * GET /api/composition/student/subjects/{offeringId}/info
+ */
+export async function getStudentSubjectInfo(
+  offeringId: string,
+  params?: { semesterId?: string | null }
+): Promise<CompositionApiResult<StudentSubjectInfoDto>> {
+  const search = new URLSearchParams();
+  if (params?.semesterId) {
+    search.set('semesterId', params.semesterId);
+  }
+  const query = search.toString();
+  const path = `/api/composition/student/subjects/${encodeURIComponent(offeringId)}/info${query ? `?${query}` : ''}`;
+  const result = await request<StudentSubjectInfoDto>(path, { method: 'GET' });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,

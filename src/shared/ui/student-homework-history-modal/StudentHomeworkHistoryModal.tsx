@@ -107,7 +107,10 @@ export function StudentHomeworkHistoryModal({
                   const submissionFiles = item.submissionFiles ?? [];
 
                   return (
-                    <li key={item.homework.id} className="student-homework-history-modal__item">
+                    <li
+                      key={item.homework.id}
+                      className={`student-homework-history-modal__item${!hasSubmission ? ' student-homework-history-modal__item--not-submitted' : ''}`}
+                    >
                       <div className="student-homework-history-modal__item-header">
                         <h4 className="student-homework-history-modal__homework-title">
                           {item.homework.title || t('homeworkHistoryUntitled')}

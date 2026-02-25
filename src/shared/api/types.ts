@@ -1002,6 +1002,35 @@ export interface StudentSubjectsDto {
   items: StudentSubjectListItemDto[];
 }
 
+// --- Student subject info (GET /api/composition/student/subjects/{offeringId}/info) ---
+
+/** Teacher assigned to an offering with profile and user display info (StudentSubjectTeacherItemDto). */
+export interface StudentSubjectTeacherItemDto {
+  teacher: CompositionTeacherDto;
+  user: GroupSubjectUserDto | null;
+  role: string | null;
+}
+
+/** Student-specific statistics for a subject (StudentSubjectStatsDto). */
+export interface StudentSubjectStatsDto {
+  attendancePercent: number | null;
+  submittedHomeworkCount: number;
+  totalHomeworkCount: number;
+  totalPoints: number;
+}
+
+/** Aggregated data for the student's "Subject detail" screen (StudentSubjectInfoDto). */
+export interface StudentSubjectInfoDto {
+  subject: CompositionSubjectDto;
+  departmentName: string | null;
+  curriculumSubject: CompositionCurriculumSubjectDto;
+  offering: CompositionOfferingDto;
+  slots: GroupSubjectOfferingSlotDto[];
+  teachers: StudentSubjectTeacherItemDto[];
+  stats: StudentSubjectStatsDto;
+  materials: CourseMaterialDto[];
+}
+
 // --- Group subject info (GET /api/composition/groups/{groupId}/subjects/{subjectId}/info) ---
 
 /** User in group subject student item (UserDto) */

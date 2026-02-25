@@ -85,6 +85,7 @@ export function StudentSubjectsPage() {
           {subjects.map((item) => (
             <SubjectCard
               key={item.offeringId}
+              to={`/dashboards/student/subjects/${item.offeringId}`}
               title={getSubjectDisplayNameFromListItem(item, locale)}
               subjectCode={item.subjectCode}
               departmentLabel={t('teacherSubjectDepartment')}
