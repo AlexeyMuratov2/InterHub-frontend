@@ -1158,5 +1158,23 @@
   "studentSubjectInfoDayThu": "周四",
   "studentSubjectInfoDayFri": "周五",
   "studentSubjectInfoDaySat": "周六",
-  "studentSubjectInfoDaySun": "周日"
+  "studentSubjectInfoDaySun": "周日",
+
+  "notifBellLabel": "通知",
+  "notifTitle": "通知",
+  "notifMarkAllRead": "全部标为已读",
+  "notifTabAll": "全部",
+  "notifTabUnread": "未读",
+  "notifEmpty": "暂无通知",
+  "notifLoadMore": "加载更多",
+  "notifGoToLesson": "前往课程",
+  "notifAbsenceSubmitted": "学生提交了缺勤申请（{{type}}）",
+  "notifAbsenceUpdated": "学生更新了缺勤申请（{{type}}）",
+  "notifAttendanceMarked": "您的考勤已标记为：{{status}}",
+  "notifNoticeTypeAbsent": "缺勤",
+  "notifNoticeTypeLate": "迟到",
+  "notifAttendanceStatus_PRESENT": "出勤",
+  "notifAttendanceStatus_ABSENT": "缺勤",
+  "notifAttendanceStatus_LATE": "迟到",
+  "notifAttendanceStatus_EXCUSED": "已请假"
 }

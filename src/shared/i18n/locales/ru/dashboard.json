@@ -1158,5 +1158,23 @@
   "studentSubjectInfoDayThu": "Чт",
   "studentSubjectInfoDayFri": "Пт",
   "studentSubjectInfoDaySat": "Сб",
-  "studentSubjectInfoDaySun": "Вс"
+  "studentSubjectInfoDaySun": "Вс",
+
+  "notifBellLabel": "Уведомления",
+  "notifTitle": "Уведомления",
+  "notifMarkAllRead": "Прочитать все",
+  "notifTabAll": "Все",
+  "notifTabUnread": "Непрочитанные",
+  "notifEmpty": "Пока нет уведомлений",
+  "notifLoadMore": "Загрузить ещё",
+  "notifGoToLesson": "К занятию",
+  "notifAbsenceSubmitted": "Студент подал заявку об отсутствии ({{type}})",
+  "notifAbsenceUpdated": "Студент обновил заявку об отсутствии ({{type}})",
+  "notifAttendanceMarked": "Ваша посещаемость отмечена: {{status}}",
+  "notifNoticeTypeAbsent": "отсутствие",
+  "notifNoticeTypeLate": "опоздание",
+  "notifAttendanceStatus_PRESENT": "присутствовал",
+  "notifAttendanceStatus_ABSENT": "отсутствовал",
+  "notifAttendanceStatus_LATE": "опоздал",
+  "notifAttendanceStatus_EXCUSED": "уважительная причина"
 }

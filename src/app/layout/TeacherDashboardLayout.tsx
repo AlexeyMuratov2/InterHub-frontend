@@ -7,6 +7,7 @@ import { useAuth } from '../providers';
 import { useTranslation } from '../../shared/i18n';
 import { LanguageSwitcher } from '../../shared/i18n';
 import { getRolesFromUser, getAvailableDashboards } from '../../shared/config';
+import { NotificationBell } from '../../shared/ui/NotificationBell';
 
 const TEACHER_MENU: Array<{
   path: string;
@@ -108,6 +109,7 @@ export function TeacherDashboardLayout() {
           </div>
           <div className="app-dashboard-header-right">
             <LanguageSwitcher className="app-dashboard-header-lang" variant="select" />
+            <NotificationBell dashboardPrefix="/dashboards/teacher" />
             <div className="app-dashboard-header-user-menu" ref={userMenuRef}>
               <button
                 type="button"

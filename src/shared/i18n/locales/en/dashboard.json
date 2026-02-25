@@ -1158,5 +1158,23 @@
   "studentSubjectInfoDayThu": "Thu",
   "studentSubjectInfoDayFri": "Fri",
   "studentSubjectInfoDaySat": "Sat",
-  "studentSubjectInfoDaySun": "Sun"
+  "studentSubjectInfoDaySun": "Sun",
+
+  "notifBellLabel": "Notifications",
+  "notifTitle": "Notifications",
+  "notifMarkAllRead": "Mark all read",
+  "notifTabAll": "All",
+  "notifTabUnread": "Unread",
+  "notifEmpty": "No notifications yet",
+  "notifLoadMore": "Load more",
+  "notifGoToLesson": "Go to lesson",
+  "notifAbsenceSubmitted": "A student submitted an absence request ({{type}})",
+  "notifAbsenceUpdated": "A student updated their absence request ({{type}})",
+  "notifAttendanceMarked": "Your attendance was marked: {{status}}",
+  "notifNoticeTypeAbsent": "absence",
+  "notifNoticeTypeLate": "late arrival",
+  "notifAttendanceStatus_PRESENT": "present",
+  "notifAttendanceStatus_ABSENT": "absent",
+  "notifAttendanceStatus_LATE": "late",
+  "notifAttendanceStatus_EXCUSED": "excused"
 }
