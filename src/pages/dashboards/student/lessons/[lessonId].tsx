@@ -1,16 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { BookOpen, FileText, ClipboardList, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import { getLessonFullDetails, getFileDownloadUrl } from '../../../../shared/api';
 import type { LessonFullDetailsDto, CompositionStoredFileDto } from '../../../../shared/api';
-import { Alert, LessonOverviewCard, LessonMaterialItemView, HomeworkItemView } from '../../../../shared/ui';
-import { ArrowLeft } from 'lucide-react';
+import { getSubjectDisplayName } from '../../../../shared/lib';
+import {
+  Alert,
+  BackLink,
+  PageHero,
+  SectionCard,
+  LessonInfoGrid,
+  LessonMaterialDetailView,
+  HomeworkDetailView,
+} from '../../../../shared/ui';
 
 const LESSONS_BACK_PATH = '/dashboards/student/schedule';
 
 export function StudentLessonFullDetailsPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
-  const { t } = useTranslation('dashboard');
+  const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
 
@@ -90,46 +99,49 @@ export function StudentLessonFullDetailsPage() {
 
   if (!data) return null;
 
-  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials, homework } = data;
+  const { lesson, subject, room, mainTeacher, offeringSlot, materials, homework } = data;
+  const subjectName = getSubjectDisplayName(subject, locale);
+  const dateTimeSubtitle =
+    lesson.date && lesson.startTime && lesson.endTime
+      ? `${lesson.date} ${lesson.startTime.slice(0, 5)} – ${lesson.endTime.slice(0, 5)}`
+      : lesson.date ?? '';
 
   return (
-    <div className="entity-view-page department-form-page">
-      <div style={{ marginBottom: '1.25rem' }}>
-        <Link
-          to={LESSONS_BACK_PATH}
-          className="btn-secondary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
-        >
-          <ArrowLeft style={{ width: '1rem', height: '1rem' }} aria-hidden />
-          {t('lessonDetailsBackToLessons')}
-        </Link>
-      </div>
+    <div className="entity-view-page department-form-page ed-page">
+      <BackLink to={LESSONS_BACK_PATH} icon={<ArrowLeft size={16} />}>
+        {t('lessonDetailsBackToLessons')}
+      </BackLink>
 
-      <LessonOverviewCard
-        lesson={lessonDetails}
-        subject={subject}
-        room={room}
-        mainTeacher={mainTeacher}
-        offeringSlot={offeringSlot}
+      <PageHero
+        icon={<BookOpen size={28} />}
+        title={subjectName}
+        subtitle={dateTimeSubtitle}
       />
 
-      {/* Две колонки: Материалы | Домашние задания — как на странице преподавателя, только без кнопок добавления/редактирования/удаления */}
-      <div className="lesson-details-grid">
-        {/* Материалы урока — только скачивание */}
-        <section className="entity-view-card" style={{ padding: '1.25rem 1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className="entity-view-card-title" style={{ margin: 0 }}>
-              {t('lessonDetailsLessonMaterials')}
-            </h2>
-          </div>
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('groupSubjectInfoSubject')}
+      >
+        <LessonInfoGrid
+          lesson={lesson}
+          subject={subject}
+          room={room}
+          mainTeacher={mainTeacher}
+          offeringSlot={offeringSlot}
+        />
+      </SectionCard>
+
+      <div className="ed-content-grid">
+        <SectionCard
+          icon={<FileText size={18} />}
+          title={t('lessonDetailsLessonMaterials')}
+        >
           {materials.length === 0 ? (
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>
-              {t('lessonDetailsNoMaterials')}
-            </p>
+            <p className="ed-empty">{t('lessonDetailsNoMaterials')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {materials.map((material) => (
-                <LessonMaterialItemView
+                <LessonMaterialDetailView
                   key={material.id}
                   material={material}
                   onDownload={handleDownloadFile}
@@ -137,23 +149,18 @@ export function StudentLessonFullDetailsPage() {
               ))}
             </div>
           )}
-        </section>
+        </SectionCard>
 
-        {/* Домашние задания — только просмотр и скачивание файлов */}
-        <section className="entity-view-card" style={{ padding: '1.25rem 1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className="entity-view-card-title" style={{ margin: 0 }}>
-              {t('lessonDetailsHomeworkAssignment')}
-            </h2>
-          </div>
+        <SectionCard
+          icon={<ClipboardList size={18} />}
+          title={t('lessonDetailsHomeworkAssignment')}
+        >
           {homework.length === 0 ? (
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9375rem' }}>
-              {t('lessonDetailsNoHomework')}
-            </p>
+            <p className="ed-empty">{t('lessonDetailsNoHomework')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {homework.map((hw) => (
-                <HomeworkItemView
+                <HomeworkDetailView
                   key={hw.id}
                   title={hw.title}
                   description={hw.description}
@@ -164,7 +171,7 @@ export function StudentLessonFullDetailsPage() {
               ))}
             </div>
           )}
-        </section>
+        </SectionCard>
       </div>
     </div>
   );

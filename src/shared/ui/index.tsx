@@ -1,3 +1,6 @@
+/** Стили страниц детального просмотра (офферинг, урок и т.д.) */
+import './entity-detail.css';
+
 /** Переиспользуемые UI-компоненты: кнопки, инпуты, модалки, базовая таблица — добавлять по мере необходимости */
 export { Alert } from './Alert';
 export { FormGroup } from './FormGroup';
@@ -45,3 +48,23 @@ export { LessonMaterialItemView } from './lesson-material-item-view';
 export type { LessonMaterialItemViewProps } from './lesson-material-item-view';
 export { HomeworkItemView } from './homework-item-view';
 export type { HomeworkItemViewProps } from './homework-item-view';
+export { PageHero } from './page-hero';
+export type { PageHeroProps } from './page-hero';
+export { BackLink } from './back-link';
+export type { BackLinkProps } from './back-link';
+export { SectionCard } from './section-card';
+export type { SectionCardProps } from './section-card';
+export { InfoTile } from './info-tile';
+export type { InfoTileProps } from './info-tile';
+export { DetailMaterialRow } from './detail-material-row';
+export type { DetailMaterialRowProps } from './detail-material-row';
+export { DetailFileRow } from './detail-file-row';
+export type { DetailFileRowProps } from './detail-file-row';
+export { StatCard } from './stat-card';
+export type { StatCardProps, StatCardAccent } from './stat-card';
+export { LessonMaterialDetailView } from './lesson-material-detail-view';
+export type { LessonMaterialDetailViewProps } from './lesson-material-detail-view';
+export { HomeworkDetailView } from './homework-detail-view';
+export type { HomeworkDetailViewProps } from './homework-detail-view';
+export { LessonInfoGrid } from './lesson-info-grid';
+export type { LessonInfoGridProps } from './lesson-info-grid';

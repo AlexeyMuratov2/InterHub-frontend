@@ -1,0 +1,463 @@
+/* ========== Entity Detail Layout (ed-*) ==========
+   Reusable layout for detail pages: offering, lesson, etc.
+   Hero gradient, back link, section cards, info tiles, material rows, stat cards. */
+
+.ed-page {
+  max-width: 860px;
+}
+
+.ed-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.15s;
+}
+
+.ed-back-link:hover {
+  color: #1d4ed8;
+}
+
+/* Hero header with gradient */
+.ed-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e7ff;
+}
+
+.ed-hero-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 10px;
+}
+
+.ed-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ed-hero-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ed-hero-subtitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.ed-hero-meta {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+/* Section cards */
+.ed-card {
+  margin-bottom: 1rem;
+}
+
+.ed-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+}
+
+.ed-section-title svg {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.ed-empty {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Info tiles grid */
+.ed-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.ed-info-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ed-info-tile-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ed-info-tile-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Two-column content grid (e.g. materials | homework) */
+.ed-content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+/* Material / file row (single row with icon, title, download) */
+.ed-material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ed-material-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.15s;
+}
+
+.ed-material-row:hover {
+  border-color: #cbd5e1;
+}
+
+.ed-material-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef3c7;
+  color: #d97706;
+  border-radius: 6px;
+}
+
+.ed-material-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ed-material-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ed-material-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ed-material-file-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ed-material-download {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ed-material-download svg {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.ed-material-download:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.ed-material-download-text {
+  white-space: nowrap;
+}
+
+/* Stat cards */
+.ed-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.ed-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.25rem 1rem;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.ed-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ed-stat-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.ed-stat-card--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.ed-stat-card--green .ed-stat-value {
+  color: #15803d;
+}
+
+.ed-stat-card--amber {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.ed-stat-card--amber .ed-stat-value {
+  color: #b45309;
+}
+
+.ed-stat-card--red {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.ed-stat-card--red .ed-stat-value {
+  color: #b91c1c;
+}
+
+.ed-stat-card--blue {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.ed-stat-card--blue .ed-stat-value {
+  color: #1d4ed8;
+}
+
+.ed-stat-card--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.ed-stat-card--neutral .ed-stat-value {
+  color: #475569;
+}
+
+/* File row (for file inside material/homework) — same style as material row */
+.ed-file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.15s;
+}
+
+.ed-file-row:hover {
+  border-color: #cbd5e1;
+}
+
+.ed-file-row-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e7ff;
+  color: #3b82f6;
+  border-radius: 6px;
+}
+
+.ed-file-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ed-file-row-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ed-file-row-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Teachers list (offering page) */
+.ed-teachers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ed-teacher-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ed-teacher-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e7ff;
+  color: #3b82f6;
+  border-radius: 50%;
+}
+
+.ed-teacher-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ed-teacher-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ed-teacher-role {
+  font-size: 0.8125rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.ed-teacher-position {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Schedule slots (offering page) */
+.ed-slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ed-slot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #0c4a6e;
+}
+
+.ed-slot-day {
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.ed-slot-time {
+  font-weight: 500;
+}
+
+.ed-slot-type {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  background: #e0f2fe;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #0369a1;
+}
+
+@media (max-width: 480px) {
+  .ed-material-download-text {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .ed-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ed-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ed-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ed-content-grid {
+    grid-template-columns: 1fr;
+  }
+}

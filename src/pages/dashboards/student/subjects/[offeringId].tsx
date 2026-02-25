@@ -9,7 +9,6 @@ import {
   FileText,
   BarChart3,
   UserRound,
-  Download,
 } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
 import type { Locale } from '../../../../shared/i18n';
@@ -18,9 +17,16 @@ import type {
   StudentSubjectInfoDto,
   StudentSubjectTeacherItemDto,
   GroupSubjectOfferingSlotDto,
-  CourseMaterialDto,
 } from '../../../../shared/api';
-import { Alert } from '../../../../shared/ui';
+import {
+  Alert,
+  BackLink,
+  PageHero,
+  SectionCard,
+  InfoTile,
+  DetailMaterialRow,
+  StatCard,
+} from '../../../../shared/ui';
 import {
   getSubjectDisplayName,
   getTeacherDisplayName,
@@ -149,10 +155,9 @@ export function StudentSubjectInfoPage() {
         <Alert variant="error" role="alert">
           {notFound ? t('studentSubjectInfoNotFound') : error}
         </Alert>
-        <Link to={SUBJECTS_BACK_PATH} className="ssi-back-link">
-          <ArrowLeft size={16} />
+        <BackLink to={SUBJECTS_BACK_PATH} icon={<ArrowLeft size={16} />}>
           {t('studentSubjectInfoBackToSubjects')}
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -164,35 +169,23 @@ export function StudentSubjectInfoPage() {
   const formatKey = getFormatKey(data.offering.format);
 
   return (
-    <div className="entity-view-page department-form-page ssi-page">
-      <Link to={SUBJECTS_BACK_PATH} className="ssi-back-link">
-        <ArrowLeft size={16} />
+    <div className="entity-view-page department-form-page ed-page">
+      <BackLink to={SUBJECTS_BACK_PATH} icon={<ArrowLeft size={16} />}>
         {t('studentSubjectInfoBackToSubjects')}
-      </Link>
+      </BackLink>
 
-      {/* ===== Header ===== */}
-      <div className="ssi-hero">
-        <div className="ssi-hero-icon">
-          <GraduationCap size={28} />
-        </div>
-        <div className="ssi-hero-text">
-          <h1 className="ssi-hero-title">{subjectName}</h1>
-          {data.subject.code && (
-            <span className="ssi-hero-code">{data.subject.code}</span>
-          )}
-          {data.departmentName && (
-            <span className="ssi-hero-department">{data.departmentName}</span>
-          )}
-        </div>
-      </div>
+      <PageHero
+        icon={<GraduationCap size={28} />}
+        title={subjectName}
+        subtitle={data.subject.code ?? undefined}
+        meta={data.departmentName ?? undefined}
+      />
 
-      {/* ===== Subject info grid ===== */}
-      <section className="entity-view-card ssi-card">
-        <h2 className="entity-view-card-title ssi-section-title">
-          <BookOpen size={18} />
-          {t('studentSubjectInfoSubjectTitle')}
-        </h2>
-        <div className="ssi-info-grid">
+      <SectionCard
+        icon={<BookOpen size={18} />}
+        title={t('studentSubjectInfoSubjectTitle')}
+      >
+        <div className="ed-info-grid">
           <InfoTile
             label={t('studentSubjectInfoSemester')}
             value={String(cs.semesterNo)}
@@ -226,82 +219,76 @@ export function StudentSubjectInfoPage() {
             />
           )}
         </div>
-      </section>
+      </SectionCard>
 
-      {/* ===== Teachers ===== */}
-      <section className="entity-view-card ssi-card">
-        <h2 className="entity-view-card-title ssi-section-title">
-          <UserRound size={18} />
-          {t('studentSubjectInfoTeachersTitle')}
-        </h2>
+      <SectionCard
+        icon={<UserRound size={18} />}
+        title={t('studentSubjectInfoTeachersTitle')}
+      >
         {data.teachers.length === 0 ? (
-          <p className="ssi-empty">{t('studentSubjectInfoNoTeachers')}</p>
+          <p className="ed-empty">{t('studentSubjectInfoNoTeachers')}</p>
         ) : (
-          <div className="ssi-teachers-list">
+          <div className="ed-teachers-list">
             {data.teachers.map((item) => (
               <TeacherCard key={item.teacher.id} item={item} t={t} locale={locale} />
             ))}
           </div>
         )}
-      </section>
+      </SectionCard>
 
-      {/* ===== Schedule ===== */}
-      <section className="entity-view-card ssi-card">
-        <h2 className="entity-view-card-title ssi-section-title">
-          <Calendar size={18} />
-          {t('studentSubjectInfoScheduleTitle')}
-        </h2>
+      <SectionCard
+        icon={<Calendar size={18} />}
+        title={t('studentSubjectInfoScheduleTitle')}
+      >
         {data.slots.length === 0 ? (
-          <p className="ssi-empty">{t('studentSubjectInfoNoSlots')}</p>
+          <p className="ed-empty">{t('studentSubjectInfoNoSlots')}</p>
         ) : (
-          <div className="ssi-slots-list">
+          <div className="ed-slots-list">
             {sortSlots(data.slots).map((slot) => (
-              <div key={slot.id} className="ssi-slot-chip">
-                <span className="ssi-slot-day">
+              <div key={slot.id} className="ed-slot-chip">
+                <span className="ed-slot-day">
                   {t(DAY_KEYS[slot.dayOfWeek] ?? 'studentSubjectInfoDayMon')}
                 </span>
                 <Clock size={14} />
-                <span className="ssi-slot-time">
+                <span className="ed-slot-time">
                   {formatSlotTime(slot.startTime, slot.endTime)}
                 </span>
                 {slot.lessonType && (
-                  <span className="ssi-slot-type">{slot.lessonType}</span>
+                  <span className="ed-slot-type">{slot.lessonType}</span>
                 )}
               </div>
             ))}
           </div>
         )}
-      </section>
+      </SectionCard>
 
-      {/* ===== Materials ===== */}
-      <section className="entity-view-card ssi-card">
-        <h2 className="entity-view-card-title ssi-section-title">
-          <FileText size={18} />
-          {t('studentSubjectInfoMaterialsTitle')}
-        </h2>
+      <SectionCard
+        icon={<FileText size={18} />}
+        title={t('studentSubjectInfoMaterialsTitle')}
+      >
         {data.materials.length === 0 ? (
-          <p className="ssi-empty">{t('studentSubjectInfoNoMaterials')}</p>
+          <p className="ed-empty">{t('studentSubjectInfoNoMaterials')}</p>
         ) : (
-          <div className="ssi-materials-list">
+          <div className="ed-material-list">
             {data.materials.map((mat) => (
-              <MaterialRow
+              <DetailMaterialRow
                 key={mat.id}
-                material={mat}
-                onDownload={handleDownloadFile}
-                t={t}
+                title={mat.title}
+                description={mat.description ?? undefined}
+                fileMeta={mat.file?.originalName ?? undefined}
+                onDownload={mat.file ? () => handleDownloadFile(mat.file.id) : undefined}
+                downloadLabel={t('download')}
               />
             ))}
           </div>
         )}
-      </section>
+      </SectionCard>
 
-      {/* ===== Statistics ===== */}
-      <section className="entity-view-card ssi-card">
-        <h2 className="entity-view-card-title ssi-section-title">
-          <BarChart3 size={18} />
-          {t('studentSubjectInfoStatsTitle')}
-        </h2>
-        <div className="ssi-stats-grid">
+      <SectionCard
+        icon={<BarChart3 size={18} />}
+        title={t('studentSubjectInfoStatsTitle')}
+      >
+        <div className="ed-stats-grid">
           <StatCard
             label={t('studentSubjectInfoAttendance')}
             value={
@@ -325,16 +312,7 @@ export function StudentSubjectInfoPage() {
             accent="blue"
           />
         </div>
-      </section>
-    </div>
-  );
-}
-
-function InfoTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="ssi-info-tile">
-      <span className="ssi-info-tile-label">{label}</span>
-      <span className="ssi-info-tile-value">{value}</span>
+      </SectionCard>
     </div>
   );
 }
@@ -352,74 +330,17 @@ function TeacherCard({
   const roleKey = getTeacherRoleKey(item.role);
 
   return (
-    <div className="ssi-teacher-card">
-      <div className="ssi-teacher-avatar">
+    <div className="ed-teacher-card">
+      <div className="ed-teacher-avatar">
         <UserRound size={20} />
       </div>
-      <div className="ssi-teacher-info">
-        <span className="ssi-teacher-name">{name}</span>
-        <span className="ssi-teacher-role">{t(roleKey)}</span>
+      <div className="ed-teacher-info">
+        <span className="ed-teacher-name">{name}</span>
+        <span className="ed-teacher-role">{t(roleKey)}</span>
         {item.teacher.position && (
-          <span className="ssi-teacher-position">{item.teacher.position}</span>
+          <span className="ed-teacher-position">{item.teacher.position}</span>
         )}
       </div>
-    </div>
-  );
-}
-
-function MaterialRow({
-  material,
-  onDownload,
-  t,
-}: {
-  material: CourseMaterialDto;
-  onDownload: (fileId: string) => void;
-  t: (key: string) => string;
-}) {
-  return (
-    <div className="ssi-material-row">
-      <div className="ssi-material-icon">
-        <FileText size={18} />
-      </div>
-      <div className="ssi-material-info">
-        <span className="ssi-material-title">{material.title}</span>
-        {material.description && (
-          <span className="ssi-material-desc">{material.description}</span>
-        )}
-        {material.file && (
-          <span className="ssi-material-file-name">
-            {material.file.originalName}
-          </span>
-        )}
-      </div>
-      {material.file && (
-        <button
-          type="button"
-          className="ssi-material-download"
-          onClick={() => onDownload(material.file.id)}
-          title={t('download')}
-        >
-          <Download style={{ width: '1.25rem', height: '1.25rem' }} aria-hidden />
-          <span className="ssi-material-download-text">{t('download')}</span>
-        </button>
-      )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent: string;
-}) {
-  return (
-    <div className={`ssi-stat-card ssi-stat-card--${accent}`}>
-      <span className="ssi-stat-value">{value}</span>
-      <span className="ssi-stat-label">{label}</span>
     </div>
   );
 }
