@@ -208,8 +208,6 @@ export {
 export type { GradesApiResult } from './grades';
 export {
   listTeacherNotices,
-  approveNotice,
-  rejectNotice,
   getMyAbsenceNotices,
   createAbsenceNotice,
   updateAbsenceNotice,
@@ -234,6 +232,7 @@ export type {
   TeacherNoticeSlotSummary,
   TeacherNoticeGroupSummary,
   TeacherAbsenceNoticeItemDto,
+  TeacherNoticePeriodSummary,
   TeacherAbsenceNoticePage,
   ListTeacherNoticesParams,
   StudentNoticePeriodSummary,

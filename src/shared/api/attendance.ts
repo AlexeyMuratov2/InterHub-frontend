@@ -1,14 +1,10 @@
 import { request } from './client';
 import type { ErrorResponse } from './client';
 
-/** Статусы уведомления об отсутствии (API) */
+/** Статусы уведомления об отсутствии (API). Преподаватель только просматривает; студент может отозвать. */
 export const ABSENCE_NOTICE_STATUS = {
   SUBMITTED: 'SUBMITTED',
   CANCELED: 'CANCELED',
-  ACKNOWLEDGED: 'ACKNOWLEDGED',
-  ATTACHED: 'ATTACHED',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
 } as const;
 
 export type AbsenceNoticeStatus = (typeof ABSENCE_NOTICE_STATUS)[keyof typeof ABSENCE_NOTICE_STATUS];
@@ -79,6 +75,12 @@ export interface TeacherNoticeGroupSummary {
   name: string | null;
 }
 
+/** Период действия заявки (с — по). Используется для заявок на несколько занятий; для одного занятия также заполняется. */
+export interface TeacherNoticePeriodSummary {
+  startAt: string;
+  endAt: string;
+}
+
 /** Сводка по слоту офферинга (недельный слот: день, время, тип занятия, аудитория, преподаватель). */
 export interface TeacherNoticeSlotSummary {
   id: string;
@@ -95,6 +97,9 @@ export interface TeacherNoticeSlotSummary {
 export interface TeacherAbsenceNoticeItemDto {
   notice: AbsenceNoticeDto;
   student: TeacherNoticeStudentSummary | null;
+  /** Период действия заявки (всегда при наличии занятий). При одном занятии дублирует дату/время урока. */
+  period: TeacherNoticePeriodSummary | null;
+  /** Только при одном занятии в заявке; при нескольких — null. */
   lesson: TeacherNoticeLessonSummary | null;
   offering: TeacherNoticeOfferingSummary | null;
   slot: TeacherNoticeSlotSummary | null;
@@ -135,7 +140,7 @@ export interface GetMyAbsenceNoticesParams {
 }
 
 export interface ListTeacherNoticesParams {
-  /** Фильтр по статусам через запятую: SUBMITTED, CANCELED, ACKNOWLEDGED, ATTACHED, APPROVED, REJECTED. */
+  /** Фильтр по статусам: SUBMITTED, CANCELED (или пусто = все). */
   statuses?: string;
   cursor?: string | null;
   limit?: number;

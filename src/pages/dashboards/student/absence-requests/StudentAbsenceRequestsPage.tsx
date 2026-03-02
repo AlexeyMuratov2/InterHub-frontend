@@ -57,14 +57,9 @@ function addDays(isoDate: string, days: number): string {
 function getStatusLabelKey(status: AbsenceNoticeStatus): string {
   switch (status) {
     case ABSENCE_NOTICE_STATUS.SUBMITTED:
-      return 'absenceRequestsStatusPending';
-    case ABSENCE_NOTICE_STATUS.APPROVED:
-    case ABSENCE_NOTICE_STATUS.ATTACHED:
-    case ABSENCE_NOTICE_STATUS.ACKNOWLEDGED:
-      return 'absenceRequestsStatusApproved';
+      return 'absenceRequestsStatusSubmitted';
     case ABSENCE_NOTICE_STATUS.CANCELED:
-    case ABSENCE_NOTICE_STATUS.REJECTED:
-      return 'absenceRequestsStatusRejected';
+      return 'absenceRequestsStatusCanceled';
     default:
       return 'absenceRequestsStatusSubmitted';
   }
@@ -81,9 +76,7 @@ function formatNoticePeriod(item: StudentAbsenceNoticeItemDto, locale: string): 
 }
 
 const STUDENT_STATUS_OPTIONS = [
-  { value: ABSENCE_NOTICE_STATUS.SUBMITTED, labelKey: 'absenceRequestsStatusPending' },
-  { value: ABSENCE_NOTICE_STATUS.APPROVED, labelKey: 'absenceRequestsStatusApproved' },
-  { value: ABSENCE_NOTICE_STATUS.REJECTED, labelKey: 'absenceRequestsStatusRejected' },
+  { value: ABSENCE_NOTICE_STATUS.SUBMITTED, labelKey: 'absenceRequestsStatusSubmitted' },
   { value: ABSENCE_NOTICE_STATUS.CANCELED, labelKey: 'absenceRequestsStatusCanceled' },
 ];
 

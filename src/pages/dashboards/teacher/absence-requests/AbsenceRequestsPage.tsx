@@ -1,76 +1,52 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   listTeacherNotices,
-  approveNotice,
-  rejectNotice,
   ABSENCE_NOTICE_STATUS,
+  ABSENCE_NOTICE_TYPE,
   type TeacherAbsenceNoticeItemDto,
   type AbsenceNoticeStatus,
 } from '../../../../shared/api';
 import { useTranslation, formatDate, formatDateTime } from '../../../../shared/i18n';
-import { Modal, FormGroup, PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar } from '../../../../shared/ui';
-import { getLessonTypeDisplayKey } from '../../../../shared/lib';
-import { Check, Clock, X, ClipboardList } from 'lucide-react';
+import { Modal, PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar } from '../../../../shared/ui';
+import { ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 
 const LIMIT = 30;
-const MAX_COMMENT_LENGTH = 2000;
+const REASON_PREVIEW_LENGTH = 80;
 
-/** По умолчанию запрос с статусом Pending (SUBMITTED). «Все типы» = пустой statuses. */
-type StatusFilterValue = typeof ABSENCE_NOTICE_STATUS.SUBMITTED | '';
+/** Фильтр по статусу: пустая строка = все, SUBMITTED, CANCELED */
+type StatusFilterValue = typeof ABSENCE_NOTICE_STATUS.SUBMITTED | typeof ABSENCE_NOTICE_STATUS.CANCELED | '';
 
-function getStatusBadgeVariant(status: AbsenceNoticeStatus): 'approved' | 'pending' | 'rejected' | 'submitted' | 'canceled' | 'acknowledged' | 'attached' {
-  switch (status) {
-    case ABSENCE_NOTICE_STATUS.APPROVED:
-    case ABSENCE_NOTICE_STATUS.ATTACHED:
-    case ABSENCE_NOTICE_STATUS.ACKNOWLEDGED:
-      return 'approved';
-    case ABSENCE_NOTICE_STATUS.SUBMITTED:
-      return 'pending';
-    case ABSENCE_NOTICE_STATUS.CANCELED:
-    case ABSENCE_NOTICE_STATUS.REJECTED:
-      return 'rejected';
-    default:
-      return status === 'SUBMITTED' ? 'pending' : status === 'CANCELED' || status === 'REJECTED' ? 'rejected' : 'approved';
-  }
-}
-
-function getStatusLabelKey(status: AbsenceNoticeStatus): string {
-  switch (status) {
-    case ABSENCE_NOTICE_STATUS.SUBMITTED:
-      return 'absenceRequestsStatusPending';
-    case ABSENCE_NOTICE_STATUS.APPROVED:
-    case ABSENCE_NOTICE_STATUS.ATTACHED:
-    case ABSENCE_NOTICE_STATUS.ACKNOWLEDGED:
-      return 'absenceRequestsStatusApproved';
-    case ABSENCE_NOTICE_STATUS.CANCELED:
-    case ABSENCE_NOTICE_STATUS.REJECTED:
-      return 'absenceRequestsStatusRejected';
-    default:
-      return 'absenceRequestsStatusSubmitted';
-  }
-}
-
-function getNoticeTypeKey(type: string): string {
-  return type === 'LATE' ? 'absenceRequestsNoticeTypeLate' : 'absenceRequestsNoticeTypeAbsent';
-}
-
-/** Предмет: приоритет у названия из офферинга (subjectName), затем тема занятия, группа. */
+/** Предмет: только для заявки на один урок (offering.subjectName и т.д.). */
 function getSubjectDisplay(item: TeacherAbsenceNoticeItemDto): string {
+  if (!item.lesson) return '—';
   return item.offering?.subjectName ?? item.lesson?.topic ?? item.group?.name ?? item.group?.code ?? '—';
 }
 
-/** Тип занятия: приоритет у слота офферинга (slot.lessonType), иначе lesson.lessonType. */
-function getLessonType(item: TeacherAbsenceNoticeItemDto): string | null {
-  return item.slot?.lessonType ?? item.lesson?.lessonType ?? null;
+/** Даты заявки: один урок — одна дата; период — «с … по …». */
+function getDateDisplay(item: TeacherAbsenceNoticeItemDto, locale: string): string {
+  if (item.lesson) {
+    return formatDate(item.lesson.date, locale);
+  }
+  if (item.period) {
+    const start = formatDate(item.period.startAt.slice(0, 10), locale);
+    const end = formatDate(item.period.endAt.slice(0, 10), locale);
+    return start === end ? start : `${start} – ${end}`;
+  }
+  return formatDate(item.notice.submittedAt.slice(0, 10), locale);
+}
+
+/** ID первого занятия (для перехода к уроку). */
+function getFirstLessonSessionId(item: TeacherAbsenceNoticeItemDto): string {
+  return item.lesson?.id ?? item.notice.lessonSessionIds?.[0] ?? '';
 }
 
 const TEACHER_STATUS_OPTIONS = [
-  { value: ABSENCE_NOTICE_STATUS.SUBMITTED, labelKey: 'absenceRequestsStatusPending' },
+  { value: ABSENCE_NOTICE_STATUS.SUBMITTED, labelKey: 'absenceRequestsStatusSubmitted' },
+  { value: ABSENCE_NOTICE_STATUS.CANCELED, labelKey: 'absenceRequestsStatusCanceled' },
 ];
 
 export function AbsenceRequestsPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t, locale } = useTranslation('dashboard');
   const [items, setItems] = useState<TeacherAbsenceNoticeItemDto[]>([]);
@@ -78,7 +54,7 @@ export function AbsenceRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [expandedReasonIds, setExpandedReasonIds] = useState<Set<string>>(new Set());
 
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(() => {
     const p = new URLSearchParams(window.location.search);
@@ -91,10 +67,7 @@ export function AbsenceRequestsPage() {
   const [dateFrom, setDateFrom] = useState<string>(() => new URLSearchParams(window.location.search).get('dateFrom') ?? '');
   const [dateTo, setDateTo] = useState<string>(() => new URLSearchParams(window.location.search).get('dateTo') ?? '');
 
-  const [reviewItem, setReviewItem] = useState<TeacherAbsenceNoticeItemDto | null>(null);
-  const [reviewComment, setReviewComment] = useState('');
-  const [respondLoading, setRespondLoading] = useState<'approve' | 'reject' | null>(null);
-  const [respondError, setRespondError] = useState<string | null>(null);
+  const [viewItem, setViewItem] = useState<TeacherAbsenceNoticeItemDto | null>(null);
 
   useEffect(() => {
     const from = searchParams.get('dateFrom') ?? '';
@@ -110,7 +83,10 @@ export function AbsenceRequestsPage() {
     if (isFirst) setLoading(true);
     else setLoadingMore(true);
     setError(null);
-    const statusesParam = statusFilter === ABSENCE_NOTICE_STATUS.SUBMITTED ? ABSENCE_NOTICE_STATUS.SUBMITTED : undefined;
+    const statusesParam =
+      statusFilter === ABSENCE_NOTICE_STATUS.SUBMITTED || statusFilter === ABSENCE_NOTICE_STATUS.CANCELED
+        ? statusFilter
+        : undefined;
     const { data, error: err } = await listTeacherNotices({
       statuses: statusesParam,
       cursor: cursor ?? undefined,
@@ -147,13 +123,23 @@ export function AbsenceRequestsPage() {
       list = list.filter((item) => getSubjectDisplay(item) === subjectFilter);
     }
     if (groupFilter) {
-      list = list.filter((item) => (item.group?.name ?? item.group?.code ?? '') === groupFilter);
+      const groupKey = (item: TeacherAbsenceNoticeItemDto) =>
+        item.group?.name ?? item.group?.code ?? item.student?.groupName ?? '';
+      list = list.filter((item) => groupKey(item) === groupFilter);
     }
-    if (dateFrom) {
-      list = list.filter((item) => item.lesson && item.lesson.date >= dateFrom);
-    }
-    if (dateTo) {
-      list = list.filter((item) => item.lesson && item.lesson.date <= dateTo);
+    if (dateFrom || dateTo) {
+      list = list.filter((item) => {
+        if (item.lesson) {
+          const d = item.lesson.date;
+          return (!dateFrom || d >= dateFrom) && (!dateTo || d <= dateTo);
+        }
+        if (item.period) {
+          const start = item.period.startAt.slice(0, 10);
+          const end = item.period.endAt.slice(0, 10);
+          return (!dateTo || start <= dateTo) && (!dateFrom || end >= dateFrom);
+        }
+        return true;
+      });
     }
     return list;
   }, [items, subjectFilter, groupFilter, dateFrom, dateTo]);
@@ -170,7 +156,7 @@ export function AbsenceRequestsPage() {
   const uniqueGroups = useMemo(() => {
     const set = new Set<string>();
     items.forEach((item) => {
-      const g = item.group?.name ?? item.group?.code ?? '';
+      const g = item.group?.name ?? item.group?.code ?? item.student?.groupName ?? '';
       if (g) set.add(g);
     });
     return Array.from(set).sort();
@@ -181,65 +167,18 @@ export function AbsenceRequestsPage() {
   };
 
   const lessonUrl = (lessonSessionId: string) => `/dashboards/teacher/lessons/${lessonSessionId}`;
-  const isPending = (status: AbsenceNoticeStatus) => status === ABSENCE_NOTICE_STATUS.SUBMITTED;
 
-  const openReview = (item: TeacherAbsenceNoticeItemDto) => {
-    setReviewItem(item);
-    setReviewComment('');
-    setRespondError(null);
+  const openView = (item: TeacherAbsenceNoticeItemDto) => setViewItem(item);
+  const closeView = () => setViewItem(null);
+
+  const toggleReasonExpand = (noticeId: string) => {
+    setExpandedReasonIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(noticeId)) next.delete(noticeId);
+      else next.add(noticeId);
+      return next;
+    });
   };
-
-  const closeReview = () => {
-    setReviewItem(null);
-    setReviewComment('');
-    setRespondError(null);
-    setRespondLoading(null);
-  };
-
-  const handleApprove = async () => {
-    if (!reviewItem) return;
-    setRespondLoading('approve');
-    setRespondError(null);
-    const comment = reviewComment.trim().slice(0, MAX_COMMENT_LENGTH) || undefined;
-    const { data, error: err } = await approveNotice(reviewItem.notice.id, comment ? { comment } : undefined);
-    setRespondLoading(null);
-    if (err) {
-      setRespondError(err.message ?? t('absenceRequestsErrorRespond'));
-      return;
-    }
-    setSuccess(t('absenceRequestsSuccessApproved'));
-    setTimeout(() => setSuccess(null), 3000);
-    setItems((prev) =>
-      prev.map((it) =>
-        it.notice.id === reviewItem.notice.id ? { ...it, notice: data! } : it
-      )
-    );
-    closeReview();
-  };
-
-  const handleReject = async () => {
-    if (!reviewItem) return;
-    setRespondLoading('reject');
-    setRespondError(null);
-    const comment = reviewComment.trim().slice(0, MAX_COMMENT_LENGTH) || undefined;
-    const { data, error: err } = await rejectNotice(reviewItem.notice.id, comment ? { comment } : undefined);
-    setRespondLoading(null);
-    if (err) {
-      setRespondError(err.message ?? t('absenceRequestsErrorRespond'));
-      return;
-    }
-    setSuccess(t('absenceRequestsSuccessRejected'));
-    setTimeout(() => setSuccess(null), 3000);
-    setItems((prev) =>
-      prev.map((it) =>
-        it.notice.id === reviewItem.notice.id ? { ...it, notice: data! } : it
-      )
-    );
-    closeReview();
-  };
-
-  const lessonTypeValue = reviewItem ? getLessonType(reviewItem) : null;
-  const lessonTypeLabel = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
 
   const subjectOptions = useMemo(
     () => uniqueSubjects.map((s) => ({ value: s, label: s })),
@@ -282,11 +221,6 @@ export function AbsenceRequestsPage() {
           {error}
         </Alert>
       )}
-      {success && (
-        <Alert variant="success" role="status" className="ed-card">
-          {success}
-        </Alert>
-      )}
 
       <SectionCard icon={<ClipboardList size={18} />} title={t('absenceRequestsTitle')}>
         <div className="department-table-wrap">
@@ -303,25 +237,30 @@ export function AbsenceRequestsPage() {
               <thead>
                 <tr>
                   <th>{t('absenceRequestsStudent')}</th>
-                  <th>{t('absenceRequestsDate')}</th>
+                  <th>{t('absenceRequestsDatesColumn')}</th>
                   <th>{t('absenceRequestsSubject')}</th>
-                  <th>{t('absenceRequestsLessonType')}</th>
                   <th>{t('absenceRequestsStatus')}</th>
+                  <th>{t('absenceRequestsReason')}</th>
+                  <th>{t('absenceRequestsSubmittedAt')}</th>
                   <th>{t('absenceRequestsActions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((item) => {
                   const studentName = item.student?.displayName ?? item.student?.studentId ?? '—';
-                  const lessonDate = item.lesson?.date ?? item.notice.submittedAt.slice(0, 10);
+                  const dateDisplay = getDateDisplay(item, locale);
                   const subject = getSubjectDisplay(item);
-                  const status = item.notice.status;
-                  const variant = getStatusBadgeVariant(status);
-                  const lessonSessionId = item.lesson?.id ?? item.notice.lessonSessionIds?.[0] ?? '';
+                  const status: AbsenceNoticeStatus = item.notice.status;
+                  const type = item.notice.type;
+                  const isCanceled = status === ABSENCE_NOTICE_STATUS.CANCELED;
+                  const typeVariant = type === ABSENCE_NOTICE_TYPE.LATE ? 'late' : 'absent';
+                  const reasonText = item.notice.reasonText || '—';
+                  const isReasonLong = reasonText.length > REASON_PREVIEW_LENGTH;
+                  const isExpanded = expandedReasonIds.has(item.notice.id);
+                  const lessonSessionId = getFirstLessonSessionId(item);
                   const lessonLink = lessonUrl(lessonSessionId);
-                  const canOpenLesson = lessonSessionId !== '';
-                  const lessonTypeValue = getLessonType(item);
-                  const lessonTypeLabelRow = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
+                  const canOpenLesson = item.lesson != null && lessonSessionId !== '';
+
                   return (
                     <tr key={item.notice.id}>
                       <td>
@@ -333,50 +272,75 @@ export function AbsenceRequestsPage() {
                           studentName
                         )}
                       </td>
-                      <td>{formatDate(lessonDate, locale)}</td>
+                      <td>{dateDisplay}</td>
                       <td>{subject}</td>
-                      <td>{lessonTypeLabelRow}</td>
                       <td>
-                        <span className={`absence-status-badge absence-status-badge--${variant}`}>
-                          {variant === 'approved' && <Check className="absence-status-icon" aria-hidden />}
-                          {variant === 'pending' && <Clock className="absence-status-icon" aria-hidden />}
-                          {variant === 'rejected' && <X className="absence-status-icon" aria-hidden />}
-                          {t(getStatusLabelKey(status))}
-                        </span>
+                        {isCanceled ? (
+                          <span className="absence-status-badge absence-status-badge--canceled">
+                            {t('absenceRequestsStatusCanceled')}
+                          </span>
+                        ) : (
+                          <span
+                            className={`absence-status-badge absence-type-badge absence-type-badge--${typeVariant}`}
+                            title={type === ABSENCE_NOTICE_TYPE.LATE ? t('absenceRequestsNoticeTypeLate') : t('absenceRequestsNoticeTypeAbsent')}
+                          >
+                            {type === ABSENCE_NOTICE_TYPE.LATE
+                              ? t('absenceRequestsNoticeTypeLate')
+                              : t('absenceRequestsNoticeTypeAbsent')}
+                          </span>
+                        )}
                       </td>
                       <td>
-                        <div className="department-table-actions">
-                          {isPending(status) ? (
-                            <button
-                              type="button"
-                              className="department-table-btn department-table-btn--primary"
-                              onClick={() => openReview(item)}
-                              title={t('absenceRequestsActionReview')}
-                              aria-label={t('absenceRequestsActionReview')}
-                            >
-                              {t('absenceRequestsActionReview')}
-                            </button>
-                          ) : (
+                        <div className="absence-reason-cell">
+                          {isReasonLong ? (
                             <>
+                              <span className="absence-reason-text">
+                                {isExpanded ? reasonText : `${reasonText.slice(0, REASON_PREVIEW_LENGTH)}…`}
+                              </span>
                               <button
                                 type="button"
-                                className="department-table-btn"
-                                onClick={() => openReview(item)}
-                                title={t('absenceRequestsActionView')}
-                                aria-label={t('absenceRequestsActionView')}
+                                className="absence-reason-toggle"
+                                onClick={() => toggleReasonExpand(item.notice.id)}
+                                aria-expanded={isExpanded}
                               >
-                                {t('absenceRequestsActionView')}
+                                {isExpanded ? (
+                                  <>
+                                    {t('absenceRequestsReasonCollapse')}
+                                    <ChevronUp className="absence-reason-toggle-icon" aria-hidden />
+                                  </>
+                                ) : (
+                                  <>
+                                    {t('absenceRequestsReasonExpand')}
+                                    <ChevronDown className="absence-reason-toggle-icon" aria-hidden />
+                                  </>
+                                )}
                               </button>
-                              {canOpenLesson && (
-                                <Link
-                                  to={lessonLink}
-                                  className="department-table-btn department-table-btn-link"
-                                  title={t('absenceRequestsGoToLesson')}
-                                >
-                                  {t('absenceRequestsGoToLesson')}
-                                </Link>
-                              )}
                             </>
+                          ) : (
+                            <span className="absence-reason-text">{reasonText}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{formatDateTime(item.notice.submittedAt, locale)}</td>
+                      <td>
+                        <div className="department-table-actions">
+                          <button
+                            type="button"
+                            className="department-table-btn"
+                            onClick={() => openView(item)}
+                            title={t('absenceRequestsActionView')}
+                            aria-label={t('absenceRequestsActionView')}
+                          >
+                            {t('absenceRequestsActionView')}
+                          </button>
+                          {canOpenLesson && (
+                            <Link
+                              to={lessonLink}
+                              className="department-table-btn department-table-btn-link"
+                              title={t('absenceRequestsGoToLesson')}
+                            >
+                              {t('absenceRequestsGoToLesson')}
+                            </Link>
                           )}
                         </div>
                       </td>
@@ -403,128 +367,77 @@ export function AbsenceRequestsPage() {
       </SectionCard>
 
       <Modal
-        open={reviewItem != null}
-        onClose={closeReview}
+        open={viewItem != null}
+        onClose={closeView}
         title={t('absenceRequestsModalTitle')}
         variant="form"
         modalClassName="absence-review-modal"
       >
-        {reviewItem && (
+        {viewItem && (
           <div className="absence-review-modal-content">
             <dl className="absence-review-dl">
               <dt>{t('absenceRequestsStudent')}</dt>
-              <dd>{reviewItem.student?.displayName ?? reviewItem.student?.studentId ?? '—'}</dd>
-              {reviewItem.student?.groupName && (
+              <dd>{viewItem.student?.displayName ?? viewItem.student?.studentId ?? '—'}</dd>
+              {viewItem.student?.groupName && (
                 <>
                   <dt>{t('absenceRequestsGroup')}</dt>
-                  <dd>{reviewItem.student.groupName}</dd>
+                  <dd>{viewItem.student.groupName}</dd>
                 </>
               )}
-              <dt>{t('absenceRequestsDate')}</dt>
+              <dt>{t('absenceRequestsDatesColumn')}</dt>
               <dd>
-                {reviewItem.lesson
-                  ? formatDate(reviewItem.lesson.date, locale) +
-                    (reviewItem.lesson.startTime
-                      ? ` ${reviewItem.lesson.startTime.slice(0, 5)} – ${reviewItem.lesson.endTime?.slice(0, 5) ?? ''}`
+                {viewItem.lesson
+                  ? formatDate(viewItem.lesson.date, locale) +
+                    (viewItem.lesson.startTime
+                      ? ` ${viewItem.lesson.startTime.slice(0, 5)} – ${viewItem.lesson.endTime?.slice(0, 5) ?? ''}`
                       : '')
-                  : formatDate(reviewItem.notice.submittedAt.slice(0, 10), locale)}
+                  : viewItem.period
+                    ? (() => {
+                        const start = viewItem.period.startAt.slice(0, 10);
+                        const end = viewItem.period.endAt.slice(0, 10);
+                        const startF = formatDate(start, locale);
+                        const endF = formatDate(end, locale);
+                        return start === end ? startF : `${startF} – ${endF}`;
+                      })()
+                    : formatDate(viewItem.notice.submittedAt.slice(0, 10), locale)}
               </dd>
               <dt>{t('absenceRequestsSubjectName')}</dt>
-              <dd>{getSubjectDisplay(reviewItem)}</dd>
-              <dt>{t('absenceRequestsLessonType')}</dt>
-              <dd>{lessonTypeLabel}</dd>
+              <dd>{getSubjectDisplay(viewItem)}</dd>
               <dt>{t('absenceRequestsStatus')}</dt>
-              <dd>{t(getNoticeTypeKey(reviewItem.notice.type))}</dd>
+              <dd>
+                {viewItem.notice.status === ABSENCE_NOTICE_STATUS.CANCELED ? (
+                  t('absenceRequestsStatusCanceled')
+                ) : viewItem.notice.type === ABSENCE_NOTICE_TYPE.LATE ? (
+                  t('absenceRequestsNoticeTypeLate')
+                ) : (
+                  t('absenceRequestsNoticeTypeAbsent')
+                )}
+              </dd>
               <dt>{t('absenceRequestsReason')}</dt>
-              <dd>{reviewItem.notice.reasonText || '—'}</dd>
+              <dd>{viewItem.notice.reasonText || '—'}</dd>
               <dt>{t('absenceRequestsSubmittedAt')}</dt>
-              <dd>{formatDateTime(reviewItem.notice.submittedAt, locale)}</dd>
-              {reviewItem.notice.fileIds?.length > 0 && (
+              <dd>{formatDateTime(viewItem.notice.submittedAt, locale)}</dd>
+              {viewItem.notice.fileIds?.length > 0 && (
                 <>
                   <dt>{t('absenceRequestsAttachments')}</dt>
-                  <dd>{t('absenceRequestsAttachmentsCount', { count: reviewItem.notice.fileIds.length })}</dd>
-                </>
-              )}
-              {(reviewItem.notice.teacherComment != null || reviewItem.notice.respondedAt != null) && (
-                <>
-                  <dt>{t('absenceRequestsTeacherResponse')}</dt>
-                  <dd>
-                    {reviewItem.notice.teacherComment && (
-                      <p className="absence-review-teacher-comment">{reviewItem.notice.teacherComment}</p>
-                    )}
-                    {reviewItem.notice.respondedAt && (
-                      <p className="absence-review-responded-at">
-                        {t('absenceRequestsRespondedAt')}: {formatDateTime(reviewItem.notice.respondedAt, locale)}
-                      </p>
-                    )}
-                  </dd>
+                  <dd>{t('absenceRequestsAttachmentsCount', { count: viewItem.notice.fileIds.length })}</dd>
                 </>
               )}
             </dl>
-
-            {isPending(reviewItem.notice.status) && (
-              <>
-                <FormGroup
-                  label={t('absenceRequestsTeacherComment')}
-                  htmlFor="absence-review-comment"
-                >
-                  <textarea
-                    id="absence-review-comment"
-                    className="absence-review-comment-input"
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder={t('absenceRequestsTeacherCommentPlaceholder')}
-                    rows={3}
-                    maxLength={MAX_COMMENT_LENGTH}
-                  />
-                </FormGroup>
-                {respondError && (
-                  <div className="field-error" role="alert">
-                    {respondError}
-                  </div>
-                )}
-                <div className="absence-review-actions">
-                  <button
-                    type="button"
-                    className="department-table-btn department-table-btn--success"
-                    onClick={handleApprove}
-                    disabled={respondLoading != null}
-                  >
-                    {respondLoading === 'approve' ? t('loadingList') : t('absenceRequestsApprove')}
-                  </button>
-                  <button
-                    type="button"
-                    className="department-table-btn department-table-btn--danger"
-                    onClick={handleReject}
-                    disabled={respondLoading != null}
-                  >
-                    {respondLoading === 'reject' ? t('loadingList') : t('absenceRequestsReject')}
-                  </button>
-                  <button type="button" className="department-table-btn" onClick={closeReview}>
-                    {t('cancel')}
-                  </button>
-                </div>
-              </>
-            )}
-
-            {!isPending(reviewItem.notice.status) && (
-              <div className="absence-review-actions">
-                <button
-                  type="button"
+            <div className="absence-review-actions">
+              {viewItem.lesson != null && getFirstLessonSessionId(viewItem) && (
+                <Link
+                  to={lessonUrl(getFirstLessonSessionId(viewItem))}
                   className="department-table-btn department-table-btn--primary"
-                  onClick={() => {
-                    closeReview();
-                    navigate(lessonUrl(reviewItem.lesson?.id ?? reviewItem.notice.lessonSessionIds?.[0] ?? ''));
-                  }}
-                  disabled={!reviewItem.lesson?.id && !(reviewItem.notice.lessonSessionIds?.length ?? 0)}
+                  onClick={closeView}
                 >
                   {t('absenceRequestsGoToLesson')}
-                </button>
-                <button type="button" className="department-table-btn" onClick={closeReview}>
-                  {t('absenceRequestsClose')}
-                </button>
-              </div>
-            )}
+                </Link>
+              )}
+              <button type="button" className="department-table-btn" onClick={closeView}>
+                {t('absenceRequestsClose')}
+              </button>
+            </div>
           </div>
         )}
       </Modal>
