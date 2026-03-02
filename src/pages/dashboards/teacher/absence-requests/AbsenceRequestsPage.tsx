@@ -317,15 +317,21 @@ export function AbsenceRequestsPage() {
                   const subject = getSubjectDisplay(item);
                   const status = item.notice.status;
                   const variant = getStatusBadgeVariant(status);
-                  const lessonLink = lessonUrl(item.notice.lessonSessionId);
+                  const lessonSessionId = item.lesson?.id ?? item.notice.lessonSessionIds?.[0] ?? '';
+                  const lessonLink = lessonUrl(lessonSessionId);
+                  const canOpenLesson = lessonSessionId !== '';
                   const lessonTypeValue = getLessonType(item);
                   const lessonTypeLabelRow = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
                   return (
                     <tr key={item.notice.id}>
                       <td>
-                        <Link to={lessonLink} className="absence-requests-student-link">
-                          {studentName}
-                        </Link>
+                        {canOpenLesson ? (
+                          <Link to={lessonLink} className="absence-requests-student-link">
+                            {studentName}
+                          </Link>
+                        ) : (
+                          studentName
+                        )}
                       </td>
                       <td>{formatDate(lessonDate, locale)}</td>
                       <td>{subject}</td>
@@ -361,13 +367,15 @@ export function AbsenceRequestsPage() {
                               >
                                 {t('absenceRequestsActionView')}
                               </button>
-                              <Link
-                                to={lessonLink}
-                                className="department-table-btn department-table-btn-link"
-                                title={t('absenceRequestsGoToLesson')}
-                              >
-                                {t('absenceRequestsGoToLesson')}
-                              </Link>
+                              {canOpenLesson && (
+                                <Link
+                                  to={lessonLink}
+                                  className="department-table-btn department-table-btn-link"
+                                  title={t('absenceRequestsGoToLesson')}
+                                >
+                                  {t('absenceRequestsGoToLesson')}
+                                </Link>
+                              )}
                             </>
                           )}
                         </div>
@@ -506,8 +514,9 @@ export function AbsenceRequestsPage() {
                   className="department-table-btn department-table-btn--primary"
                   onClick={() => {
                     closeReview();
-                    navigate(lessonUrl(reviewItem.notice.lessonSessionId));
+                    navigate(lessonUrl(reviewItem.lesson?.id ?? reviewItem.notice.lessonSessionIds?.[0] ?? ''));
                   }}
+                  disabled={!reviewItem.lesson?.id && !(reviewItem.notice.lessonSessionIds?.length ?? 0)}
                 >
                   {t('absenceRequestsGoToLesson')}
                 </button>

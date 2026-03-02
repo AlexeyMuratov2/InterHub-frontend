@@ -23,7 +23,7 @@ export type AbsenceNoticeType = (typeof ABSENCE_NOTICE_TYPE)[keyof typeof ABSENC
 
 /** Тело запроса создания/обновления заявки об отсутствии: POST /api/attendance/notices */
 export interface SubmitAbsenceNoticeRequest {
-  lessonSessionId: string;
+  lessonSessionIds: string[];
   type: AbsenceNoticeType;
   reasonText?: string | null;
   fileIds?: string[] | null;
@@ -31,7 +31,7 @@ export interface SubmitAbsenceNoticeRequest {
 
 export interface AbsenceNoticeDto {
   id: string;
-  lessonSessionId: string;
+  lessonSessionIds: string[];
   studentId: string;
   type: string;
   reasonText: string | null;
@@ -39,11 +39,11 @@ export interface AbsenceNoticeDto {
   submittedAt: string;
   updatedAt: string;
   canceledAt: string | null;
-  attachedRecordId: string | null;
+  attachedRecordId?: string | null;
   fileIds: string[];
-  teacherComment: string | null;
-  respondedAt: string | null;
-  respondedBy: string | null;
+  teacherComment?: string | null;
+  respondedAt?: string | null;
+  respondedBy?: string | null;
 }
 
 export interface TeacherNoticeStudentSummary {

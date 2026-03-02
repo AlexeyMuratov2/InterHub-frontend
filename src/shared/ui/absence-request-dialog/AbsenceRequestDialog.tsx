@@ -58,7 +58,7 @@ export function AbsenceRequestDialog({
       setError(null);
       setSubmitting(true);
       const res = await createAbsenceNotice({
-        lessonSessionId: lessonId,
+        lessonSessionIds: [lessonId],
         type,
         reasonText: reasonText.trim() || undefined,
         fileIds: [],
