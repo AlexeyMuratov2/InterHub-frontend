@@ -15,6 +15,8 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/refresh',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
   '/api/invitations/validate',
   '/api/invitations/accept',
 ];

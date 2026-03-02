@@ -50,6 +50,8 @@ import { LessonFullDetailsPage } from './pages/dashboards/teacher/lessons/[lesso
 import { LessonsListPage } from './pages/dashboards/teacher/lessons';
 import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import { HomePage } from './pages/home';
 import { I18nProvider } from './shared/i18n';
 import './App.css';
@@ -61,6 +63,8 @@ function App() {
         <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/invite" element={<InvitePage />} />
           <Route path="/" element={<RequireAuth><HomePage /></RequireAuth>} />
           <Route

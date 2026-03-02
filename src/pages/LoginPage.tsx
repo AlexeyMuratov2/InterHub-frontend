@@ -189,9 +189,9 @@ export default function LoginPage() {
                   {passwordError || (state.status === 'error' ? state.fieldErrors?.password : undefined)}
                 </span>
               )}
-              <a href="#" className="auth-card-forgot" onClick={(e) => e.preventDefault()}>
+              <Link to="/forgot-password" className="auth-card-forgot">
                 {t('forgotPassword')}
-              </a>
+              </Link>
             </div>
             {showSessionExpired && !showGeneralError && (
               <p className="auth-card-error">{t('sessionExpired')}</p>
