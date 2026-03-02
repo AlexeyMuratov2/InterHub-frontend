@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, Check, Clock, X, Send, CalendarDays } from 'lucide-react';
+import { ClipboardList, Send, CalendarDays, Pencil, Trash2 } from 'lucide-react';
 import {
   getMyAbsenceNotices,
   createAbsenceNotice,
+  updateAbsenceNotice,
+  cancelAbsenceNotice,
   getStudentLessonsWeek,
   ABSENCE_NOTICE_STATUS,
   ABSENCE_NOTICE_TYPE,
@@ -11,14 +13,13 @@ import {
   type AbsenceNoticeStatus,
 } from '../../../../shared/api';
 import { useTranslation, formatDate, formatDateTime } from '../../../../shared/i18n';
-import { PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar, FormGroup } from '../../../../shared/ui';
-import { getLessonTypeDisplayKey } from '../../../../shared/lib';
+import { PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar, FormGroup, Modal } from '../../../../shared/ui';
 
 const LIMIT = 30;
 const MAX_REASON_LENGTH = 2000;
 const MAX_RANGE_DAYS = 60;
 
-type StatusFilterValue = typeof ABSENCE_NOTICE_STATUS.SUBMITTED | '';
+type StatusFilterValue = AbsenceNoticeStatus | '';
 type CreateSelectionMode = 'RANGE' | 'SINGLE';
 type CreateNoticeType = typeof ABSENCE_NOTICE_TYPE.ABSENT | typeof ABSENCE_NOTICE_TYPE.LATE;
 type ConflictLessonInfo = { lessonId: string; status: AbsenceNoticeStatus | null };
@@ -53,24 +54,6 @@ function addDays(isoDate: string, days: number): string {
   return toIsoDate(date);
 }
 
-function getStatusBadgeVariant(
-  status: AbsenceNoticeStatus
-): 'approved' | 'pending' | 'rejected' | 'submitted' | 'canceled' | 'acknowledged' | 'attached' {
-  switch (status) {
-    case ABSENCE_NOTICE_STATUS.APPROVED:
-    case ABSENCE_NOTICE_STATUS.ATTACHED:
-    case ABSENCE_NOTICE_STATUS.ACKNOWLEDGED:
-      return 'approved';
-    case ABSENCE_NOTICE_STATUS.SUBMITTED:
-      return 'pending';
-    case ABSENCE_NOTICE_STATUS.CANCELED:
-    case ABSENCE_NOTICE_STATUS.REJECTED:
-      return 'rejected';
-    default:
-      return status === 'SUBMITTED' ? 'pending' : status === 'CANCELED' || status === 'REJECTED' ? 'rejected' : 'approved';
-  }
-}
-
 function getStatusLabelKey(status: AbsenceNoticeStatus): string {
   switch (status) {
     case ABSENCE_NOTICE_STATUS.SUBMITTED:
@@ -91,16 +74,10 @@ function getNoticeTypeKey(type: string): string {
   return type === 'LATE' ? 'absenceRequestsNoticeTypeLate' : 'absenceRequestsNoticeTypeAbsent';
 }
 
-function getSubjectDisplay(item: StudentAbsenceNoticeItemDto): string {
-  return item.offering?.subjectName ?? item.lesson?.topic ?? '—';
-}
-
-function getLessonType(item: StudentAbsenceNoticeItemDto): string | null {
-  return item.slot?.lessonType ?? item.lesson?.lessonType ?? null;
-}
-
-function getLessonDate(item: StudentAbsenceNoticeItemDto): string {
-  return item.lesson?.date ?? item.notice.submittedAt.slice(0, 10);
+function formatNoticePeriod(item: StudentAbsenceNoticeItemDto, locale: string): string {
+  if (!item.period?.startAt || !item.period?.endAt) return '—';
+  if (item.period.startAt === item.period.endAt) return formatDateTime(item.period.startAt, locale);
+  return `${formatDateTime(item.period.startAt, locale)} - ${formatDateTime(item.period.endAt, locale)}`;
 }
 
 const STUDENT_STATUS_OPTIONS = [
@@ -140,6 +117,14 @@ export function StudentAbsenceRequestsPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [createConflictLessons, setCreateConflictLessons] = useState<ConflictLessonInfo[]>([]);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const [editItem, setEditItem] = useState<StudentAbsenceNoticeItemDto | null>(null);
+  const [editType, setEditType] = useState<CreateNoticeType>('ABSENT');
+  const [editReason, setEditReason] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const loadNotices = async (cursor?: string | null) => {
     const isFirst = cursor == null;
@@ -285,6 +270,7 @@ export function StudentAbsenceRequestsPage() {
 
   const lessonUrl = (lessonSessionId: string) => `/dashboards/student/lessons/${lessonSessionId}`;
   const reasonLength = createReason.length;
+  const editReasonLength = editReason.length;
 
   const groupedLessons = useMemo(() => {
     const map = new Map<string, SelectableLesson[]>();
@@ -305,6 +291,68 @@ export function StudentAbsenceRequestsPage() {
     setSelectedLessonIds((prev) =>
       prev.includes(lessonId) ? prev.filter((id) => id !== lessonId) : [...prev, lessonId]
     );
+  };
+
+  const isNoticeManageable = (status: AbsenceNoticeStatus): boolean => status === ABSENCE_NOTICE_STATUS.SUBMITTED;
+
+  const openEditModal = (item: StudentAbsenceNoticeItemDto) => {
+    setEditItem(item);
+    setEditType(item.notice.type === ABSENCE_NOTICE_TYPE.LATE ? 'LATE' : 'ABSENT');
+    setEditReason(item.notice.reasonText ?? '');
+    setEditError(null);
+  };
+
+  const closeEditModal = () => {
+    if (editSubmitting || cancelSubmitting) return;
+    setEditItem(null);
+    setEditReason('');
+    setEditError(null);
+  };
+
+  const updateItemNotice = (noticeId: string, notice: StudentAbsenceNoticeItemDto['notice']) => {
+    setItems((prev) => prev.map((item) => (item.notice.id === noticeId ? { ...item, notice } : item)));
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editItem) return;
+    setEditError(null);
+    setEditSubmitting(true);
+    const { data, error: err } = await updateAbsenceNotice(editItem.notice.id, {
+      lessonSessionIds: editItem.notice.lessonSessionIds,
+      type: editType,
+      reasonText: editReason.trim() || undefined,
+      fileIds: editItem.notice.fileIds ?? [],
+    });
+    setEditSubmitting(false);
+    if (err) {
+      setEditError(err.message ?? t('absenceRequestErrorSubmit'));
+      return;
+    }
+    if (data) {
+      updateItemNotice(editItem.notice.id, data);
+    }
+    setActionSuccess(t('studentAbsenceEditSuccess'));
+    setTimeout(() => setActionSuccess(null), 2500);
+    closeEditModal();
+  };
+
+  const handleCancelNotice = async () => {
+    if (!editItem) return;
+    setEditError(null);
+    setCancelSubmitting(true);
+    const { data, error: err } = await cancelAbsenceNotice(editItem.notice.id);
+    setCancelSubmitting(false);
+    if (err) {
+      setEditError(err.message ?? t('absenceRequestsErrorLoad'));
+      return;
+    }
+    if (data) {
+      updateItemNotice(editItem.notice.id, data);
+    }
+    setActionSuccess(t('studentAbsenceCancelSuccess'));
+    setTimeout(() => setActionSuccess(null), 2500);
+    closeEditModal();
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -621,6 +669,11 @@ export function StudentAbsenceRequestsPage() {
           {error}
         </Alert>
       )}
+      {actionSuccess && (
+        <Alert variant="success" role="status" className="ed-card">
+          {actionSuccess}
+        </Alert>
+      )}
 
       <SectionCard icon={<ClipboardList size={18} />} title={t('studentAbsenceRequestsTableTitle')}>
         <div className="department-table-wrap">
@@ -637,67 +690,36 @@ export function StudentAbsenceRequestsPage() {
               <thead>
                 <tr>
                   <th>{t('absenceRequestsDate')}</th>
-                  <th>{t('absenceRequestsSubject')}</th>
-                  <th>{t('absenceRequestsLessonType')}</th>
                   <th>{t('absenceRequestsNoticeType')}</th>
-                  <th>{t('absenceRequestsStatus')}</th>
+                  <th>{t('absenceRequestsReason')}</th>
                   <th>{t('absenceRequestsSubmittedAt')}</th>
                   <th>{t('absenceRequestsActions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((item) => {
-                  const lessonDate = getLessonDate(item);
-                  const subject = getSubjectDisplay(item);
-                  const status = item.notice.status;
-                  const variant = getStatusBadgeVariant(status);
-                  const lessonTypeValue = getLessonType(item);
-                  const lessonTypeLabel = lessonTypeValue ? t(getLessonTypeDisplayKey(lessonTypeValue)) : '—';
                   const typeLabel = t(getNoticeTypeKey(item.notice.type));
-                  const sessionId = item.lesson?.id ?? item.notice.lessonSessionIds?.[0] ?? '';
-                  const canOpenLesson = sessionId !== '';
+                  const manageable = isNoticeManageable(item.notice.status);
 
                   return (
                     <tr key={item.notice.id}>
-                      <td>
-                        {canOpenLesson ? (
-                          <Link to={lessonUrl(sessionId)} className="absence-requests-student-link">
-                            {formatDate(lessonDate, locale)}
-                            {item.lesson?.startTime && (
-                              <span className="student-absence-time">
-                                {' '}
-                                {item.lesson.startTime.slice(0, 5)}
-                                {item.lesson.endTime ? ` – ${item.lesson.endTime.slice(0, 5)}` : ''}
-                              </span>
-                            )}
-                          </Link>
-                        ) : (
-                          formatDate(lessonDate, locale)
-                        )}
-                      </td>
-                      <td>{subject}</td>
-                      <td>{lessonTypeLabel}</td>
+                      <td>{formatNoticePeriod(item, locale)}</td>
                       <td>{typeLabel}</td>
-                      <td>
-                        <span className={`absence-status-badge absence-status-badge--${variant}`}>
-                          {variant === 'approved' && <Check className="absence-status-icon" aria-hidden />}
-                          {variant === 'pending' && <Clock className="absence-status-icon" aria-hidden />}
-                          {variant === 'rejected' && <X className="absence-status-icon" aria-hidden />}
-                          {t(getStatusLabelKey(status))}
-                        </span>
-                      </td>
+                      <td>{item.notice.reasonText?.trim() || '—'}</td>
                       <td>{formatDateTime(item.notice.submittedAt, locale)}</td>
                       <td>
-                        {canOpenLesson ? (
-                          <Link
-                            to={lessonUrl(sessionId)}
-                            className="department-table-btn department-table-btn-link"
-                            title={t('absenceRequestsGoToLesson')}
+                        {manageable ? (
+                          <button
+                            type="button"
+                            className="student-absence-action-btn"
+                            onClick={() => openEditModal(item)}
+                            title={t('studentAbsenceEditAction')}
                           >
-                            {t('absenceRequestsGoToLesson')}
-                          </Link>
+                            <Pencil size={14} aria-hidden />
+                            {t('studentAbsenceEditAction')}
+                          </button>
                         ) : (
-                          '—'
+                          <span className="student-absence-action-muted">{t('studentAbsenceActionUnavailable')}</span>
                         )}
                       </td>
                     </tr>
@@ -721,6 +743,113 @@ export function StudentAbsenceRequestsPage() {
           </div>
         )}
       </SectionCard>
+
+      <Modal
+        open={editItem != null}
+        onClose={closeEditModal}
+        title={t('studentAbsenceEditModalTitle')}
+        variant="form"
+        modalClassName="student-absence-edit-modal"
+      >
+        {editItem && (
+          <form className="student-absence-edit-form" onSubmit={handleEditSave} noValidate>
+            <div className="student-absence-edit-meta">
+              <div>
+                <span className="student-absence-edit-meta__label">{t('absenceRequestsDate')}</span>
+                <p>{formatNoticePeriod(editItem, locale)}</p>
+              </div>
+              <div>
+                <span className="student-absence-edit-meta__label">{t('absenceRequestsSubmittedAt')}</span>
+                <p>{formatDateTime(editItem.notice.submittedAt, locale)}</p>
+              </div>
+            </div>
+
+            {editError && (
+              <Alert variant="error" role="alert">
+                {editError}
+              </Alert>
+            )}
+
+            <div className="ed-absence-request-dialog__type-row">
+              <span className="ed-absence-request-dialog__type-label">{t('absenceRequestsNoticeType')} *</span>
+              <div className="ed-absence-request-dialog__type-options">
+                <button
+                  type="button"
+                  className={`ed-absence-request-dialog__type-option ${
+                    editType === 'ABSENT' ? 'ed-absence-request-dialog__type-option--active' : ''
+                  }`}
+                  onClick={() => setEditType('ABSENT')}
+                  disabled={editSubmitting || cancelSubmitting}
+                >
+                  <span className="ed-absence-request-dialog__type-option-label">
+                    {t('absenceRequestsNoticeTypeAbsent')}
+                  </span>
+                  <span className="ed-absence-request-dialog__type-option-desc">{t('absenceRequestTypeAbsentDesc')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`ed-absence-request-dialog__type-option ${
+                    editType === 'LATE' ? 'ed-absence-request-dialog__type-option--active' : ''
+                  }`}
+                  onClick={() => setEditType('LATE')}
+                  disabled={editSubmitting || cancelSubmitting}
+                >
+                  <span className="ed-absence-request-dialog__type-option-label">
+                    {t('absenceRequestsNoticeTypeLate')}
+                  </span>
+                  <span className="ed-absence-request-dialog__type-option-desc">{t('absenceRequestTypeLateDesc')}</span>
+                </button>
+              </div>
+            </div>
+
+            <FormGroup label={t('absenceRequestsReason')} htmlFor="student-absence-edit-reason" hint={t('absenceRequestReasonHint')}>
+              <textarea
+                id="student-absence-edit-reason"
+                className="ed-absence-request-dialog__reason"
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                placeholder={t('absenceRequestReasonPlaceholder')}
+                rows={4}
+                maxLength={MAX_REASON_LENGTH + 1}
+                aria-invalid={editReasonLength > MAX_REASON_LENGTH}
+                disabled={editSubmitting || cancelSubmitting}
+              />
+              <div className="ed-absence-request-dialog__reason-footer">
+                <span className={editReasonLength > MAX_REASON_LENGTH ? 'ed-absence-request-dialog__count--over' : ''}>
+                  {editReasonLength} / {MAX_REASON_LENGTH}
+                </span>
+              </div>
+            </FormGroup>
+
+            <div className="student-absence-edit-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={closeEditModal}
+                disabled={editSubmitting || cancelSubmitting}
+              >
+                {t('absenceRequestsClose')}
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={editSubmitting || cancelSubmitting || editReasonLength > MAX_REASON_LENGTH}
+              >
+                {editSubmitting ? t('studentAbsenceEditSaving') : t('studentAbsenceEditSave')}
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={handleCancelNotice}
+                disabled={editSubmitting || cancelSubmitting}
+              >
+                <Trash2 size={14} aria-hidden />
+                {cancelSubmitting ? t('loadingList') : t('studentAbsenceCancelAction')}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }

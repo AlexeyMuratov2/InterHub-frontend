@@ -106,47 +106,16 @@ export interface TeacherAbsenceNoticePage {
   nextCursor: string | null;
 }
 
-/** Student API: lesson summary for absence notice list */
-export interface StudentNoticeLessonSummary {
-  id: string;
-  offeringId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  topic: string | null;
-  status: string;
-  lessonType: string | null;
-}
-
-/** Student API: offering summary for absence notice list */
-export interface StudentNoticeOfferingSummary {
-  id: string;
-  groupId: string;
-  curriculumSubjectId: string;
-  subjectName: string | null;
-  format: string | null;
-  notes: string | null;
-}
-
-/** Student API: slot summary for absence notice list */
-export interface StudentNoticeSlotSummary {
-  id: string;
-  offeringId: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  lessonType: string | null;
-  roomId: string | null;
-  teacherId: string | null;
-  timeslotId: string | null;
+/** Student API: aggregated notice period for absence notice list */
+export interface StudentNoticePeriodSummary {
+  startAt: string;
+  endAt: string;
 }
 
 /** Student API: one item in "my absence notices" list */
 export interface StudentAbsenceNoticeItemDto {
   notice: AbsenceNoticeDto;
-  lesson: StudentNoticeLessonSummary | null;
-  offering: StudentNoticeOfferingSummary | null;
-  slot: StudentNoticeSlotSummary | null;
+  period: StudentNoticePeriodSummary | null;
 }
 
 /** Student API: paginated "my absence notices" */
@@ -345,5 +314,25 @@ export async function createAbsenceNotice(
   return request<AbsenceNoticeDto>('/api/attendance/notices', {
     method: 'POST',
     body: JSON.stringify(body),
+  });
+}
+
+/** PUT /api/attendance/notices/{id} — update current student's absence notice */
+export async function updateAbsenceNotice(
+  noticeId: string,
+  body: SubmitAbsenceNoticeRequest
+): Promise<AttendanceApiResult<AbsenceNoticeDto>> {
+  return request<AbsenceNoticeDto>(`/api/attendance/notices/${encodeURIComponent(noticeId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+/** POST /api/attendance/notices/{id}/cancel — cancel current student's absence notice */
+export async function cancelAbsenceNotice(
+  noticeId: string
+): Promise<AttendanceApiResult<AbsenceNoticeDto>> {
+  return request<AbsenceNoticeDto>(`/api/attendance/notices/${encodeURIComponent(noticeId)}/cancel`, {
+    method: 'POST',
   });
 }
