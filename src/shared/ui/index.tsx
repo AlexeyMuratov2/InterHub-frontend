@@ -80,6 +80,8 @@ export { AbsenceRequestsFiltersBar } from './absence-requests-filters';
 export type { AbsenceRequestsFiltersBarProps } from './absence-requests-filters';
 export { AbsenceRequestDialog } from './absence-request-dialog/AbsenceRequestDialog';
 export type { AbsenceRequestDialogProps } from './absence-request-dialog/AbsenceRequestDialog';
+export { AbsenceNoticesViewDialog } from './absence-notices-view-dialog';
+export type { AbsenceNoticesViewDialogProps } from './absence-notices-view-dialog';
 export { NotificationBell } from './NotificationBell';
 export { HomeworkSubmissionSection } from './homework-submission-section/HomeworkSubmissionSection';
 export type {

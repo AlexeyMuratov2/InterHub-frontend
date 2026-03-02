@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import {
   getLessonFullDetails,
@@ -38,6 +38,7 @@ import {
   HomeworkModal,
   LessonMaterialItemView,
   HomeworkItemView,
+  AbsenceNoticesViewDialog,
 } from '../../../../shared/ui';
 import { getSubjectDisplayName, getStudentDisplayName } from '../../../../shared/lib';
 import { ArrowLeft, BookOpen, FileText, ClipboardList, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
@@ -62,28 +63,81 @@ function getAttendanceStatusLabelKey(value: string): string {
   }
 }
 
-const ABSENCE_REQUESTS_PATH = '/dashboards/teacher/absence-requests';
+/** Только активные заявки (не отозванные студентом). */
+function getActiveNotices(notices: LessonRosterNoticeDto[] | undefined): LessonRosterNoticeDto[] {
+  return (notices ?? []).filter((n) => n.status !== 'CANCELED');
+}
+
+/** Подсветка кнопки заявок по типу активных заявок. */
+function getNoticeButtonHighlight(notices: LessonRosterNoticeDto[] | undefined): 'absent' | 'late' | null {
+  const active = getActiveNotices(notices);
+  if (active.some((n) => n.type === 'ABSENT')) return 'absent';
+  if (active.some((n) => n.type === 'LATE')) return 'late';
+  return null;
+}
+
+function getCountLabel(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  count: number,
+  oneKey: string,
+  twoFourKey: string,
+  fivePlusKey: string
+): string {
+  if (count === 1) return t(oneKey);
+  if (count >= 2 && count <= 4) return t(twoFourKey, { count });
+  return t(fivePlusKey, { count });
+}
+
+function getActiveNoticesLabel(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  activeNotices: LessonRosterNoticeDto[]
+): string {
+  const absentCount = activeNotices.filter((n) => n.type === 'ABSENT').length;
+  const lateCount = activeNotices.filter((n) => n.type === 'LATE').length;
+  if (absentCount > 0 && lateCount > 0) {
+    return t('attendanceHasNoticesBoth', { absentCount, lateCount });
+  }
+  if (absentCount > 0) {
+    return getCountLabel(
+      t,
+      absentCount,
+      'attendanceHasNoticesAbsentOne',
+      'attendanceHasNoticesAbsentTwoFour',
+      'attendanceHasNoticesAbsentFivePlus'
+    );
+  }
+  if (lateCount > 0) {
+    return getCountLabel(
+      t,
+      lateCount,
+      'attendanceHasNoticesLateOne',
+      'attendanceHasNoticesLateTwoFour',
+      'attendanceHasNoticesLateFivePlus'
+    );
+  }
+  return '';
+}
 
 interface StudentAttendanceRowProps {
   row: LessonRosterAttendanceRowDto;
-  lessonDate: string;
   t: (key: string) => string;
   getAttendanceStatusLabelKey: (value: string) => string;
   isSavingAttendance: boolean;
   isSavingPoints: boolean;
   onStatusChange: (row: LessonRosterAttendanceRowDto, newStatus: AttendanceStatusValue) => void;
   onPointsBlur: (row: LessonRosterAttendanceRowDto, points: number) => void;
+  onOpenNotices: (row: LessonRosterAttendanceRowDto) => void;
 }
 
 function StudentAttendanceRow({
   row,
-  lessonDate,
   t,
   getAttendanceStatusLabelKey,
   isSavingAttendance,
   isSavingPoints,
   onStatusChange,
   onPointsBlur,
+  onOpenNotices,
 }: StudentAttendanceRowProps) {
   const currentStatus = (row.status || '') as AttendanceStatusValue;
   const displayName = getStudentDisplayName(row.student);
@@ -133,7 +187,12 @@ function StudentAttendanceRow({
         />
       </td>
       <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.875rem', color: '#475569' }}>
-        <AbsenceNoticeCell notices={row.notices} lessonDate={lessonDate} t={t} />
+        <AbsenceNoticeCell
+          notices={row.notices}
+          t={t}
+          onOpen={() => onOpenNotices(row)}
+          highlight={getNoticeButtonHighlight(row.notices)}
+        />
       </td>
     </tr>
   );
@@ -141,22 +200,40 @@ function StudentAttendanceRow({
 
 function AbsenceNoticeCell({
   notices,
-  lessonDate,
   t,
+  onOpen,
+  highlight,
 }: {
   notices: LessonRosterNoticeDto[];
-  lessonDate: string;
   t: (key: string) => string;
+  onOpen: () => void;
+  highlight: 'absent' | 'late' | null;
 }) {
-  const search = new URLSearchParams();
-  search.set('dateFrom', lessonDate);
-  search.set('dateTo', lessonDate);
-  const toLink = `${ABSENCE_REQUESTS_PATH}?${search.toString()}`;
+  const activeNotices = getActiveNotices(notices);
+  const activeCount = activeNotices.length;
+
+  if (activeCount === 0) {
+    return <span style={{ color: '#94a3b8' }}>{t('attendanceNoNotice')}</span>;
+  }
+
+  const btnClass = [
+    'ed-attendance-notice-btn',
+    highlight ? `ed-attendance-notice-btn--${highlight}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const label = getActiveNoticesLabel(t, activeNotices);
 
   return (
-    <Link to={toLink} style={{ color: notices?.length ? '#2563eb' : '#64748b', textDecoration: notices?.length ? 'underline' : 'none', fontWeight: notices?.length ? 500 : undefined }}>
-      {!notices?.length ? t('attendanceNoNotice') : t('attendanceViewRequests') + (notices.length > 1 ? ` (${notices.length})` : '')}
-    </Link>
+    <button
+      type="button"
+      className={btnClass}
+      onClick={onOpen}
+      title={label}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -184,6 +261,7 @@ export function LessonFullDetailsPage() {
   const [selectedHomework, setSelectedHomework] = useState<HomeworkDto | null>(null);
   const [homeworkList, setHomeworkList] = useState<HomeworkDto[]>([]);
   const [homeworkToDelete, setHomeworkToDelete] = useState<HomeworkDto | null>(null);
+  const [noticesDialogRow, setNoticesDialogRow] = useState<LessonRosterAttendanceRowDto | null>(null);
 
   const [activeTab, setActiveTab] = useState(0);
   const [rosterData, setRosterData] = useState<LessonRosterAttendanceDto | null>(null);
@@ -421,6 +499,30 @@ export function LessonFullDetailsPage() {
     [lessonId, loadRoster]
   );
 
+  const handleOpenNotices = useCallback((row: LessonRosterAttendanceRowDto) => {
+    setNoticesDialogRow(row);
+  }, []);
+
+  const handleCloseNoticesDialog = useCallback(() => {
+    setNoticesDialogRow(null);
+  }, []);
+
+  const handleNoticeFileDownload = useCallback(
+    async (fileId: string) => {
+      try {
+        const res = await getFileDownloadUrl(fileId);
+        if (res.data?.url) {
+          window.open(res.data.url, '_blank');
+        } else {
+          alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
+        }
+      } catch (err) {
+        alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
+      }
+    },
+    []
+  );
+
   if (loading) {
     return (
       <div className="entity-view-page department-form-page ed-page">
@@ -534,6 +636,15 @@ export function LessonFullDetailsPage() {
       )}
 
       {/* Delete Confirmation Modal */}
+      {/* Диалог просмотра заявок студента */}
+      <AbsenceNoticesViewDialog
+        open={!!noticesDialogRow}
+        onClose={handleCloseNoticesDialog}
+        studentDisplayName={noticesDialogRow ? getStudentDisplayName(noticesDialogRow.student) : ''}
+        notices={noticesDialogRow?.notices ?? []}
+        onDownloadFile={handleNoticeFileDownload}
+      />
+
       <ConfirmModal
         open={deleteConfirmOpen}
         title={
@@ -735,13 +846,13 @@ export function LessonFullDetailsPage() {
                         <StudentAttendanceRow
                           key={row.student.id}
                           row={row}
-                          lessonDate={rosterData.lesson.date}
                           t={t}
                           getAttendanceStatusLabelKey={getAttendanceStatusLabelKey}
                           isSavingAttendance={savingStudentId === row.student.id}
                           isSavingPoints={savingPointsStudentId === row.student.id}
                           onStatusChange={handleAttendanceChange}
                           onPointsBlur={handlePointsBlur}
+                          onOpenNotices={handleOpenNotices}
                         />
                       ))}
                     </tbody>
