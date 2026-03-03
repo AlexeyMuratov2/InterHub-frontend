@@ -224,6 +224,14 @@
   background: #D1FAE5;
   color: #059669;
 }
+.notification-item-icon--submission {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+.notification-item-icon--schedule {
+  background: #DBEAFE;
+  color: #2563EB;
+}
 .notification-item-icon--default {
   background: #EBF5FF;
   color: #3B82F6;

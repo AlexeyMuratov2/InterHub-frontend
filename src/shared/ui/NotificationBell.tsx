@@ -1,20 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, FileCheck, Calendar } from 'lucide-react';
 import { request } from '../api/client';
 import { useTranslation } from '../i18n';
-import { formatDateTime } from '../i18n/date';
+import { formatDateTime, formatDate } from '../i18n/date';
 import type { Locale } from '../i18n/config';
 import './NotificationBell.css';
 
+/** Params/data from API: values can be string, string[], or other JSON types. */
 interface NotificationDto {
   id: string;
   templateKey: string;
-  params: Record<string, string>;
-  data: Record<string, string>;
+  params: Record<string, unknown>;
+  data: Record<string, unknown>;
   createdAt: string;
   readAt: string | null;
   archivedAt: string | null;
+}
+
+function getParamString(params: Record<string, unknown>, key: string): string {
+  const v = params[key];
+  if (v == null) return '';
+  return typeof v === 'string' ? v : String(v);
 }
 
 interface NotificationPage {
@@ -24,22 +31,64 @@ interface NotificationPage {
 
 const POLL_INTERVAL = 30_000;
 
-function resolveNotificationLink(data: Record<string, string>, dashboardPrefix: string): string | null {
+function resolveNotificationLink(
+  data: Record<string, unknown>,
+  dashboardPrefix: string,
+  templateKey?: string,
+): string | null {
   const route = data?.route;
-  if (!route) return null;
+  if (route == null) return null;
+  const routeStr = typeof route === 'string' ? route : String(route);
 
-  if (route === 'sessionAttendance' && data.sessionId) {
-    return `${dashboardPrefix}/lessons/${data.sessionId}`;
+  if (routeStr === 'sessionAttendance') {
+    const sessionId = data.sessionId != null ? String(data.sessionId) : null;
+    const subjectName = data.subjectName;
+    if (subjectName != null && subjectName !== '') {
+      // Single subject: link to lesson
+      if (sessionId) return `${dashboardPrefix}/lessons/${sessionId}`;
+    } else {
+      // Multiple subjects: link to absence requests page
+      return `${dashboardPrefix}/absence-requests`;
+    }
   }
-  if (route === 'studentAttendance' && data.sessionId) {
-    return `${dashboardPrefix}/lessons/${data.sessionId}`;
+  if (routeStr === 'studentAttendance') {
+    const sessionId = data.sessionId != null ? String(data.sessionId) : null;
+    if (sessionId) return `${dashboardPrefix}/lessons/${sessionId}`;
+  }
+  if (routeStr === 'lessonHomeworkSubmissions') {
+    const lessonId = data.lessonId != null ? String(data.lessonId) : null;
+    if (lessonId) return `${dashboardPrefix}/lessons/${lessonId}`;
+  }
+  // Schedule: only for rescheduled lesson — open lesson page; deleted lesson has no page
+  if (routeStr === 'schedule' && templateKey === 'schedule.lesson.rescheduled') {
+    const lessonId = data.lessonId != null ? String(data.lessonId) : null;
+    if (lessonId) return `${dashboardPrefix}/lessons/${lessonId}`;
   }
   return null;
 }
 
-function getIconVariant(templateKey: string): 'absence' | 'attendance' | 'default' {
+/** Returns link label i18n key for a notification (when link is present). */
+function getNotificationLinkLabelKey(n: NotificationDto, dashboardPrefix: string): string | null {
+  const link = resolveNotificationLink(n.data, dashboardPrefix, n.templateKey);
+  if (!link) return null;
+  const route = n.data?.route;
+  const routeStr = route != null ? String(route) : '';
+  if (routeStr === 'sessionAttendance') {
+    const subjectName = n.data?.subjectName;
+    if (subjectName != null && subjectName !== '') return 'notifGoToLesson';
+    return 'notifGoToAbsenceRequests';
+  }
+  if (routeStr === 'lessonHomeworkSubmissions') return 'notifGoToSubmissions';
+  if (routeStr === 'studentAttendance') return 'notifGoToLesson';
+  if (routeStr === 'schedule') return 'notifGoToLesson';
+  return 'notifGoToLesson';
+}
+
+function getIconVariant(templateKey: string): 'absence' | 'attendance' | 'submission' | 'schedule' | 'default' {
   if (templateKey.startsWith('attendance.absenceNotice')) return 'absence';
   if (templateKey.startsWith('attendance.record')) return 'attendance';
+  if (templateKey.startsWith('submission.homeworkSubmission')) return 'submission';
+  if (templateKey.startsWith('schedule.lesson')) return 'schedule';
   return 'default';
 }
 
@@ -52,12 +101,16 @@ function BellIcon({ size = 22 }: { size?: number }) {
   );
 }
 
-function renderIcon(variant: 'absence' | 'attendance' | 'default') {
+function renderIcon(variant: 'absence' | 'attendance' | 'submission' | 'schedule' | 'default') {
   switch (variant) {
     case 'absence':
       return <AlertTriangle size={18} />;
     case 'attendance':
       return <CheckCircle2 size={18} />;
+    case 'submission':
+      return <FileCheck size={18} />;
+    case 'schedule':
+      return <Calendar size={18} />;
     default:
       return <BellIcon size={22} />;
   }
@@ -66,20 +119,59 @@ function renderIcon(variant: 'absence' | 'attendance' | 'default') {
 function renderNotificationText(
   n: NotificationDto,
   t: (key: string, params?: Record<string, string | number>) => string,
+  locale: Locale,
 ): string {
   const p = n.params;
+  const studentName = getParamString(p, 'studentName') || '—';
   switch (n.templateKey) {
     case 'attendance.absenceNotice.submitted': {
-      const typeKey = p.noticeType === 'LATE' ? 'notifNoticeTypeLate' : 'notifNoticeTypeAbsent';
-      return t('notifAbsenceSubmitted', { type: t(typeKey) });
+      const subjectName = getParamString(p, 'subjectName');
+      const periodStart = getParamString(p, 'periodStart');
+      const periodEnd = getParamString(p, 'periodEnd');
+      const noticeType = getParamString(p, 'noticeType');
+      if (subjectName) {
+        const dateStr = periodStart ? formatDate(periodStart, locale) : '';
+        const key = noticeType === 'LATE' ? 'notifAbsenceDescriptionSingleLate' : 'notifAbsenceDescriptionSingle';
+        return t(key, { studentName, subjectName, date: dateStr });
+      }
+      const startStr = periodStart ? formatDate(periodStart, locale) : periodStart;
+      const endStr = periodEnd ? formatDate(periodEnd, locale) : periodEnd;
+      return t('notifAbsenceDescriptionRange', { studentName, periodStart: startStr, periodEnd: endStr });
     }
     case 'attendance.absenceNotice.updated': {
-      const typeKey = p.noticeType === 'LATE' ? 'notifNoticeTypeLate' : 'notifNoticeTypeAbsent';
-      return t('notifAbsenceUpdated', { type: t(typeKey) });
+      const subjectName = getParamString(p, 'subjectName');
+      const periodStart = getParamString(p, 'periodStart');
+      const periodEnd = getParamString(p, 'periodEnd');
+      const noticeType = getParamString(p, 'noticeType');
+      if (subjectName) {
+        const dateStr = periodStart ? formatDate(periodStart, locale) : '';
+        const key = noticeType === 'LATE' ? 'notifAbsenceUpdatedDescriptionSingleLate' : 'notifAbsenceUpdatedDescriptionSingle';
+        return t(key, { studentName, subjectName, date: dateStr });
+      }
+      const startStr = periodStart ? formatDate(periodStart, locale) : periodStart;
+      const endStr = periodEnd ? formatDate(periodEnd, locale) : periodEnd;
+      return t('notifAbsenceUpdatedDescriptionRange', { studentName, periodStart: startStr, periodEnd: endStr });
     }
     case 'attendance.record.marked': {
-      const statusKey = `notifAttendanceStatus_${p.status}`;
+      const statusKey = `notifAttendanceStatus_${getParamString(p, 'status')}`;
       return t('notifAttendanceMarked', { status: t(statusKey) });
+    }
+    case 'submission.homeworkSubmission.submitted': {
+      const subjectName = getParamString(p, 'subjectName') || '—';
+      const lessonDisplay = getParamString(p, 'lessonDisplay') || '';
+      return t('notifHomeworkDescription', { studentName, subjectName, lessonDisplay });
+    }
+    case 'schedule.lesson.rescheduled': {
+      const subjectName = getParamString(p, 'subjectName') || '—';
+      const oldDateTime = getParamString(p, 'oldDateTime');
+      const newDateTime = getParamString(p, 'newDateTime');
+      return t('notifLessonRescheduledDescription', { subjectName, oldDateTime, newDateTime });
+    }
+    case 'schedule.lesson.deleted': {
+      const subjectName = getParamString(p, 'subjectName') || '—';
+      const lessonDateRaw = getParamString(p, 'lessonDate');
+      const lessonDate = lessonDateRaw ? formatDate(lessonDateRaw, locale) : lessonDateRaw || '—';
+      return t('notifLessonDeletedDescription', { subjectName, lessonDate });
     }
     default:
       return n.templateKey;
@@ -182,7 +274,7 @@ export function NotificationBell({ dashboardPrefix }: NotificationBellProps) {
 
   const handleItemClick = (n: NotificationDto) => {
     if (!n.readAt) handleMarkAsRead(n.id);
-    const link = resolveNotificationLink(n.data, dashboardPrefix);
+    const link = resolveNotificationLink(n.data, dashboardPrefix, n.templateKey);
     if (link) {
       setOpen(false);
       navigate(link);
@@ -258,7 +350,7 @@ export function NotificationBell({ dashboardPrefix }: NotificationBellProps) {
               notifications.map(n => {
                 const variant = getIconVariant(n.templateKey);
                 const isUnread = !n.readAt;
-                const link = resolveNotificationLink(n.data, dashboardPrefix);
+                const link = resolveNotificationLink(n.data, dashboardPrefix, n.templateKey);
                 return (
                   <div
                     key={n.id}
@@ -273,17 +365,20 @@ export function NotificationBell({ dashboardPrefix }: NotificationBellProps) {
                     </div>
                     <div className="notification-item-content">
                       <p className="notification-item-text">
-                        {renderNotificationText(n, t)}
+                        {renderNotificationText(n, t, locale as Locale)}
                       </p>
                       <div className="notification-item-meta">
                         <span className="notification-item-time">
                           {timeAgo(n.createdAt, locale as Locale)}
                         </span>
-                        {link && (
-                          <span className="notification-item-link">
-                            {t('notifGoToLesson')}
-                          </span>
-                        )}
+                        {link && (() => {
+                          const labelKey = getNotificationLinkLabelKey(n, dashboardPrefix);
+                          return labelKey ? (
+                            <span className="notification-item-link">
+                              {t(labelKey)}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                     {isUnread && <span className="notification-item-dot" />}
