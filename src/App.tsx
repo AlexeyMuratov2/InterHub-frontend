@@ -3,7 +3,6 @@ import { AuthProvider } from './app/providers';
 import { RequireAuth, RequireDashboardRole } from './app/routes';
 import { DashboardLayout, StudentDashboardLayout, TeacherDashboardLayout } from './app/layout';
 import { DashboardSelectorPage } from './pages/dashboards/selector';
-import { dashboardRegistry } from './app/routes/dashboardRegistry';
 import {
   DepartmentListPage,
   DepartmentCreatePage,
@@ -52,7 +51,6 @@ import InvitePage from './pages/InvitePage';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import { HomePage } from './pages/home';
 import { I18nProvider } from './shared/i18n';
 import './App.css';
 
@@ -66,12 +64,27 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/invite" element={<InvitePage />} />
-          <Route path="/" element={<RequireAuth><HomePage /></RequireAuth>} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <DashboardSelectorPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/dashboards"
             element={
               <RequireAuth>
                 <DashboardSelectorPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboards/selector"
+            element={
+              <RequireAuth>
+                <Navigate to="/dashboards" replace />
               </RequireAuth>
             }
           />
@@ -170,13 +183,6 @@ function App() {
       </I18nProvider>
     </BrowserRouter>
   );
-}
-
-function LazyDashboard({ name }: { name: 'teacher' | 'student' }) {
-  const entry = dashboardRegistry.find((e) => e.path === `/dashboards/${name}`);
-  if (!entry) return null;
-  const Component = entry.Component;
-  return <Component />;
 }
 
 export default App;

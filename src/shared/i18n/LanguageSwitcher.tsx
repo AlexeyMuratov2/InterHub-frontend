@@ -15,18 +15,19 @@ export function LanguageSwitcher({
 
   if (variant === 'select') {
     return (
-      <select
-        className={className}
-        value={locale}
-        onChange={(e) => setLocale(e.target.value as Locale)}
-        aria-label="Language"
-      >
-        {SUPPORTED_LOCALES.map((loc) => (
-          <option key={loc} value={loc}>
-            {LOCALE_LABELS[loc]}
-          </option>
-        ))}
-      </select>
+      <div className={className}>
+        <select
+          value={locale}
+          onChange={(e) => setLocale(e.target.value as Locale)}
+          aria-label="Language"
+        >
+          {SUPPORTED_LOCALES.map((loc) => (
+            <option key={loc} value={loc}>
+              {LOCALE_LABELS[loc]}
+            </option>
+          ))}
+        </select>
+      </div>
     );
   }
 

@@ -1,13 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
-import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BookOpen, BookMarked, ClipboardList, User } from 'lucide-react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Calendar,
+  BookOpen,
+  BookMarked,
+  ClipboardList,
+  User,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
 import { useAuth } from '../providers';
-import { useTranslation } from '../../shared/i18n';
-import { LanguageSwitcher } from '../../shared/i18n';
+import { useTranslation, LanguageSwitcher } from '../../shared/i18n';
 import { getRolesFromUser, getAvailableDashboards } from '../../shared/config';
-import { NotificationBell } from '../../shared/ui/NotificationBell';
+import { DashboardUserMenu, NotificationBell } from '../../shared/ui';
 
 const STUDENT_MENU: Array<{
   path: string;
@@ -23,31 +28,14 @@ const STUDENT_MENU: Array<{
   { path: '/dashboards/student/profile', labelKey: 'profilePageTitleShort', end: true, icon: User },
 ] as const;
 
-/** Layout дашборда студента: сайдбар слева (тёмный), шапка + контент по центру. */
 export function StudentDashboardLayout() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { t } = useTranslation('dashboard');
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const roles = user ? getRolesFromUser(user) : [];
   const dashboards = getAvailableDashboards(roles);
   const hasMultipleRoles = dashboards.length > 1;
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    };
-
-    if (userMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [userMenuOpen]);
 
   const isSchedule = location.pathname.startsWith('/dashboards/student/schedule');
   const isProfile = location.pathname.startsWith('/dashboards/student/profile');
@@ -102,55 +90,16 @@ export function StudentDashboardLayout() {
           <div className="app-dashboard-header-right">
             <LanguageSwitcher className="app-dashboard-header-lang" variant="select" />
             <NotificationBell dashboardPrefix="/dashboards/student" />
-            <div className="app-dashboard-header-user-menu" ref={userMenuRef}>
-              <button
-                type="button"
-                className="app-dashboard-header-user-menu-trigger"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                aria-expanded={userMenuOpen}
-                aria-haspopup="true"
-              >
-                <span className="app-dashboard-header-avatar" aria-hidden="true">
-                  {(user?.fullName ?? user?.email ?? 'S').charAt(0).toUpperCase()}
-                </span>
-                <span className="app-dashboard-header-user-name">
-                  {user?.fullName ?? user?.email ?? 'Student'}
-                </span>
-                <span className="app-dashboard-header-user-menu-arrow" aria-hidden="true">
-                  ▼
-                </span>
-              </button>
-              {userMenuOpen && (
-                <div className="app-dashboard-header-user-menu-dropdown">
-                  <Link
-                    to="/dashboards/student/profile"
-                    className="app-dashboard-header-user-menu-item"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    {t('profilePageTitleShort')}
-                  </Link>
-                  {hasMultipleRoles && (
-                    <Link
-                      to="/dashboards/selector"
-                      className="app-dashboard-header-user-menu-item"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      {t('selectTitle')}
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    className="app-dashboard-header-user-menu-item app-dashboard-header-user-menu-item--logout"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      logout();
-                    }}
-                  >
-                    {t('logout')}
-                  </button>
-                </div>
-              )}
-            </div>
+            <DashboardUserMenu
+              userName={user?.fullName}
+              userEmail={user?.email}
+              profilePath="/dashboards/student/profile"
+              profileLabel={t('profilePageTitleShort')}
+              dashboardSwitchPath={hasMultipleRoles ? '/dashboards' : undefined}
+              dashboardSwitchLabel={t('selectTitle')}
+              logoutLabel={t('logout')}
+              onLogout={logout}
+            />
           </div>
         </header>
         <main className="app-dashboard-main">

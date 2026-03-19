@@ -1003,6 +1003,28 @@ img.app-dashboard-sidebar-logo {
   overflow: hidden;
 }
 
+.app-dashboard-header-user-menu-summary {
+  padding: 0.85rem 1rem 0.75rem;
+  border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
+}
+
+.app-dashboard-header-user-menu-summary-name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.app-dashboard-header-user-menu-summary-email {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .app-dashboard-header-user-menu-item {
   display: block;
   width: 100%;

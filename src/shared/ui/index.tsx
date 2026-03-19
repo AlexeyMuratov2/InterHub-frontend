@@ -83,6 +83,7 @@ export type { AbsenceRequestDialogProps } from './absence-request-dialog/Absence
 export { AbsenceNoticesViewDialog } from './absence-notices-view-dialog';
 export type { AbsenceNoticesViewDialogProps } from './absence-notices-view-dialog';
 export { NotificationBell } from './NotificationBell';
+export { DashboardUserMenu } from './dashboard-user-menu';
 export { HomeworkSubmissionSection } from './homework-submission-section/HomeworkSubmissionSection';
 export type {
   HomeworkSubmissionSectionProps,
