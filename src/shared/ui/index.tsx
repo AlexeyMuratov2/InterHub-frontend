@@ -30,6 +30,8 @@ export { FileCard } from './file-card';
 export type { FileCardProps } from './file-card';
 export { FileUploadArea } from './file-upload-area/FileUploadArea';
 export type { FileUploadAreaProps, FileUploadItem } from './file-upload-area/FileUploadArea';
+export { AttachmentStatusList } from './attachment-status-list';
+export type { AttachmentStatusListProps } from './attachment-status-list';
 export { LessonMaterialModal } from './lesson-material-modal';
 export type { LessonMaterialModalProps } from './lesson-material-modal';
 export { HomeworkModal } from './homework-modal';

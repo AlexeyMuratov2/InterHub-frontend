@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../../../shared/i18n';
 import {
   getLessonFullDetails,
   getFileDownloadUrl,
+  downloadDocumentAttachment,
   getLesson,
   listRooms,
   deleteLessonMaterial,
-  removeLessonMaterialFile,
+  removeLessonMaterialAttachment,
   listLessonHomework,
   deleteHomework,
   getLessonRosterAttendance,
@@ -17,7 +18,7 @@ import {
 import { LessonHomeworkSubmissionsTab } from './LessonHomeworkSubmissionsTab';
 import type {
   LessonFullDetailsDto,
-  CompositionStoredFileDto,
+  DocumentAttachmentDto,
   CompositionLessonMaterialDto,
   LessonDto,
   RoomDto,
@@ -40,6 +41,11 @@ import {
   HomeworkItemView,
   AbsenceNoticesViewDialog,
 } from '../../../../shared/ui';
+import { useDocumentAttachmentPolling } from '../../../../shared/hooks/useDocumentAttachmentPolling';
+import {
+  mergeDocumentAttachmentStatus,
+  normalizeDocumentAttachments,
+} from '../../../../shared/lib/documentAttachment';
 import { getSubjectDisplayName, getStudentDisplayName } from '../../../../shared/lib';
 import { ArrowLeft, BookOpen, FileText, ClipboardList, Plus, Pencil, Trash2, Users, FileCheck } from 'lucide-react';
 
@@ -255,7 +261,7 @@ export function LessonFullDetailsPage() {
   const [selectedMaterial, setSelectedMaterial] = useState<CompositionLessonMaterialDto | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [materialToDelete, setMaterialToDelete] = useState<CompositionLessonMaterialDto | null>(null);
-  const [fileToDelete, setFileToDelete] = useState<{ material: CompositionLessonMaterialDto; file: CompositionStoredFileDto } | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<{ material: CompositionLessonMaterialDto; attachment: DocumentAttachmentDto } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [homeworkModalOpen, setHomeworkModalOpen] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState<HomeworkDto | null>(null);
@@ -269,6 +275,18 @@ export function LessonFullDetailsPage() {
   const [attendanceError, setAttendanceError] = useState<string | null>(null);
   const [savingStudentId, setSavingStudentId] = useState<string | null>(null);
   const [savingPointsStudentId, setSavingPointsStudentId] = useState<string | null>(null);
+
+  const trackedDocumentAttachments = useMemo(
+    () => [
+      ...(data?.materials ?? []).flatMap((material) => normalizeDocumentAttachments(material)),
+      ...homeworkList.flatMap((homework) => normalizeDocumentAttachments(homework)),
+    ],
+    [data, homeworkList]
+  );
+
+  const { liveStatuses: liveDocumentAttachmentStatuses } = useDocumentAttachmentPolling(
+    trackedDocumentAttachments
+  );
 
   const loadRoster = useCallback(async () => {
     if (!lessonId) return;
@@ -357,16 +375,10 @@ export function LessonFullDetailsPage() {
   }, [lessonId, data, loading, notFound, error, loadRoster]);
 
   const handleDownloadFile = useCallback(
-    async (file: CompositionStoredFileDto) => {
-      try {
-        const res = await getFileDownloadUrl(file.id);
-        if (res.data?.url) {
-          window.open(res.data.url, '_blank');
-        } else {
-          alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
-        }
-      } catch (err) {
-        alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
+    async (attachment: DocumentAttachmentDto) => {
+      const result = await downloadDocumentAttachment(attachment.id);
+      if (result.error) {
+        alert(result.error.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
       }
     },
     []
@@ -403,8 +415,8 @@ export function LessonFullDetailsPage() {
     setDeleteConfirmOpen(true);
   }, []);
 
-  const handleDeleteFileClick = useCallback((material: CompositionLessonMaterialDto, file: CompositionStoredFileDto) => {
-    setFileToDelete({ material, file });
+  const handleDeleteFileClick = useCallback((material: CompositionLessonMaterialDto, attachment: DocumentAttachmentDto) => {
+    setFileToDelete({ material, attachment });
     setDeleteConfirmOpen(true);
   }, []);
 
@@ -422,7 +434,7 @@ export function LessonFullDetailsPage() {
         }
         setMaterialToDelete(null);
       } else if (fileToDelete) {
-        const result = await removeLessonMaterialFile(lessonId, fileToDelete.material.id, fileToDelete.file.id);
+        const result = await removeLessonMaterialAttachment(lessonId, fileToDelete.material.id, fileToDelete.attachment.id);
         if (result.error) {
           alert(result.error.message ?? tRef.current('lessonMaterialFileDeleteError'));
         } else {
@@ -550,7 +562,19 @@ export function LessonFullDetailsPage() {
     return null;
   }
 
-  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot, materials } = data;
+  const { lesson: lessonDetails, subject, room, mainTeacher, offeringSlot } = data;
+  const materials = data.materials.map((material) => ({
+    ...material,
+    attachments: normalizeDocumentAttachments(material).map((attachment) =>
+      mergeDocumentAttachmentStatus(attachment, liveDocumentAttachmentStatuses)
+    ),
+  }));
+  const liveHomeworkList = homeworkList.map((homework) => ({
+    ...homework,
+    attachments: normalizeDocumentAttachments(homework).map((attachment) =>
+      mergeDocumentAttachmentStatus(attachment, liveDocumentAttachmentStatuses)
+    ),
+  }));
   const subjectName = getSubjectDisplayName(subject, locale);
   const dateTimeSubtitle =
     lessonDetails.date && lessonDetails.startTime && lessonDetails.endTime
@@ -746,29 +770,18 @@ export function LessonFullDetailsPage() {
               {t('lessonDetailsAddHomework')}
             </button>
           </div>
-          {homeworkList.length === 0 ? (
+          {liveHomeworkList.length === 0 ? (
             <p className="ed-empty">{t('lessonDetailsNoHomework')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {homeworkList.map((hw) => (
+              {liveHomeworkList.map((hw) => (
                 <HomeworkItemView
                   key={hw.id}
                   title={hw.title ?? null}
                   description={hw.description ?? null}
                   points={hw.points ?? null}
-                  files={hw.files?.length ? hw.files : hw.file ? [hw.file] : []}
-                  onDownload={async (file) => {
-                    try {
-                      const res = await getFileDownloadUrl(file.id);
-                      if (res.data?.url) {
-                        window.open(res.data.url, '_blank');
-                      } else {
-                        alert(res.error?.message ?? tRef.current('teacherSubjectMaterialDownloadError'));
-                      }
-                    } catch (err) {
-                      alert(err instanceof Error ? err.message : tRef.current('teacherSubjectMaterialDownloadError'));
-                    }
-                  }}
+                  attachments={normalizeDocumentAttachments(hw)}
+                  onDownload={handleDownloadFile}
                   actions={
                     <>
                       <button

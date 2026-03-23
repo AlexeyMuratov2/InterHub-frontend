@@ -289,7 +289,7 @@ export function LessonHomeworkSubmissionsTab({
             <tbody>
               {studentRows.map((row) => (
                 <StudentHomeworkRow
-                  key={row.student.studentId}
+                  key={row.student.id}
                   row={row}
                   homeworks={homeworks}
                   offeringId={data.lesson.offeringId}
@@ -381,7 +381,9 @@ function StudentHomeworkRow({
   setSavingPointsKey,
 }: StudentHomeworkRowProps) {
   const displayName = getStudentDisplayName(row.student);
-  const studentId = row.student.studentId;
+  /** UUID для API (POST /api/grades/entries и др.); бэкенд ожидает studentId = StudentDto.id */
+  const studentIdForApi = row.student.id;
+  const displayId = row.student.studentId;
 
   return (
     <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
@@ -395,7 +397,7 @@ function StudentHomeworkRow({
       >
         <div>{displayName}</div>
         <div style={{ fontSize: '0.8125rem', color: '#64748b', marginTop: '0.25rem' }}>
-          ID: {studentId}
+          ID: {displayId}
         </div>
       </td>
       {row.items.map((item, idx) => (
@@ -405,7 +407,7 @@ function StudentHomeworkRow({
           maxPoints={homeworks[idx]?.points ?? null}
           homeworkTitle={homeworks[idx]?.title?.trim() || t('homeworkUntitled')}
           offeringId={offeringId}
-          studentId={studentId}
+          studentId={studentIdForApi}
           studentDisplayName={displayName}
           t={t}
           locale={locale}

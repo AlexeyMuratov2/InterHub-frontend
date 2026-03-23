@@ -114,6 +114,9 @@ export type {
   CourseMaterialInfoDto,
   GroupSubjectOfferingInfoDto,
   StoredFileDto,
+  DocumentAttachmentDto,
+  FileAssetStage,
+  FileAssetStatus,
   CourseMaterialDto,
   AddCourseMaterialRequest,
   PresignedUrlResponse,
@@ -126,8 +129,8 @@ export {
   createLessonMaterial,
   getLessonMaterial,
   deleteLessonMaterial,
-  addLessonMaterialFiles,
-  removeLessonMaterialFile,
+  addLessonMaterialAttachments,
+  removeLessonMaterialAttachment,
 } from './lessonMaterials';
 export type { LessonMaterialsApiResult } from './lessonMaterials';
 export {
@@ -139,6 +142,8 @@ export {
   downloadHomeworkSubmissionsArchive,
 } from './homework';
 export type { HomeworkApiResult, DownloadArchiveResult } from './homework';
+export { getDocumentAttachment, downloadDocumentAttachment } from './documentAttachments';
+export type { DocumentAttachmentsApiResult } from './documentAttachments';
 export { createSubmission, deleteSubmission } from './submission';
 export type { SubmissionApiResult, CreateSubmissionRequestBody } from './submission';
 export type {
@@ -156,7 +161,6 @@ export type {
   CompositionHomeworkDto,
   LessonMaterialDto,
   CreateLessonMaterialRequest,
-  AddLessonMaterialFilesRequest,
   HomeworkDto,
   CreateHomeworkRequest,
   UpdateHomeworkRequest,

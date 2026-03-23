@@ -3,15 +3,11 @@ import type { ErrorResponse } from './types';
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
- * ГАРАНТИЯ REFRESH
- * — Любой запрос через request() к НЕ-публичному path при 401 или 403 сначала вызывает refresh (один раз на «волну»).
- * — При успехе refresh исходный запрос повторяется с новыми cookies; пользователь остаётся в сессии.
- * — При неуспехе refresh (401/403/404 на /api/auth/refresh) вызывается sessionExpiredHandler(path) и возвращается исходный status.
- * — Публичные path: при 401/403 refresh НЕ вызывается (избегаем цикла и лишнего редиректа).
- * — Сетевые ошибки и 5xx на refresh не считаются «сессия умерла»: пользователь не разлогинивается.
+ * Refresh handling:
+ * - protected requests retry once after refresh on 401/403
+ * - public endpoints never trigger refresh
+ * - failed refresh delegates to sessionExpiredHandler
  */
-
-/** Публичные эндпоинты: при 401/403 не вызываем refresh (иначе цикл / лишний редирект). */
 const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/refresh',
@@ -24,17 +20,15 @@ const PUBLIC_PATHS = [
 function isPublicPath(path: string): boolean {
   const raw = path.split('?')[0].trim();
   const normalized = raw.startsWith('/') ? raw : `/${raw}`;
-  return PUBLIC_PATHS.some((p) => normalized === p || normalized.startsWith(p + '/'));
+  return PUBLIC_PATHS.some((publicPath) => normalized === publicPath || normalized.startsWith(publicPath + '/'));
 }
 
-/** Вызывается при неуспехе refresh (401/403/404). path — запрос, из-за которого пошёл refresh (для логики «явный logout»). */
 let sessionExpiredHandler: ((path?: string) => void) | null = null;
 
 export function setSessionExpiredHandler(handler: ((path?: string) => void) | null): void {
   sessionExpiredHandler = handler;
 }
 
-/** Один refresh на «волну» 401: остальные запросы ждут тот же результат. triggerPath — path первого запроса в волне. */
 let refreshPromise: Promise<boolean> | null = null;
 
 async function runRefresh(triggerPath: string): Promise<boolean> {
@@ -68,6 +62,16 @@ function getOrRunRefresh(triggerPath: string): Promise<boolean> {
 
 function getRequestBody(options: RequestInit): unknown {
   if (!options.body) return undefined;
+
+  if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
+    return Array.from(options.body.entries()).map(([key, value]) => [
+      key,
+      value instanceof File
+        ? { name: value.name, size: value.size, type: value.type || 'application/octet-stream' }
+        : value,
+    ]);
+  }
+
   if (typeof options.body === 'string') {
     try {
       return JSON.parse(options.body);
@@ -75,27 +79,54 @@ function getRequestBody(options: RequestInit): unknown {
       return options.body;
     }
   }
+
   return undefined;
+}
+
+function buildHeaders(options: RequestInit): HeadersInit | undefined {
+  const headers = new Headers(options.headers ?? {});
+  if (typeof options.body === 'string' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+  return headers;
+}
+
+async function fetchWithRefresh(
+  path: string,
+  options: RequestInit,
+  internalRetry: boolean
+): Promise<Response> {
+  const url = `${API_BASE}${path}`;
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: buildHeaders(options),
+  });
+
+  const shouldTryRefresh =
+    (response.status === 401 || response.status === 403) && !internalRetry && !isPublicPath(path);
+  if (!shouldTryRefresh) {
+    return response;
+  }
+
+  const refreshSucceeded = await getOrRunRefresh(path);
+  if (!refreshSucceeded) {
+    return response;
+  }
+
+  return fetchWithRefresh(path, options, true);
 }
 
 async function requestImpl<T>(
   path: string,
-  options: RequestInit,
-  internalRetry: boolean
+  options: RequestInit
 ): Promise<{ data?: T; error?: ErrorResponse; status: number }> {
   const url = `${API_BASE}${path}`;
   const method = (options.method ?? 'GET').toUpperCase();
   const requestBody = getRequestBody(options);
 
   try {
-    const res = await fetch(url, {
-      ...options,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+    const res = await fetchWithRefresh(path, options, false);
     const text = await res.text();
     let error: ErrorResponse | undefined;
     if (!res.ok && text) {
@@ -105,12 +136,13 @@ async function requestImpl<T>(
         error = { message: text || res.statusText };
       }
     }
+
     let data: T | undefined;
     if (res.ok && text) {
       try {
         data = JSON.parse(text) as T;
       } catch {
-        // 200 с пустым телом — ок
+        // empty body or non-json success payload
       }
     }
 
@@ -119,15 +151,6 @@ async function requestImpl<T>(
     console.log('Request:', { method, url, body: requestBody });
     console.log('Response:', responsePayload);
     console.groupEnd();
-
-    // 401 или 403 на защищённом запросе: один раз refresh, при успехе — повторить запрос (часть бэкендов при истечении токена отдаёт 403)
-    const shouldTryRefresh =
-      (res.status === 401 || res.status === 403) && !internalRetry && !isPublicPath(path);
-    if (shouldTryRefresh) {
-      const success = await getOrRunRefresh(path);
-      if (success) return requestImpl(path, options, true);
-      return { error: error ?? { message: 'Unauthorized' }, status: res.status };
-    }
 
     return { data, error, status: res.status };
   } catch (e) {
@@ -147,8 +170,68 @@ async function request<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<{ data?: T; error?: ErrorResponse; status: number }> {
-  return requestImpl<T>(path, options, false);
+  return requestImpl<T>(path, options);
 }
 
-export { request, API_BASE };
+async function requestBlob(
+  path: string,
+  options: RequestInit = {}
+): Promise<{ data?: Blob; headers?: Headers; error?: ErrorResponse; status: number }> {
+  const url = `${API_BASE}${path}`;
+  const method = (options.method ?? 'GET').toUpperCase();
+  const requestBody = getRequestBody(options);
+
+  try {
+    const res = await fetchWithRefresh(path, options, false);
+
+    if (!res.ok) {
+      const text = await res.text();
+      let error: ErrorResponse | undefined;
+      if (text) {
+        try {
+          error = JSON.parse(text) as ErrorResponse;
+        } catch {
+          error = { message: text || res.statusText };
+        }
+      }
+
+      console.group(`[API] ${method} ${path}`);
+      console.log('Request:', { method, url, body: requestBody });
+      console.log('Response:', { status: res.status, error });
+      console.groupEnd();
+
+      return {
+        error,
+        status: res.status,
+      };
+    }
+
+    const data = await res.blob();
+    console.group(`[API] ${method} ${path}`);
+    console.log('Request:', { method, url, body: requestBody });
+    console.log('Response:', {
+      status: res.status,
+      data: { size: data.size, type: data.type || 'application/octet-stream' },
+    });
+    console.groupEnd();
+
+    return {
+      data,
+      headers: res.headers,
+      status: res.status,
+    };
+  } catch (e) {
+    const errMessage = e instanceof Error ? e.message : 'Network error';
+    console.group(`[API] ${method} ${path}`);
+    console.log('Request:', { method, url, body: requestBody });
+    console.log('Response:', { status: 0, error: { message: errMessage } });
+    console.groupEnd();
+    return {
+      error: { message: errMessage },
+      status: 0,
+    };
+  }
+}
+
+export { request, requestBlob, API_BASE };
 export type { ErrorResponse };

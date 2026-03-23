@@ -1238,5 +1238,20 @@
   "notifGoToAbsenceRequests": "View requests",
   "notifGoToSubmissions": "To submissions",
   "notifLessonRescheduledDescription": "Lesson \"{{subjectName}}\" was rescheduled from {{oldDateTime}} to {{newDateTime}}.",
-  "notifLessonDeletedDescription": "Lesson \"{{subjectName}}\" was cancelled (was scheduled for {{lessonDate}})."
+  "notifLessonDeletedDescription": "Lesson \"{{subjectName}}\" was cancelled (was scheduled for {{lessonDate}}).",
+  "attachmentAsyncHint": "Files are uploaded together with the form and then processed in the background. They become available for download as soon as the safety checks finish.",
+  "attachmentStageReceived": "Received",
+  "attachmentStageScanning": "Security scan",
+  "attachmentStageFinalizing": "Finalizing",
+  "attachmentStageReady": "Ready",
+  "attachmentStageFailed": "Failed",
+  "attachmentReady": "The file is ready.",
+  "attachmentReadyToDownload": "The file is ready to download.",
+  "attachmentFailed": "The file could not be prepared.",
+  "attachmentFailedWithCode": "The file could not be prepared ({{code}}).",
+  "attachmentProgressStatus": "{{progress}}% ready · {{remaining}}% left",
+  "attachmentUntitled": "Attachment",
+  "lessonMaterialNoAttachments": "No attachments yet.",
+  "homeworkNoAttachments": "No attachments yet.",
+  "homeworkExistingAttachments": "Existing attachments"
 }

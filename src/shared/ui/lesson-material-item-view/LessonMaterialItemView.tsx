@@ -1,22 +1,23 @@
-/**
- * Блок отображения одного материала урока: название, описание, список файлов (FileCard).
- * Переиспользуется на странице урока преподавателя и студента — единый дизайн.
- */
 import { useTranslation } from '../../i18n';
-import { FileCard } from '../file-card';
-import type { CompositionLessonMaterialDto, CompositionStoredFileDto } from '../../api/types';
+import { normalizeDocumentAttachments } from '../../lib/documentAttachment';
+import { AttachmentStatusList } from '../attachment-status-list';
+import type { CompositionLessonMaterialDto, DocumentAttachmentDto } from '../../api/types';
 
 export interface LessonMaterialItemViewProps {
   material: CompositionLessonMaterialDto;
-  onDownload: (file: CompositionStoredFileDto) => void;
-  /** Если передан — показывается кнопка удаления у каждого файла (страница преподавателя) */
-  onDelete?: (file: CompositionStoredFileDto) => void;
-  /** Дополнительные действия в шапке (например, кнопки редактирования/удаления материала для преподавателя) */
+  onDownload: (attachment: DocumentAttachmentDto) => void;
+  onDelete?: (attachment: DocumentAttachmentDto) => void;
   actions?: React.ReactNode;
 }
 
-export function LessonMaterialItemView({ material, onDownload, onDelete, actions }: LessonMaterialItemViewProps) {
+export function LessonMaterialItemView({
+  material,
+  onDownload,
+  onDelete,
+  actions,
+}: LessonMaterialItemViewProps) {
   const { t } = useTranslation('dashboard');
+  const attachments = normalizeDocumentAttachments(material);
 
   return (
     <div>
@@ -26,6 +27,7 @@ export function LessonMaterialItemView({ material, onDownload, onDelete, actions
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '0.75rem',
+          gap: '0.75rem',
         }}
       >
         <div>
@@ -40,21 +42,12 @@ export function LessonMaterialItemView({ material, onDownload, onDelete, actions
         </div>
         {actions != null && <div style={{ display: 'flex', gap: '0.5rem' }}>{actions}</div>}
       </div>
-      {material.files.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {material.files.map((file) => (
-            <FileCard
-              key={file.id}
-              title={file.originalName?.trim() || t('lessonMaterialFile')}
-              size={file.size}
-              uploadedAt={file.uploadedAt}
-              description={file.contentType || undefined}
-              onDownload={() => onDownload(file)}
-              onDelete={onDelete ? () => onDelete(file) : undefined}
-            />
-          ))}
-        </div>
-      )}
+
+      <AttachmentStatusList
+        attachments={attachments}
+        onDownload={onDownload}
+        onDelete={onDelete}
+      />
     </div>
   );
 }

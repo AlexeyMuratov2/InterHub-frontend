@@ -9,12 +9,23 @@ import type {
 export type HomeworkApiResult<T> = {
   data?: T;
   error?: ErrorResponse & { status?: number };
+  status?: number;
 };
 
-/**
- * Получить список домашних заданий для урока.
- * GET /api/lessons/{lessonId}/homework
- */
+function buildMultipartPayload(payload: unknown, files?: File[]): FormData {
+  const formData = new FormData();
+  formData.append(
+    'payload',
+    new Blob([JSON.stringify(payload)], { type: 'application/json' })
+  );
+
+  for (const file of files ?? []) {
+    formData.append('files', file);
+  }
+
+  return formData;
+}
+
 export async function listLessonHomework(
   lessonId: string
 ): Promise<HomeworkApiResult<HomeworkDto[]>> {
@@ -23,13 +34,10 @@ export async function listLessonHomework(
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
   };
 }
 
-/**
- * Получить домашнее задание по ID.
- * GET /api/homework/{homeworkId}
- */
 export async function getHomework(
   homeworkId: string
 ): Promise<HomeworkApiResult<HomeworkDto>> {
@@ -38,51 +46,44 @@ export async function getHomework(
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
   };
 }
 
-/**
- * Создать домашнее задание для урока.
- * POST /api/lessons/{lessonId}/homework
- */
 export async function createHomework(
   lessonId: string,
-  body: CreateHomeworkRequest
+  payload: CreateHomeworkRequest,
+  files: File[] = []
 ): Promise<HomeworkApiResult<HomeworkDto>> {
   const url = `/api/lessons/${encodeURIComponent(lessonId)}/homework`;
   const result = await request<HomeworkDto>(url, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: buildMultipartPayload(payload, files),
   });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
   };
 }
 
-/**
- * Обновить домашнее задание.
- * PUT /api/homework/{homeworkId}
- */
 export async function updateHomework(
   homeworkId: string,
-  body: UpdateHomeworkRequest
+  payload: UpdateHomeworkRequest,
+  files: File[] = []
 ): Promise<HomeworkApiResult<HomeworkDto>> {
   const url = `/api/homework/${encodeURIComponent(homeworkId)}`;
   const result = await request<HomeworkDto>(url, {
     method: 'PUT',
-    body: JSON.stringify(body),
+    body: buildMultipartPayload(payload, files),
   });
   return {
     data: result.data,
     error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
   };
 }
 
-/**
- * Удалить домашнее задание.
- * DELETE /api/homework/{homeworkId}
- */
 export async function deleteHomework(
   homeworkId: string
 ): Promise<HomeworkApiResult<void>> {
@@ -90,16 +91,12 @@ export async function deleteHomework(
   const result = await request<unknown>(url, { method: 'DELETE' });
   return {
     error: result.error ? { ...result.error, status: result.status } : undefined,
+    status: result.status,
   };
 }
 
 export type DownloadArchiveResult = { error?: ErrorResponse };
 
-/**
- * Скачать ZIP-архив всех отправленных решений по домашнему заданию.
- * GET /api/homework/{homeworkId}/submissions/archive
- * Требуются права преподавателя урока или админа.
- */
 export async function downloadHomeworkSubmissionsArchive(
   homeworkId: string
 ): Promise<DownloadArchiveResult> {
@@ -134,11 +131,11 @@ export async function downloadHomeworkSubmissionsArchive(
         filename = fallbackMatch[1].trim().replace(/^"|"$/g, '');
       }
     }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
     return {};
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Network error';

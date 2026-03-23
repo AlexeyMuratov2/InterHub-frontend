@@ -548,6 +548,34 @@ export interface StoredFileDto {
   uploadedBy: string;
 }
 
+export type FileAssetStatus =
+  | 'REGISTERED'
+  | 'UPLOADED'
+  | 'PROCESSING'
+  | 'ACTIVE'
+  | 'FAILED'
+  | 'DELETED'
+  | 'EXPIRED';
+
+export type FileAssetStage =
+  | 'RECEIVED'
+  | 'SCANNING'
+  | 'FINALIZING'
+  | 'READY'
+  | 'FAILED';
+
+export interface DocumentAttachmentDto {
+  id: string;
+  fileName: string;
+  declaredContentType: string;
+  sizeBytes: number;
+  status: FileAssetStatus;
+  stage: FileAssetStage;
+  progressPercent: number;
+  failureCode?: string | null;
+  downloadAvailable: boolean;
+}
+
 /** Материал курса (CourseMaterialDto) */
 export interface CourseMaterialDto {
   id: string;
@@ -556,7 +584,8 @@ export interface CourseMaterialDto {
   description: string | null;
   authorId: string;
   uploadedAt: string;
-  file: StoredFileDto;
+  attachment?: DocumentAttachmentDto | null;
+  file?: StoredFileDto | null;
 }
 
 /** Запрос на создание материала (AddCourseMaterialRequest) */
@@ -707,7 +736,8 @@ export interface CompositionLessonMaterialDto {
   description: string | null;
   authorId: string;
   publishedAt: string;
-  files: CompositionStoredFileDto[];
+  attachments?: DocumentAttachmentDto[];
+  files?: CompositionStoredFileDto[];
 }
 
 // --- Lesson materials (POST /api/lessons/{lessonId}/materials, etc.) ---
@@ -720,7 +750,8 @@ export interface LessonMaterialDto {
   description: string | null;
   authorId: string;
   publishedAt: string;
-  files: StoredFileDto[];
+  attachments: DocumentAttachmentDto[];
+  files?: StoredFileDto[];
 }
 
 /** Запрос на создание материала урока (CreateLessonMaterialRequest) */
@@ -728,7 +759,6 @@ export interface CreateLessonMaterialRequest {
   name: string;
   description?: string | null;
   publishedAt: string;
-  storedFileIds?: string[] | null;
 }
 
 /** Запрос на добавление файлов к материалу урока (AddLessonMaterialFilesRequest) */
@@ -743,8 +773,9 @@ export interface CompositionHomeworkDto {
   title: string | null;
   description: string | null;
   points: number | null;
+  attachments?: DocumentAttachmentDto[];
   /** Список прикреплённых файлов (бэкенд отдаёт files[]) */
-  files: CompositionStoredFileDto[];
+  files?: CompositionStoredFileDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -1283,6 +1314,7 @@ export interface HomeworkDto {
   files?: StoredFileDto[];
   /** Один файл — для обратной совместимости, если бэкенд ещё отдаёт file вместо files. */
   file?: StoredFileDto | null;
+  attachments?: DocumentAttachmentDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -1293,7 +1325,6 @@ export interface CreateHomeworkRequest {
   description?: string | null;
   points?: number | null;
   /** Id файлов в хранилище (порядок сохранён). */
-  storedFileIds?: string[] | null;
 }
 
 /** Запрос на обновление домашнего задания (UpdateHomeworkRequest) */
@@ -1302,7 +1333,7 @@ export interface UpdateHomeworkRequest {
   description?: string | null;
   points?: number | null;
   /** Удалить все прикреплённые файлы. */
-  clearFiles?: boolean;
+  clearAttachments?: boolean;
   /** Новый список id файлов (полная замена). */
-  storedFileIds?: string[] | null;
+  retainAttachmentIds?: string[] | null;
 }
