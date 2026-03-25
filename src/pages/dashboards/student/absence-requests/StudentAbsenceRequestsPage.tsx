@@ -12,7 +12,7 @@ import {
   type StudentAbsenceNoticeItemDto,
   type AbsenceNoticeStatus,
 } from '../../../../shared/api';
-import { useTranslation, formatDate, formatDateTime } from '../../../../shared/i18n';
+import { useTranslation, formatDate, formatDateTime, type Locale } from '../../../../shared/i18n';
 import { PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar, FormGroup, Modal } from '../../../../shared/ui';
 
 const LIMIT = 30;
@@ -69,7 +69,7 @@ function getNoticeTypeKey(type: string): string {
   return type === 'LATE' ? 'absenceRequestsNoticeTypeLate' : 'absenceRequestsNoticeTypeAbsent';
 }
 
-function formatNoticePeriod(item: StudentAbsenceNoticeItemDto, locale: string): string {
+function formatNoticePeriod(item: StudentAbsenceNoticeItemDto, locale: Locale): string {
   if (!item.period?.startAt || !item.period?.endAt) return '—';
   if (item.period.startAt === item.period.endAt) return formatDateTime(item.period.startAt, locale);
   return `${formatDateTime(item.period.startAt, locale)} - ${formatDateTime(item.period.endAt, locale)}`;
@@ -648,7 +648,7 @@ export function StudentAbsenceRequestsPage() {
 
       <AbsenceRequestsFiltersBar
         statusValue={statusFilter}
-        onStatusChange={setStatusFilter}
+        onStatusChange={(v) => setStatusFilter(v as StatusFilterValue)}
         statusOptions={STUDENT_STATUS_OPTIONS}
         dateFrom={dateFrom}
         dateTo={dateTo}

@@ -1,4 +1,4 @@
-import { request, API_BASE } from './client';
+import { request } from './client';
 import type { ErrorResponse } from './types';
 import type {
   TeacherSubjectListItemDto,

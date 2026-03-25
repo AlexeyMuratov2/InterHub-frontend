@@ -182,6 +182,7 @@ export type {
   StudentSubjectInfoDto,
   StudentSubjectTeacherItemDto,
   StudentSubjectStatsDto,
+  GroupSubjectOfferingSlotDto,
   TeacherStudentGroupSubjectDto,
   TeacherStudentGroupDto,
   TeacherStudentProgramDto,

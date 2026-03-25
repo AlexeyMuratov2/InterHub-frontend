@@ -159,7 +159,7 @@ export function CurriculumSubjectCreatePage() {
     if (hoursCourseWork !== '') body.hoursCourseWork = hoursCourseWork;
     if (credits !== '') body.credits = credits;
 
-    const { data, error: err } = await createCurriculumSubject(curriculumId, body);
+    const { error: err } = await createCurriculumSubject(curriculumId, body);
     setSubmitting(false);
 
     if (err) {

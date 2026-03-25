@@ -9,7 +9,13 @@ const BASE = '/api/programs';
 
 export type CurriculumSubjectApiResult<T> = {
   data?: T;
-  error?: { message?: string; code?: string; details?: Record<string, string>; status?: number };
+  error?: {
+    message?: string;
+    code?: string;
+    timestamp?: string;
+    details?: Record<string, string> | string[];
+    status?: number;
+  };
 };
 
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 export type AlertVariant = 'error' | 'success' | 'info';
 
@@ -7,6 +7,7 @@ export interface AlertProps {
   children: ReactNode;
   role?: string;
   className?: string;
+  style?: CSSProperties;
 }
 
 const variantClass: Record<AlertVariant, string> = {
@@ -15,10 +16,10 @@ const variantClass: Record<AlertVariant, string> = {
   info: 'department-alert department-alert--info',
 };
 
-export function Alert({ variant, children, role = 'alert', className }: AlertProps) {
+export function Alert({ variant, children, role = 'alert', className, style }: AlertProps) {
   const cn = [variantClass[variant], className].filter(Boolean).join(' ');
   return (
-    <div className={cn} role={role}>
+    <div className={cn} role={role} style={style}>
       {children}
     </div>
   );

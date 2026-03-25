@@ -352,7 +352,7 @@ interface StudentHomeworkRowProps {
   row: StudentHomeworkRowDto;
   homeworks: CompositionHomeworkDto[];
   offeringId: string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   locale: string;
   onDownloadFile: (file: CompositionStoredFileDto) => void;
   onOpenFilesModal: (files: CompositionStoredFileDto[]) => void;
@@ -429,7 +429,7 @@ interface HomeworkItemCellsProps {
   offeringId: string;
   studentId: string;
   studentDisplayName: string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   locale: string;
   onDownloadFile: (file: CompositionStoredFileDto) => void;
   onOpenFilesModal: (files: CompositionStoredFileDto[]) => void;
@@ -475,7 +475,7 @@ function HomeworkItemCells({
   onOpenFilesModal,
   onOpenGradeDialog,
   savingPointsKey,
-  setSavingPointsKey,
+  setSavingPointsKey: _setSavingPointsKey,
 }: HomeworkItemCellsProps) {
   const { homeworkId, submission, points, files } = item;
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
@@ -659,7 +659,7 @@ interface HomeworkGradeDialogProps {
   initialGradeEntry: GradeEntryDto | null;
   onClose: () => void;
   onSaved: () => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function HomeworkGradeDialog({

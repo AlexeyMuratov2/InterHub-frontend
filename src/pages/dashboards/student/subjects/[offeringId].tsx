@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Award,
@@ -29,6 +29,7 @@ import {
   InfoTile,
   DetailMaterialRow,
   StatCard,
+  type StatCardAccent,
   HomeworkHistoryDialog,
   StudentAttendanceHistoryDialog,
   StudentGradeHistoryDialog,
@@ -279,16 +280,19 @@ export function StudentSubjectInfoPage() {
           <p className="ed-empty">{t('studentSubjectInfoNoMaterials')}</p>
         ) : (
           <div className="ed-material-list">
-            {data.materials.map((mat) => (
+            {data.materials.map((mat) => {
+              const file = mat.file;
+              return (
               <DetailMaterialRow
                 key={mat.id}
                 title={mat.title}
                 description={mat.description ?? undefined}
-                fileMeta={mat.file?.originalName ?? undefined}
-                onDownload={mat.file ? () => handleDownloadFile(mat.file.id) : undefined}
+                fileMeta={file?.originalName ?? undefined}
+                onDownload={file ? () => handleDownloadFile(file.id) : undefined}
                 downloadLabel={t('download')}
               />
-            ))}
+            );
+            })}
           </div>
         )}
       </SectionCard>
@@ -439,14 +443,14 @@ function TeacherCard({
   );
 }
 
-function getAttendanceAccent(percent: number | null): string {
+function getAttendanceAccent(percent: number | null): StatCardAccent {
   if (percent == null) return 'neutral';
   if (percent >= 80) return 'green';
   if (percent >= 50) return 'amber';
   return 'red';
 }
 
-function getHomeworkAccent(submitted: number, total: number): string {
+function getHomeworkAccent(submitted: number, total: number): StatCardAccent {
   if (total === 0) return 'neutral';
   const ratio = submitted / total;
   if (ratio >= 0.8) return 'green';

@@ -46,7 +46,7 @@ export function ScheduleGrid({
   defaultAxisMax = 20 * 60, // 08:00–20:00 when no events
   height = '480px',
 }: ScheduleGridProps) {
-  const { axisMin, axisMax, totalMinutes, ticks, eventsByDayWithLanes } = useMemo(() => {
+  const { axisMin, totalMinutes, ticks, eventsByDayWithLanes } = useMemo(() => {
     const slots = events.map((e) => ({
       start: timeToMinutes(e.startTime),
       end: timeToMinutes(e.endTime),
@@ -96,7 +96,6 @@ export function ScheduleGrid({
 
     return {
       axisMin: range.axisMin,
-      axisMax: range.axisMax,
       totalMinutes: total,
       ticks,
       eventsByDayWithLanes,

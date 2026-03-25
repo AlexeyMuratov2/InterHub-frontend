@@ -555,14 +555,14 @@ export function UserViewPage() {
               <div className="account-view-readonly">
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationEmail')}</span>
-                  <span className="account-view-value">{user.email ?? '—'}</span>
+                  <span className="account-view-value">{data.user.email ?? '—'}</span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationRoles')}</span>
                   <span className="account-view-value">
-                    {(user.roles ?? []).length === 0
+                    {(data.user.roles ?? []).length === 0
                       ? '—'
-                      : (user.roles ?? []).map((r) => (
+                      : (data.user.roles ?? []).map((r) => (
                           <span key={r} className="account-view-role-chip">
                             {t(getRoleLabelKey(r))}
                           </span>
@@ -575,30 +575,30 @@ export function UserViewPage() {
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationFirstName')}</span>
-                  <span className="account-view-value">{user.firstName ?? '—'}</span>
+                  <span className="account-view-value">{data.user.firstName ?? '—'}</span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationLastName')}</span>
-                  <span className="account-view-value">{user.lastName ?? '—'}</span>
+                  <span className="account-view-value">{data.user.lastName ?? '—'}</span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationPhone')}</span>
-                  <span className="account-view-value">{user.phone ?? '—'}</span>
+                  <span className="account-view-value">{data.user.phone ?? '—'}</span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationBirthDate')}</span>
-                  <span className="account-view-value">{user.birthDate ?? '—'}</span>
+                  <span className="account-view-value">{data.user.birthDate ?? '—'}</span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('accountStatus')}</span>
                   <span className="account-view-value">
                     <span
                       className={`invitation-status-badge invitation-status-badge--${(
-                        user.status ?? 'PENDING'
+                        data.user.status ?? 'PENDING'
                       ).toLowerCase()}`}
                     >
                       {t(
-                        `accountStatus${(user.status ?? 'PENDING').charAt(0) + (user.status ?? 'PENDING').slice(1).toLowerCase()}`
+                        `accountStatus${(data.user.status ?? 'PENDING').charAt(0) + (data.user.status ?? 'PENDING').slice(1).toLowerCase()}`
                       )}
                     </span>
                   </span>
@@ -606,22 +606,22 @@ export function UserViewPage() {
                 <div className="account-view-row">
                   <span className="account-view-label">{t('invitationCreatedAt')}</span>
                   <span className="account-view-value">
-                    {formatDateTime(user.createdAt, locale)}
+                    {formatDateTime(data.user.createdAt, locale)}
                   </span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('accountActivatedAt')}</span>
                   <span className="account-view-value">
-                    {user.activatedAt
-                      ? formatDateTime(user.activatedAt, locale)
+                    {data.user.activatedAt
+                      ? formatDateTime(data.user.activatedAt, locale)
                       : '—'}
                   </span>
                 </div>
                 <div className="account-view-row">
                   <span className="account-view-label">{t('accountLastLoginAt')}</span>
                   <span className="account-view-value">
-                    {user.lastLoginAt
-                      ? formatDateTime(user.lastLoginAt, locale)
+                    {data.user.lastLoginAt
+                      ? formatDateTime(data.user.lastLoginAt, locale)
                       : '—'}
                   </span>
                 </div>
