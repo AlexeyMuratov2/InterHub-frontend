@@ -1,12 +1,76 @@
 import type { ErrorResponse } from './types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+/** Origin only (no path). Strips a trailing `/api` so `VITE_API_BASE_URL=https://host/api` does not duplicate paths like `/api/auth/login`. */
+function normalizeApiBase(raw: string): string {
+  let s = (raw ?? '').trim();
+  s = s.replace(/\/+$/, '');
+  if (s.endsWith('/api')) {
+    s = s.slice(0, -4).replace(/\/+$/, '');
+  }
+  return s;
+}
+
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE_URL ?? '');
+
+const STORAGE_BEARER = 'interhub_auth_bearer';
+const STORAGE_ACCESS = 'interhub_access_token';
+const STORAGE_REFRESH = 'interhub_refresh_token';
+
+function storageGet(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
+
+function storageRemove(key: string): void {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** True when the app uses stored access/refresh tokens (e.g. Telegram Mini App) instead of relying on cookies alone. */
+export function isBearerSession(): boolean {
+  return storageGet(STORAGE_BEARER) === '1';
+}
+
+export function persistBearerSession(accessToken: string, refreshToken: string): void {
+  storageSet(STORAGE_BEARER, '1');
+  storageSet(STORAGE_ACCESS, accessToken);
+  storageSet(STORAGE_REFRESH, refreshToken);
+}
+
+export function clearBearerSession(): void {
+  storageRemove(STORAGE_BEARER);
+  storageRemove(STORAGE_ACCESS);
+  storageRemove(STORAGE_REFRESH);
+}
+
+function getBearerAccess(): string | null {
+  return storageGet(STORAGE_ACCESS);
+}
+
+export function getStoredRefreshToken(): string | null {
+  return storageGet(STORAGE_REFRESH);
+}
 
 /**
  * Refresh handling:
  * - protected requests retry once after refresh on 401/403
  * - public endpoints never trigger refresh
  * - failed refresh delegates to sessionExpiredHandler
+ * - Bearer session: POST /api/auth/refresh with body + X-Auth-Tokens: json
  */
 const PUBLIC_PATHS = [
   '/api/auth/login',
@@ -34,6 +98,43 @@ let refreshPromise: Promise<boolean> | null = null;
 async function runRefresh(triggerPath: string): Promise<boolean> {
   const url = `${API_BASE}/api/auth/refresh`;
   try {
+    if (isBearerSession()) {
+      const rt = getStoredRefreshToken();
+      if (!rt) {
+        clearBearerSession();
+        sessionExpiredHandler?.(triggerPath);
+        return false;
+      }
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Tokens': 'json',
+        },
+        body: JSON.stringify({ refreshToken: rt }),
+      });
+      if (res.status === 200) {
+        const text = await res.text();
+        if (text) {
+          try {
+            const parsed = JSON.parse(text) as { accessToken?: string; refreshToken?: string };
+            if (parsed.accessToken && parsed.refreshToken) {
+              persistBearerSession(parsed.accessToken, parsed.refreshToken);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        return true;
+      }
+      clearBearerSession();
+      if (res.status === 401 || res.status === 403 || res.status === 404) {
+        sessionExpiredHandler?.(triggerPath);
+      }
+      return false;
+    }
+
     const res = await fetch(url, {
       method: 'POST',
       credentials: 'include',
@@ -83,10 +184,14 @@ function getRequestBody(options: RequestInit): unknown {
   return undefined;
 }
 
-function buildHeaders(options: RequestInit): HeadersInit | undefined {
+function buildHeaders(options: RequestInit): Headers {
   const headers = new Headers(options.headers ?? {});
   if (typeof options.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
+  }
+  const token = getBearerAccess();
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
   }
   return headers;
 }

@@ -15,7 +15,7 @@
 
 ## Required GitHub Variables
 
-- `VITE_API_BASE_URL` - e.g. `https://app.example.com/api`
+- `VITE_API_BASE_URL` - API origin only, e.g. `https://app.example.com` (no trailing `/api`; routes in code already use `/api/...`)
 
 ## Output target on VPS
 

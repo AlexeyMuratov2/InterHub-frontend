@@ -1,4 +1,13 @@
-export { request, API_BASE, setSessionExpiredHandler } from './client';
+export {
+  request,
+  requestBlob,
+  API_BASE,
+  setSessionExpiredHandler,
+  isBearerSession,
+  persistBearerSession,
+  clearBearerSession,
+  getStoredRefreshToken,
+} from './client';
 export type { ErrorResponse } from './client';
 export * from './auth';
 export {

@@ -22,6 +22,14 @@ a:hover {
   color: #535bf2;
 }
 
+/* Telegram Mini App: set by initTelegramWebApp(); safe-area from Telegram.WebApp when available */
+:root.telegram-miniapp body {
+  padding-top: var(--tg-safe-area-inset-top, 0px);
+  padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
+  padding-left: var(--tg-safe-area-inset-left, 0px);
+  padding-right: var(--tg-safe-area-inset-right, 0px);
+}
+
 html {
   height: 100%;
   overflow-x: hidden;

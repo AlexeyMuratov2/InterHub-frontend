@@ -1,5 +1,12 @@
-import { request } from './client';
+import {
+  request,
+  persistBearerSession,
+  clearBearerSession,
+  isBearerSession,
+  getStoredRefreshToken,
+} from './client';
 import type { LoginRequest, AuthResult, UserDto, ErrorResponse } from './types';
+import { isTelegramWebApp } from '../lib/platform';
 
 export interface ForgotPasswordRequest {
   email: string;
@@ -23,12 +30,24 @@ export type LoginResult =
   | { ok: true; data: AuthResult }
   | { ok: false; status: number; error: ErrorResponse | undefined };
 
+function wantsTokenJsonResponse(): boolean {
+  return isTelegramWebApp();
+}
+
 export async function login(body: LoginRequest): Promise<LoginResult> {
+  const headers: Record<string, string> = {};
+  if (wantsTokenJsonResponse()) {
+    headers['X-Auth-Tokens'] = 'json';
+  }
   const { data, error, status } = await request<AuthResult>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(body),
+    headers: Object.keys(headers).length ? headers : undefined,
   });
   if (status === 200 && data) {
+    if (data.accessToken && data.refreshToken && wantsTokenJsonResponse()) {
+      persistBearerSession(data.accessToken, data.refreshToken);
+    }
     return { ok: true, data };
   }
   return { ok: false, status, error };
@@ -39,10 +58,25 @@ export type RefreshResult =
   | { ok: false; status: number; error: ErrorResponse | undefined };
 
 export async function refresh(): Promise<RefreshResult> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  let body: string | undefined;
+  if (isBearerSession()) {
+    const rt = getStoredRefreshToken();
+    if (!rt) {
+      return { ok: false, status: 401, error: { message: 'No refresh token' } };
+    }
+    headers['X-Auth-Tokens'] = 'json';
+    body = JSON.stringify({ refreshToken: rt });
+  }
   const { data, error, status } = await request<AuthResult>('/api/auth/refresh', {
     method: 'POST',
+    headers,
+    body,
   });
   if (status === 200 && data) {
+    if (data.accessToken && data.refreshToken && isBearerSession()) {
+      persistBearerSession(data.accessToken, data.refreshToken);
+    }
     return { ok: true, data };
   }
   return { ok: false, status, error };
@@ -63,7 +97,17 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout(): Promise<void> {
-  await request<unknown>('/api/auth/logout', { method: 'POST' });
+  const rt = isBearerSession() ? getStoredRefreshToken() : null;
+  if (rt) {
+    await request<unknown>('/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: rt }),
+    });
+  } else {
+    await request<unknown>('/api/auth/logout', { method: 'POST' });
+  }
+  clearBearerSession();
 }
 
 export type ForgotPasswordResult =

@@ -1,6 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { UserDto } from '../../shared/api';
-import { me, logout as apiLogout, setSessionExpiredHandler } from '../../shared/api';
+import {
+  me,
+  logout as apiLogout,
+  setSessionExpiredHandler,
+  clearBearerSession,
+} from '../../shared/api';
 
 export interface AuthContextValue {
   user: UserDto | null;
@@ -33,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setSessionExpiredHandler((path) => {
       setUserState(null);
+      clearBearerSession();
       // Явный logout: не показывать «Сессия истекла», пользователь сам вышел
       if (path !== '/api/auth/logout') {
         setSessionExpired(true);
