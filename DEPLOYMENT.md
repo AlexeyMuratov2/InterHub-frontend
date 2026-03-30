@@ -82,6 +82,8 @@ This path must match `root` path in your Caddy site config.
   (подставьте порт бэкенда и путь `root` = значению секрета `FRONTEND_MINIAPP_DIST_PATH`).
 - После правок: `sudo systemctl reload caddy`.
 
+Если **`https://miniapp…/`** отдаёт **404 с пустым телом**: в блоке статики добавьте явный rewrite для корня (в эталоне уже есть): `@root path /` → `rewrite @root /index-mobile.html` и `try_files {path} /index-mobile.html` — иначе `try_files` может «принять» сам каталог `root` и не отдать `index`.
+
 ## Бэкенд (CORS / cookies)
 
 - В `JWT_CORS_ALLOWED_ORIGINS` (или аналог в Spring) добавьте `https://miniapp.interhub.online`, иначе браузер/Telegram WebView заблокирует запросы к API на другом origin.
