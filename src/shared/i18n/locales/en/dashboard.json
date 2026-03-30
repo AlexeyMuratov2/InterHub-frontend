@@ -3,6 +3,8 @@
   "sidebarSubtitle": "Administration",
   "sidebarSubtitleStudent": "Student Portal",
   "sidebarSubtitleTeacher": "Teacher Portal",
+  "navMenuOpen": "Open navigation menu",
+  "navMenuClose": "Close navigation menu",
   "menuDashboard": "Dashboard",
   "menuDepartments": "Departments",
   "menuSchedule": "Schedule",

@@ -9,6 +9,7 @@ import {
   UserPlus,
   UserCog,
   Settings,
+  Menu,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import universityLogo from '../../assets/university-logo.png';
@@ -18,6 +19,7 @@ import { useCanManageInvitations } from '../hooks/useCanManageInvitations';
 import { useTranslation, LanguageSwitcher } from '../../shared/i18n';
 import { getRolesFromUser, getAvailableDashboards } from '../../shared/config';
 import { DashboardUserMenu } from '../../shared/ui';
+import { useDashboardNavDrawer } from './useDashboardNavDrawer';
 
 const ADMIN_MENU: Array<{
   path: string;
@@ -37,6 +39,7 @@ const ADMIN_MENU: Array<{
 ] as const;
 
 export function DashboardLayout() {
+  const { navOpen, setNavOpen, rootClass } = useDashboardNavDrawer();
   const location = useLocation();
   const { user, logout } = useAuth();
   const canEdit = useCanEditInAdmin();
@@ -98,7 +101,13 @@ export function DashboardLayout() {
             : '/dashboards/admin/invitations/new';
 
   return (
-    <div className="app-dashboard-layout">
+    <div className={rootClass}>
+      <button
+        type="button"
+        className="app-dashboard-nav-backdrop"
+        aria-label={t('navMenuClose')}
+        onClick={() => setNavOpen(false)}
+      />
       <aside className="app-dashboard-sidebar">
         <div className="app-dashboard-sidebar-brand">
           <div className="app-dashboard-sidebar-brand-logo-wrapper">
@@ -127,6 +136,15 @@ export function DashboardLayout() {
       <div className="app-dashboard-body">
         <header className="app-dashboard-header">
           <div className="app-dashboard-header-left">
+            <button
+              type="button"
+              className="app-dashboard-nav-toggle"
+              aria-label={navOpen ? t('navMenuClose') : t('navMenuOpen')}
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen((o) => !o)}
+            >
+              <Menu size={22} strokeWidth={2} />
+            </button>
             <span className="app-dashboard-header-section">{headerSectionTitle}</span>
             {showHeaderCreate && (
               <Link to={headerCreateLink} className="app-dashboard-header-create">
