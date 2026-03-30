@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { getGroupLessonsWeek, getSemesterByDate, listRooms } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
-import { ScheduleGrid, Alert, LessonModal } from '../../../../shared/ui';
+import { ScheduleGrid, MobileScheduleGrid, Alert, LessonModal } from '../../../../shared/ui';
+import { useMiniApp } from '../../../../app/providers';
 import { mapLessonsForScheduleToEvents } from '../../../../shared/lib';
 import { getIsoWeekStart, getIsoWeekEnd } from '../../../../shared/lib';
 
@@ -15,6 +16,7 @@ export interface GroupScheduleTabProps {
 }
 
 export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
+  const { isMiniApp } = useMiniApp();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
@@ -195,15 +197,31 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
       ) : events.length === 0 ? (
         <div className="schedule-tab-empty">{t('scheduleEmptyWeek')}</div>
       ) : (
-        <ScheduleGrid
-          events={events}
-          getDayLabel={getDayLabel}
-          formatTime={formatTime}
-          getLessonTypeLabel={getLessonTypeLabel}
-          getCancelledLabel={getCancelledLabel}
-          onEventClick={handleEventClick}
-          height="520px"
-        />
+        isMiniApp ? (
+          <MobileScheduleGrid
+            events={events}
+            weekStart={weekStart}
+            anchorDate={anchorDate}
+            weekRangeText={`${formatDate(weekStart, locale)} — ${formatDate(weekEnd, locale)}`}
+            getDayLabel={getDayLabel}
+            formatTime={formatTime}
+            getLessonTypeLabel={getLessonTypeLabel}
+            getCancelledLabel={getCancelledLabel}
+            onEventClick={handleEventClick}
+            formatDayDate={(d) => formatDate(d, locale)}
+            dayEmptyLabel={t('scheduleEmptyWeek')}
+          />
+        ) : (
+          <ScheduleGrid
+            events={events}
+            getDayLabel={getDayLabel}
+            formatTime={formatTime}
+            getLessonTypeLabel={getLessonTypeLabel}
+            getCancelledLabel={getCancelledLabel}
+            onEventClick={handleEventClick}
+            height="520px"
+          />
+        )
       )}
 
       {selectedLesson && (

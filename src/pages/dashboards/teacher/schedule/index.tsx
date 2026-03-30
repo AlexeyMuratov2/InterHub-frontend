@@ -4,14 +4,17 @@ import { getTeacherLessonsWeek } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
 import {
   ScheduleGrid,
+  MobileScheduleGrid,
   SchedulePageContent,
   TeacherLessonModal,
 } from '../../../../shared/ui';
 import type { ScheduleEvent } from '../../../../shared/ui';
+import { useMiniApp } from '../../../../app/providers';
 import { mapLessonsForScheduleToEventsForTeacher } from '../../../../shared/lib';
 import { useScheduleWeek } from '../../../../shared/hooks/useScheduleWeek';
 
 export function SchedulePage() {
+  const { isMiniApp } = useMiniApp();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
@@ -96,15 +99,31 @@ export function SchedulePage() {
         emptyLabel={t('scheduleEmptyWeek')}
         loadingLabel={t('loading')}
       >
-        <ScheduleGrid
-          events={events}
-          getDayLabel={getDayLabel}
-          formatTime={formatTime}
-          getLessonTypeLabel={getLessonTypeLabel}
-          getCancelledLabel={getCancelledLabel}
-          onEventClick={handleEventClick}
-          height="520px"
-        />
+        {isMiniApp ? (
+          <MobileScheduleGrid
+            events={events}
+            weekStart={weekStart}
+            anchorDate={anchorDate}
+            weekRangeText={`${formatDate(weekStart, locale)} — ${formatDate(weekEnd, locale)}`}
+            getDayLabel={getDayLabel}
+            formatTime={formatTime}
+            getLessonTypeLabel={getLessonTypeLabel}
+            getCancelledLabel={getCancelledLabel}
+            onEventClick={handleEventClick}
+            formatDayDate={(d) => formatDate(d, locale)}
+            dayEmptyLabel={t('scheduleEmptyWeek')}
+          />
+        ) : (
+          <ScheduleGrid
+            events={events}
+            getDayLabel={getDayLabel}
+            formatTime={formatTime}
+            getLessonTypeLabel={getLessonTypeLabel}
+            getCancelledLabel={getCancelledLabel}
+            onEventClick={handleEventClick}
+            height="520px"
+          />
+        )}
       </SchedulePageContent>
 
       {selectedLesson && (
