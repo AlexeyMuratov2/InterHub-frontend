@@ -1,3 +1,7 @@
+# CI/CD → VPS: dist/* → SCP в секрет FRONTEND_DIST_PATH (должен = Caddy root для основного SPA).
+# Эталон пути: /opt/interhub/frontend-dist/dist — см. interhubdev/deploy/caddy/Caddyfile.vps.example
+# Miniapp — отдельный workflow и секрет FRONTEND_MINIAPP_DIST_PATH.
+
 name: Deploy Frontend (test_deploy)
 
 on:
@@ -26,6 +30,22 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: npm run build
+
+      - name: Ensure frontend deploy directory exists on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            T="${{ secrets.FRONTEND_DIST_PATH }}"
+            test -n "$T" || { echo "FRONTEND_DIST_PATH is empty"; exit 1; }
+            if mkdir -p "$T" 2>/dev/null; then exit 0; fi
+            if sudo -n mkdir -p "$T" 2>/dev/null; then sudo -n chown -R "$(id -un):$(id -gn)" "$T" 2>/dev/null || true; exit 0; fi
+            echo "Cannot mkdir $T — on VPS run: sudo mkdir -p \"$T\" && sudo chown -R $USER \"$T\""
+            exit 1
 
       - name: Upload dist to VPS
         uses: appleboy/scp-action@v0.1.7
