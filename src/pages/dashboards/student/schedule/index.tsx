@@ -2,12 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { getStudentLessonsWeek } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
-import {
-  ScheduleGrid,
-  MobileScheduleGrid,
-  SchedulePageContent,
-  StudentLessonModal,
-} from '../../../../shared/ui';
+import { ScheduleGrid, SchedulePageContent, StudentLessonModal } from '../../../../shared/ui';
 import type { ScheduleEvent } from '../../../../shared/ui';
 import { useMiniApp } from '../../../../app/providers';
 import { mapLessonsForScheduleToEvents } from '../../../../shared/lib';
@@ -99,31 +94,16 @@ export function SchedulePage() {
         emptyLabel={t('scheduleEmptyWeek')}
         loadingLabel={t('loading')}
       >
-        {isMiniApp ? (
-          <MobileScheduleGrid
-            events={events}
-            weekStart={weekStart}
-            anchorDate={anchorDate}
-            weekRangeText={`${formatDate(weekStart, locale)} — ${formatDate(weekEnd, locale)}`}
-            getDayLabel={getDayLabel}
-            formatTime={formatTime}
-            getLessonTypeLabel={getLessonTypeLabel}
-            getCancelledLabel={getCancelledLabel}
-            onEventClick={handleEventClick}
-            formatDayDate={(d) => formatDate(d, locale)}
-            dayEmptyLabel={t('scheduleEmptyWeek')}
-          />
-        ) : (
-          <ScheduleGrid
-            events={events}
-            getDayLabel={getDayLabel}
-            formatTime={formatTime}
-            getLessonTypeLabel={getLessonTypeLabel}
-            getCancelledLabel={getCancelledLabel}
-            onEventClick={handleEventClick}
-            height="520px"
-          />
-        )}
+        <ScheduleGrid
+          events={events}
+          getDayLabel={getDayLabel}
+          formatTime={formatTime}
+          getLessonTypeLabel={getLessonTypeLabel}
+          getCancelledLabel={getCancelledLabel}
+          onEventClick={handleEventClick}
+          height={isMiniApp ? 'min(58dvh, 520px)' : '520px'}
+          className={isMiniApp ? 'schedule-grid--miniapp' : undefined}
+        />
       </SchedulePageContent>
 
       {selectedLesson && (

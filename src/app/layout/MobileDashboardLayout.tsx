@@ -26,8 +26,13 @@ import { DashboardUserMenu, NotificationBell } from '../../shared/ui';
 
 type DashboardVariant = 'admin' | 'teacher' | 'student';
 
-function navClass(active: boolean): string {
-  return 'app-mobile-bottom-nav-item' + (active ? ' app-mobile-bottom-nav-item--active' : '');
+function navRailClass(active: boolean): string {
+  return 'app-mobile-nav-rail-item' + (active ? ' app-mobile-nav-rail-item--active' : '');
+}
+
+/** Подпись только для a11y; на экране — иконка + title */
+function NavLabel({ children }: { children: string }) {
+  return <span className="app-mobile-nav-rail-sr-only">{children}</span>;
 }
 
 export function MobileDashboardLayout({ variant }: { variant: DashboardVariant }) {
@@ -174,7 +179,39 @@ export function MobileDashboardLayout({ variant }: { variant: DashboardVariant }
 
   return (
     <div className="app-dashboard-layout app-dashboard-layout--mobile">
-      <div className="app-dashboard-body">
+      <nav className="app-mobile-nav-rail" aria-label={t('menuDashboard')}>
+        {primaryTabs.map((tab) => {
+          if (tab.to === '__more__') {
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={navRailClass(moreOpen || moreActive)}
+                onClick={() => setMoreOpen(true)}
+                aria-expanded={moreOpen}
+                title={t('selectTitle')}
+              >
+                <tab.icon strokeWidth={2} aria-hidden />
+                <NavLabel>{t('selectTitle')}</NavLabel>
+              </button>
+            );
+          }
+          return (
+            <NavLink
+              key={tab.key}
+              to={tab.to}
+              end={tab.end}
+              className={({ isActive }) => navRailClass(isActive)}
+              title={tab.label}
+            >
+              <tab.icon strokeWidth={2} aria-hidden />
+              <NavLabel>{tab.label}</NavLabel>
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      <div className="app-dashboard-body app-dashboard-body--nav-rail">
         <header className="app-dashboard-header app-dashboard-header--mobile">
           <div className="app-dashboard-header-left" style={{ minWidth: 0, flex: 1 }}>
             <img
@@ -210,36 +247,6 @@ export function MobileDashboardLayout({ variant }: { variant: DashboardVariant }
         <main className="app-dashboard-main">
           <Outlet />
         </main>
-
-        <nav className="app-mobile-bottom-nav" aria-label="Main">
-          {primaryTabs.map((tab) => {
-            if (tab.to === '__more__') {
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={navClass(moreOpen || moreActive)}
-                  onClick={() => setMoreOpen(true)}
-                  aria-expanded={moreOpen}
-                >
-                  <tab.icon strokeWidth={2} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            }
-            return (
-              <NavLink
-                key={tab.key}
-                to={tab.to}
-                end={tab.end}
-                className={({ isActive }) => navClass(isActive)}
-              >
-                <tab.icon strokeWidth={2} />
-                <span>{tab.label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
       </div>
 
       {moreOpen && (variant === 'teacher' || variant === 'admin') && (

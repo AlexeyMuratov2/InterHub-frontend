@@ -44,7 +44,8 @@ html.tg-miniapp #root:has(.app-dashboard-layout) {
 /* ---------- Mobile dashboard shell ---------- */
 html.tg-miniapp .app-dashboard-layout--mobile {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
   width: 100%;
   min-height: var(--tg-viewport-stable-height, 100dvh);
   max-height: var(--tg-viewport-stable-height, 100dvh);
@@ -56,7 +57,7 @@ html.tg-miniapp .app-dashboard-layout--mobile .app-dashboard-sidebar {
   display: none !important;
 }
 
-html.tg-miniapp .app-dashboard-layout--mobile .app-dashboard-body {
+html.tg-miniapp .app-dashboard-layout--mobile .app-dashboard-body--nav-rail {
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -77,7 +78,7 @@ html.tg-miniapp .app-dashboard-header--mobile .app-dashboard-header-section {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 42vw;
+  max-width: min(58vw, 14rem);
 }
 
 html.tg-miniapp .app-dashboard-header--mobile .app-dashboard-header-right {
@@ -97,58 +98,76 @@ html.tg-miniapp .app-dashboard-layout--mobile .app-dashboard-main {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 0.75rem;
-  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Bottom tab bar */
-html.tg-miniapp .app-mobile-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: stretch;
-  background: #ffffff;
-  border-top: 1px solid #e5e7eb;
-  padding: 0.25rem 0.15rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
-  z-index: 300;
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+/* Недельная сетка расписания: на всю ширину контента, горизонтальный скролл внутри .schedule-grid__body */
+html.tg-miniapp .schedule-grid.schedule-grid--miniapp {
+  max-width: 100%;
 }
 
-html.tg-miniapp .app-mobile-bottom-nav-item {
-  flex: 1;
+/* Узкий левый рейл: переключение разделов иконками; подпись — title + скринридер */
+html.tg-miniapp .app-mobile-nav-rail {
+  flex: 0 0 44px;
+  width: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.1rem;
-  min-width: 0;
-  padding: 0.35rem 0.1rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: #6b7280;
-  border-radius: 10px;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 48px;
+  gap: 0.2rem;
+  padding: 0.4rem 0.12rem;
+  padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 14px rgba(15, 23, 42, 0.05);
+  z-index: 300;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
+}
+
+html.tg-miniapp .app-mobile-nav-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0.2rem;
   border: none;
+  border-radius: 10px;
   background: transparent;
+  color: #6b7280;
   cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
   font-family: inherit;
 }
 
-html.tg-miniapp .app-mobile-bottom-nav-item svg {
-  width: 22px;
-  height: 22px;
+html.tg-miniapp .app-mobile-nav-rail-item svg {
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
-html.tg-miniapp .app-mobile-bottom-nav-item--active {
+html.tg-miniapp .app-mobile-nav-rail-item--active {
   color: #1e40af;
   background: #eff6ff;
+  box-shadow: inset 2px 0 0 #2563eb;
+}
+
+html.tg-miniapp .app-mobile-nav-rail-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 html.tg-miniapp .app-mobile-more-backdrop {
@@ -299,7 +318,7 @@ html.tg-miniapp .dashboard-selector-page {
 }
 
 /* ---------- Forms: touch targets ---------- */
-html.tg-miniapp button:not(.app-mobile-bottom-nav-item):not(.app-mobile-more-link),
+html.tg-miniapp button:not(.app-mobile-nav-rail-item):not(.app-mobile-more-link),
 html.tg-miniapp .btn-primary,
 html.tg-miniapp .btn-secondary {
   min-height: 44px;
