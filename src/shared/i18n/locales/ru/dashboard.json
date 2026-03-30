@@ -3,6 +3,8 @@
   "sidebarSubtitle": "Администрирование",
   "sidebarSubtitleStudent": "Студенческий портал",
   "sidebarSubtitleTeacher": "Портал преподавателя",
+  "navMenuOpen": "Открыть меню",
+  "navMenuClose": "Закрыть меню",
   "menuDashboard": "Дашборд",
   "menuDepartments": "Отделы",
   "menuSchedule": "Расписание",

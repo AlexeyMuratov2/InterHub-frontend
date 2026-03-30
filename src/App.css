@@ -825,6 +825,81 @@ img.app-dashboard-sidebar-logo {
   color: #9CA3AF;
 }
 
+/* Off-canvas nav: кнопка и затемнение только на узких экранах */
+.app-dashboard-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #1F2937;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.app-dashboard-nav-toggle:hover {
+  background: #F9FAFB;
+}
+
+.app-dashboard-nav-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .app-dashboard-nav-toggle {
+    display: inline-flex;
+  }
+
+  .app-dashboard-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: none;
+  }
+
+  .app-dashboard-layout--nav-open .app-dashboard-sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .app-dashboard-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+  }
+
+  .app-dashboard-layout--nav-open .app-dashboard-nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-dashboard-body {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 .app-dashboard-body {
   flex: 1;
   display: flex;
