@@ -12,6 +12,8 @@ export { PageMessage } from './PageMessage';
 export { Drawer } from './Drawer';
 export { ScheduleGrid } from './schedule-grid';
 export type { ScheduleGridProps, ScheduleEvent } from './schedule-grid';
+export { MobileScheduleGrid } from './mobile-schedule-grid';
+export type { MobileScheduleGridProps } from './mobile-schedule-grid';
 export { ScheduleToolbar } from './schedule-toolbar';
 export type { ScheduleToolbarProps } from './schedule-toolbar';
 export { SchedulePageContent } from './schedule-page-content';

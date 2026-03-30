@@ -7,7 +7,7 @@ import {
   type TeacherAbsenceNoticeItemDto,
   type AbsenceNoticeStatus,
 } from '../../../../shared/api';
-import { useTranslation, formatDate, formatDateTime } from '../../../../shared/i18n';
+import { useTranslation, formatDate, formatDateTime, type Locale } from '../../../../shared/i18n';
 import { Modal, PageHero, SectionCard, Alert, AbsenceRequestsFiltersBar } from '../../../../shared/ui';
 import { ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -24,7 +24,7 @@ function getSubjectDisplay(item: TeacherAbsenceNoticeItemDto): string {
 }
 
 /** Даты заявки: один урок — одна дата; период — «с … по …». */
-function getDateDisplay(item: TeacherAbsenceNoticeItemDto, locale: string): string {
+function getDateDisplay(item: TeacherAbsenceNoticeItemDto, locale: Locale): string {
   if (item.lesson) {
     return formatDate(item.lesson.date, locale);
   }

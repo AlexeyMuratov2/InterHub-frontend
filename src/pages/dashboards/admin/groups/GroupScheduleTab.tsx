@@ -3,6 +3,7 @@ import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { getGroupLessonsWeek, getSemesterByDate, listRooms } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
 import { ScheduleGrid, Alert, LessonModal } from '../../../../shared/ui';
+import { useMiniApp } from '../../../../app/providers';
 import { mapLessonsForScheduleToEvents } from '../../../../shared/lib';
 import { getIsoWeekStart, getIsoWeekEnd } from '../../../../shared/lib';
 
@@ -15,6 +16,7 @@ export interface GroupScheduleTabProps {
 }
 
 export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
+  const { isMiniApp } = useMiniApp();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
@@ -202,7 +204,8 @@ export function GroupScheduleTab({ groupId }: GroupScheduleTabProps) {
           getLessonTypeLabel={getLessonTypeLabel}
           getCancelledLabel={getCancelledLabel}
           onEventClick={handleEventClick}
-          height="520px"
+          height={isMiniApp ? 'min(58dvh, 520px)' : '520px'}
+          className={isMiniApp ? 'schedule-grid--miniapp' : undefined}
         />
       )}
 

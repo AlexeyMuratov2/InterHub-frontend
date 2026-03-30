@@ -5,7 +5,7 @@
  */
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation, formatDate, formatDateTime } from '../../i18n';
+import { useTranslation, formatDate, formatDateTime, type Locale } from '../../i18n';
 import { getStudentGradeHistory } from '../../api';
 import type { StudentGradeHistoryDto, StudentGradeHistoryItemDto } from '../../api';
 import { Modal, Alert } from '..';
@@ -64,8 +64,8 @@ function lessonIdForLink(item: StudentGradeHistoryItemDto): string | null {
 
 function lessonDateForEntry(
   item: StudentGradeHistoryItemDto,
-  formatDateFn: (date: string, locale: string) => string,
-  locale: string
+  formatDateFn: (date: string, locale: Locale) => string,
+  locale: Locale
 ): string | null {
   const lesson = lessonForEntry(item);
   if (!lesson?.date) return null;

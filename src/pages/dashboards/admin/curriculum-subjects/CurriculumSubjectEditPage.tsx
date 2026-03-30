@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   fetchCurriculumSubjectById,
@@ -7,7 +7,7 @@ import {
   type CurriculumSubjectDto,
   type UpdateCurriculumSubjectRequest,
 } from '../../../../entities/curriculum-subject';
-import { fetchCurriculumById, type CurriculumDto } from '../../../../entities/curriculum';
+import { fetchCurriculumById } from '../../../../entities/curriculum';
 import { fetchProgramById, type ProgramDto } from '../../../../entities/program';
 import { fetchSubjectById, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
@@ -32,7 +32,6 @@ export function CurriculumSubjectEditPage() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const [curriculumSubject, setCurriculumSubject] = useState<CurriculumSubjectDto | null>(null);
-  const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
   const [program, setProgram] = useState<ProgramDto | null>(null);
   const [subject, setSubject] = useState<SubjectDto | null>(null);
   const [assessmentTypes, setAssessmentTypes] = useState<AssessmentTypeDto[]>([]);
@@ -103,7 +102,6 @@ export function CurriculumSubjectEditPage() {
       if (cancelled) return;
 
       if (curriculumRes.data) {
-        setCurriculum(curriculumRes.data);
         const progRes = await fetchProgramById(curriculumRes.data.programId);
         if (!cancelled && progRes.data) {
           setProgram(progRes.data);
@@ -123,11 +121,6 @@ export function CurriculumSubjectEditPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- t is not stable; load only when id changes
   }, [id]);
-
-  // Текущий тип контроля
-  const currentAssessmentType = useMemo(() => {
-    return assessmentTypes.find((at) => at.id === assessmentTypeId) ?? null;
-  }, [assessmentTypes, assessmentTypeId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

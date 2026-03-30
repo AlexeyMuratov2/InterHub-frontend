@@ -1,13 +1,22 @@
 import { request } from './client';
-import type { LessonForScheduleDto, LessonDto, RoomDto, UpdateLessonRequest } from './types';
+import type {
+  ErrorResponse,
+  LessonForScheduleDto,
+  LessonDto,
+  RoomDto,
+  UpdateLessonRequest,
+} from './types';
 
-function wrapResult<T>(
-  result: { data?: T; error?: { message?: string; code?: string; details?: Record<string, string> }; status: number }
-) {
+function wrapResult<T>(result: { data?: T; error?: ErrorResponse; status: number }) {
   return {
     data: result.data,
     error: result.error
-      ? { message: result.error.message, code: result.error.code, details: result.error.details }
+      ? {
+          message: result.error.message,
+          code: result.error.code,
+          details: result.error.details,
+          timestamp: result.error.timestamp,
+        }
       : undefined,
     status: result.status,
   };

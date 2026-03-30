@@ -3,7 +3,7 @@
  * Используется на странице деталей урока для редактирования и удаления.
  */
 import { useState, useCallback, useEffect } from 'react';
-import { useTranslation, useI18n, formatDate, formatTime } from '../../i18n';
+import { useTranslation, useI18n, formatDate } from '../../i18n';
 import { parseFieldErrors } from '../../lib/parseFieldErrors';
 import { Modal } from '../Modal';
 import { ConfirmModal } from '../ConfirmModal';
@@ -23,12 +23,6 @@ export interface LessonEditModalProps {
   onUpdated: () => void;
   onDeleted: () => void;
 }
-
-const STATUS_KEYS = {
-  PLANNED: 'lessonModalStatusPlanned',
-  CANCELLED: 'lessonModalStatusCancelled',
-  DONE: 'lessonModalStatusDone',
-} as const;
 
 function timeToInputValue(s: string): string {
   if (!s) return '';
@@ -59,13 +53,6 @@ export function LessonEditModal({
   const [editStatus, setEditStatus] = useState(lesson.status);
 
   const title = subjectName?.trim() || t('lessonModalTitleFallback');
-  const statusLabel = t(STATUS_KEYS[lesson.status] as keyof typeof STATUS_KEYS);
-
-  const timeDisplay = (() => {
-    const start = lesson.startTime && lesson.date ? formatTime(`${lesson.date}T${lesson.startTime}`, locale) : '';
-    const end = lesson.endTime && lesson.date ? formatTime(`${lesson.date}T${lesson.endTime}`, locale) : '';
-    return start && end ? `${start} – ${end}` : `${timeToInputValue(lesson.startTime)}–${timeToInputValue(lesson.endTime)}`;
-  })();
 
   const resetForm = useCallback(() => {
     setEditStart(timeToInputValue(lesson.startTime));

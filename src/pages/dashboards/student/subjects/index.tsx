@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BookOpen, Calendar, GraduationCap, UserRound } from 'lucide-react';
 import { useTranslation } from '../../../../shared/i18n';
-import type { Locale } from '../../../../shared/i18n';
 import { getStudentSubjects } from '../../../../shared/api';
 import type { StudentSubjectListItemDto } from '../../../../shared/api';
 import {

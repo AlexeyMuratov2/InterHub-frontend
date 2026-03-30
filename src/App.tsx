@@ -54,9 +54,15 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import { I18nProvider } from './shared/i18n';
 import './App.css';
 
+function routerBasename(): string | undefined {
+  const b = import.meta.env.BASE_URL ?? '/';
+  const trimmed = b.replace(/\/$/, '');
+  return trimmed === '' ? undefined : trimmed;
+}
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename()}>
       <I18nProvider>
         <AuthProvider>
         <Routes>

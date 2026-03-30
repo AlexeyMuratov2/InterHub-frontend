@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation, formatDate, formatDateTime } from '../../i18n';
+import { useTranslation, formatDate, formatDateTime, type Locale } from '../../i18n';
 import { getStudentHomeworkHistory } from '../../api';
 import type {
   StudentHomeworkHistoryDto,
@@ -20,7 +20,7 @@ export interface StudentHomeworkHistoryModalProps {
   studentDisplayName: string;
 }
 
-function lessonDateDisplay(lesson: StudentHomeworkHistoryItemDto['lesson'], locale: string): string {
+function lessonDateDisplay(lesson: StudentHomeworkHistoryItemDto['lesson'], locale: Locale): string {
   if (!lesson?.date) return '—';
   try {
     return formatDate(lesson.date + 'T00:00:00', locale);

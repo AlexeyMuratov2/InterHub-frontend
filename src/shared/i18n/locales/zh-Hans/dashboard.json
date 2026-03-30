@@ -3,6 +3,8 @@
   "sidebarSubtitle": "管理",
   "sidebarSubtitleStudent": "学生门户",
   "sidebarSubtitleTeacher": "教师门户",
+  "navMenuOpen": "打开导航菜单",
+  "navMenuClose": "关闭导航菜单",
   "menuDashboard": "仪表盘",
   "menuDepartments": "部门",
   "menuSchedule": "课程表",

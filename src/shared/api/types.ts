@@ -24,6 +24,9 @@ export interface AuthResult {
   roles?: string[];
   fullName: string;
   message?: string;
+  /** При заголовке X-Auth-Tokens: json (Mini App / Bearer-клиенты) */
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 /** Текущий пользователь (GET /api/auth/me). Нормализованные roles доступны через getRolesFromUser(). */

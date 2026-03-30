@@ -31,6 +31,8 @@ export interface ScheduleGridProps {
   defaultAxisMax?: number;
   /** Высота контейнера сетки (например "400px" или "60vh") */
   height?: string;
+  /** Например `schedule-grid--miniapp` — узкая ось времени и адаптив под телефон */
+  className?: string;
 }
 
 const defaultFormatTime = (s: string): string => (s ? (s.length >= 5 ? s.slice(0, 5) : s) : '');
@@ -45,8 +47,9 @@ export function ScheduleGrid({
   defaultAxisMin = 8 * 60,
   defaultAxisMax = 20 * 60, // 08:00–20:00 when no events
   height = '480px',
+  className,
 }: ScheduleGridProps) {
-  const { axisMin, axisMax, totalMinutes, ticks, eventsByDayWithLanes } = useMemo(() => {
+  const { axisMin, totalMinutes, ticks, eventsByDayWithLanes } = useMemo(() => {
     const slots = events.map((e) => ({
       start: timeToMinutes(e.startTime),
       end: timeToMinutes(e.endTime),
@@ -96,15 +99,16 @@ export function ScheduleGrid({
 
     return {
       axisMin: range.axisMin,
-      axisMax: range.axisMax,
       totalMinutes: total,
       ticks,
       eventsByDayWithLanes,
     };
   }, [events, defaultAxisMin, defaultAxisMax]);
 
+  const rootClass = [className, 'schedule-grid'].filter(Boolean).join(' ');
+
   return (
-    <div className="schedule-grid" style={{ height }}>
+    <div className={rootClass} style={{ height }}>
       <div className="schedule-grid__header">
         <div className="schedule-grid__time-header" aria-hidden="true">
           {' '}

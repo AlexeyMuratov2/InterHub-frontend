@@ -7,9 +7,9 @@ import {
 } from '../../../../entities/curriculum-subject';
 import { fetchCurriculumById, type CurriculumDto } from '../../../../entities/curriculum';
 import { fetchProgramById, type ProgramDto } from '../../../../entities/program';
-import { fetchSubjects, fetchAssessmentTypes, type SubjectDto, type AssessmentTypeDto } from '../../../../entities/subject';
+import { fetchSubjects, fetchAssessmentTypes } from '../../../../entities/subject';
 import { useCanEditInAdmin } from '../../../../app/hooks/useCanEditInAdmin';
-import { useTranslation, formatDateTime } from '../../../../shared/i18n';
+import { useTranslation } from '../../../../shared/i18n';
 import { getAssessmentTypeDisplayName, formatDurationYears } from '../../../../shared/lib';
 import { PageMessage, Alert, ConfirmModal } from '../../../../shared/ui';
 
@@ -35,8 +35,6 @@ export function CurriculumSubjectsPage() {
 
   const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
   const [program, setProgram] = useState<ProgramDto | null>(null);
-  const [subjects, setSubjects] = useState<SubjectDto[]>([]);
-  const [assessmentTypes, setAssessmentTypes] = useState<AssessmentTypeDto[]>([]);
   const [curriculumSubjects, setCurriculumSubjects] = useState<CurriculumSubjectWithDetails[]>([]);
 
   const [search, setSearch] = useState('');
@@ -88,8 +86,6 @@ export function CurriculumSubjectsPage() {
 
       const subjectsList = subjectsRes.data ?? [];
       const atList = atRes.data ?? [];
-      setSubjects(subjectsList);
-      setAssessmentTypes(atList);
 
       // Обогащаем curriculum subjects данными о предметах и типах контроля
       const csList = csRes.data ?? [];

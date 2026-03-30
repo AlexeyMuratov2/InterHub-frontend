@@ -13,7 +13,13 @@ const ASSESSMENT_TYPES = `${BASE}/assessment-types`;
 
 export type SubjectApiResult<T> = {
   data?: T;
-  error?: { message?: string; code?: string; details?: Record<string, string>; status?: number };
+  error?: {
+    message?: string;
+    code?: string;
+    timestamp?: string;
+    details?: Record<string, string> | string[];
+    status?: number;
+  };
 };
 
 // ——— Subjects ———

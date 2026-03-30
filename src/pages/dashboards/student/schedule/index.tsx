@@ -2,16 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation, formatDate } from '../../../../shared/i18n';
 import { getStudentLessonsWeek } from '../../../../shared/api';
 import type { LessonForScheduleDto } from '../../../../shared/api';
-import {
-  ScheduleGrid,
-  SchedulePageContent,
-  StudentLessonModal,
-} from '../../../../shared/ui';
+import { ScheduleGrid, SchedulePageContent, StudentLessonModal } from '../../../../shared/ui';
 import type { ScheduleEvent } from '../../../../shared/ui';
+import { useMiniApp } from '../../../../app/providers';
 import { mapLessonsForScheduleToEvents } from '../../../../shared/lib';
 import { useScheduleWeek } from '../../../../shared/hooks/useScheduleWeek';
 
 export function SchedulePage() {
+  const { isMiniApp } = useMiniApp();
   const { t, locale } = useTranslation('dashboard');
   const tRef = useRef(t);
   tRef.current = t;
@@ -103,7 +101,8 @@ export function SchedulePage() {
           getLessonTypeLabel={getLessonTypeLabel}
           getCancelledLabel={getCancelledLabel}
           onEventClick={handleEventClick}
-          height="520px"
+          height={isMiniApp ? 'min(58dvh, 520px)' : '520px'}
+          className={isMiniApp ? 'schedule-grid--miniapp' : undefined}
         />
       </SchedulePageContent>
 

@@ -252,3 +252,71 @@
   color: #a16207;
   border-color: #fde68a;
 }
+
+/* ---------- Mini App / узкий экран: как десктопная сетка, но узкая левая колонка времени и больше места под дни ---------- */
+.schedule-grid.schedule-grid--miniapp {
+  --schedule-grid-time-col-width: 34px;
+  --schedule-grid-day-col-min: 78px;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__header,
+.schedule-grid.schedule-grid--miniapp .schedule-grid__grid {
+  grid-template-columns: var(--schedule-grid-time-col-width) repeat(
+    7,
+    minmax(var(--schedule-grid-day-col-min), 1fr)
+  );
+  min-width: calc(var(--schedule-grid-time-col-width) + 7 * var(--schedule-grid-day-col-min));
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__time-header,
+.schedule-grid.schedule-grid--miniapp .schedule-grid__day-header {
+  padding: 0.3rem 0.15rem;
+  font-size: 0.6875rem;
+  line-height: 1.15;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__time-label {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  padding: 0 0.1rem;
+  transform: translateY(-0.3rem);
+  letter-spacing: -0.02em;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__body {
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-inner {
+  padding: 0.25rem 0.3rem;
+  padding-right: 1.65rem;
+  gap: 0.1rem;
+  font-size: 0.72rem;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-time {
+  font-size: 0.625rem;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-title {
+  font-size: 0.78rem;
+  line-height: 1.2;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-subtitle {
+  font-size: 0.625rem;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-chip {
+  font-size: 0.5rem;
+  padding: 0.06rem 0.28rem;
+}
+
+.schedule-grid.schedule-grid--miniapp .schedule-grid__slot-chip-wrap {
+  top: 0.15rem;
+  right: 0.2rem;
+}

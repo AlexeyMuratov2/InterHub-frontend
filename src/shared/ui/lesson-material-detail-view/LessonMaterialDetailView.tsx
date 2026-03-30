@@ -28,9 +28,9 @@ export function LessonMaterialDetailView({ material, onDownload }: LessonMateria
           </p>
         )}
       </div>
-      {material.files.length > 0 ? (
+      {(material.files?.length ?? 0) > 0 ? (
         <div className="ed-material-list" style={{ gap: '0.375rem' }}>
-          {material.files.map((file) => (
+          {(material.files ?? []).map((file) => (
             <DetailFileRow
               key={file.id}
               title={file.originalName?.trim() || t('lessonMaterialFile')}

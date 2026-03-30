@@ -12,9 +12,31 @@ import {
 } from '../../../../shared/api';
 import type {
   TeacherSubjectDetailDto,
+  CourseMaterialDto,
   CourseMaterialInfoDto,
   GroupSubjectOfferingInfoDto,
 } from '../../../../shared/api';
+
+function mapCourseMaterialsToInfo(materials: CourseMaterialDto[]): CourseMaterialInfoDto[] {
+  return materials
+    .filter((m): m is CourseMaterialDto & { file: NonNullable<CourseMaterialDto['file']> } => m.file != null)
+    .map((m) => ({
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      authorId: m.authorId,
+      authorName: null,
+      uploadedAt: m.uploadedAt,
+      file: {
+        id: m.file.id,
+        originalName: m.file.originalName,
+        contentType: m.file.contentType,
+        size: m.file.size,
+        uploadedAt: m.file.uploadedAt,
+        uploadedBy: m.file.uploadedBy,
+      },
+    }));
+}
 import {
   Alert,
   BackLink,
@@ -121,7 +143,7 @@ export function SubjectDetailPage() {
         if (materialsRes.data) {
           setSelectedOffering({
             ...selectedOffering,
-            materials: materialsRes.data,
+            materials: mapCourseMaterialsToInfo(materialsRes.data),
           });
         }
       }
@@ -165,7 +187,7 @@ export function SubjectDetailPage() {
         if (materialsRes.data) {
           setSelectedOffering({
             ...selectedOffering,
-            materials: materialsRes.data,
+            materials: mapCourseMaterialsToInfo(materialsRes.data),
           });
         }
       }
