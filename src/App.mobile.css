@@ -267,13 +267,29 @@ html.tg-miniapp .department-modal-body {
   min-width: 0 !important;
 }
 
-/* ---------- Tables & entity views ---------- */
+/* ---------- Tables & entity views ----------
+ * Горизонтальный свайп: скролл только на обёртке; table остаётся display:table.
+ * touch-action + overscroll-behavior снижают «перехват» жеста вертикальным скроллом страницы.
+ */
+html.tg-miniapp .department-table-wrap,
+html.tg-miniapp .ed-data-table-wrapper,
+html.tg-miniapp .implementation-slots-table-wrap,
 html.tg-miniapp .entity-view-table-wrap,
-html.tg-miniapp table {
-  display: block;
-  width: 100%;
+html.tg-miniapp .app-table-scroll-region {
   overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+}
+
+html.tg-miniapp .department-table,
+html.tg-miniapp .ed-data-table,
+html.tg-miniapp .curriculum-subjects-table,
+html.tg-miniapp .ed-attendance-table {
+  width: max-content;
+  min-width: 100%;
   font-size: 0.8125rem;
 }
 
@@ -330,6 +346,65 @@ html.tg-miniapp .form-actions {
 
 html.tg-miniapp .form-actions button {
   width: 100%;
+}
+
+/* Списки сущностей: поиск и «Создать» на всю ширину, удобные зоны нажатия */
+html.tg-miniapp .department-page-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.625rem;
+}
+
+html.tg-miniapp .department-page-search-wrap {
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+}
+
+html.tg-miniapp .department-page-search {
+  max-width: none;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+html.tg-miniapp .department-page-create {
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0.65rem 1rem;
+}
+
+html.tg-miniapp .department-page-title {
+  font-size: clamp(1.125rem, 4.5vw, 1.375rem);
+}
+
+html.tg-miniapp .department-table-actions {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-start;
+}
+
+html.tg-miniapp .department-table-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.45rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html.tg-miniapp .implementation-generate-all-wrap {
+  flex-direction: column;
+  align-items: stretch !important;
+}
+
+html.tg-miniapp .implementation-generate-all-wrap .btn-primary {
+  width: 100%;
+  min-height: 48px;
 }
 
 /* ---------- Notification bell dropdown ---------- */

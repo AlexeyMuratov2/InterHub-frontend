@@ -1254,6 +1254,91 @@ img.app-dashboard-sidebar-logo {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* Область горизонтального скролла таблицы (Telegram miniapp: см. App.mobile.css touch-action) */
+.app-table-scroll-region {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 900px) {
+  .department-table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+  }
+
+  .department-table {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .app-table-scroll-region {
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+  }
+
+  .ed-data-table-wrapper {
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+  }
+
+  .ed-data-table {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .implementation-slots-table-wrap {
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+  }
+
+  .department-page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+  }
+
+  .department-page-search-wrap {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  .department-page-search {
+    max-width: none;
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .department-page-create {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    box-sizing: border-box;
+  }
+
+  .department-table-actions {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .department-table-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.45rem;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .implementation-slots-table-wrap {
   overflow-x: auto;
   overflow-y: hidden;

@@ -179,7 +179,7 @@ export function LessonHomeworkSubmissionsTab({
           {t('lessonDetailsNoStudents')}
         </p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div className="app-table-scroll-region">
           <table
             style={{
               width: '100%',

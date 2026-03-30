@@ -844,7 +844,7 @@ export function LessonFullDetailsPage() {
               {attendanceLoading ? (
                 <p className="ed-empty" style={{ margin: 0 }}>{t('loading')}</p>
               ) : rosterData?.rows && rosterData.rows.length > 0 ? (
-                <div style={{ overflowX: 'auto' }}>
+                <div className="app-table-scroll-region">
                   <table className="ed-attendance-table">
                     <thead>
                       <tr>
