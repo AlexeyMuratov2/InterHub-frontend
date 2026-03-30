@@ -1,9 +1,6 @@
-# Telegram Mini App: статика из dist (в т.ч. index-mobile.html) на отдельный каталог на VPS.
-# Ветка: test_deploy_miniapp
-#
-# GitHub → Settings → Secrets and variables → Actions
-#   Secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_SSH_PORT (опционально), FRONTEND_MINIAPP_DIST_PATH
-#   Variables: VITE_MINIAPP_API_BASE_URL (предпочтительно) или задайте только VITE_API_BASE_URL — подставится как запасной
+# CI/CD → VPS: dist/* → SCP в секрет FRONTEND_MINIAPP_DIST_PATH (= Caddy root для miniapp).
+# Референс по шагам и секретам: deploy-frontend-test.yml (там FRONTEND_DIST_PATH).
+# Секреты репозитория: VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_SSH_PORT, FRONTEND_MINIAPP_DIST_PATH
 
 name: Deploy Frontend Mini App (test_deploy_miniapp)
 
@@ -34,7 +31,23 @@ jobs:
           VITE_API_BASE_URL: ${{ vars.VITE_MINIAPP_API_BASE_URL || vars.VITE_API_BASE_URL }}
         run: npm run build
 
-      - name: Upload dist to VPS (miniapp)
+      - name: Ensure miniapp deploy directory exists on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            T="${{ secrets.FRONTEND_MINIAPP_DIST_PATH }}"
+            test -n "$T" || { echo "FRONTEND_MINIAPP_DIST_PATH is empty"; exit 1; }
+            if mkdir -p "$T" 2>/dev/null; then exit 0; fi
+            if sudo -n mkdir -p "$T" 2>/dev/null; then sudo -n chown -R "$(id -un):$(id -gn)" "$T" 2>/dev/null || true; exit 0; fi
+            echo "Cannot mkdir $T — on VPS run: sudo mkdir -p \"$T\" && sudo chown -R $USER \"$T\""
+            exit 1
+
+      - name: Upload dist to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
