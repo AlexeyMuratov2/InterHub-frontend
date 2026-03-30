@@ -8,6 +8,10 @@ export interface TelegramThemeParams {
   button_color?: string;
   button_text_color?: string;
   secondary_bg_color?: string;
+  section_bg_color?: string;
+  section_header_text_color?: string;
+  subtitle_text_color?: string;
+  section_separator_color?: string;
 }
 
 export interface TelegramBackButton {
@@ -50,6 +54,7 @@ export interface TelegramWebApp {
   offEvent: (eventType: string, callback: () => void) => void;
   BackButton: TelegramBackButton;
   MainButton: TelegramMainButton;
+  safeAreaInset?: { top: number; bottom: number; left: number; right: number };
 }
 
 declare global {
