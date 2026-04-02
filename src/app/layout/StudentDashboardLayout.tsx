@@ -56,7 +56,7 @@ export function StudentDashboardLayout() {
     : t('menuDashboard');
 
   return (
-    <div className="app-dashboard-layout">
+    <div className="app-dashboard-layout app-dashboard-layout--student">
       <aside className="app-dashboard-sidebar">
         <div className="app-dashboard-sidebar-brand">
           <div className="app-dashboard-sidebar-brand-logo-wrapper">

@@ -252,3 +252,112 @@
   color: #a16207;
   border-color: #fde68a;
 }
+
+/* ========== Han Studies Schedule Refresh ========== */
+
+.schedule-grid {
+  border-color: rgba(216, 194, 164, 0.88);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 241, 0.98) 0%, rgba(246, 237, 223, 0.98) 100%);
+  box-shadow: var(--han-soft-shadow);
+}
+
+.schedule-grid__header {
+  background: rgba(178, 123, 70, 0.08);
+  border-bottom-color: rgba(216, 194, 164, 0.78);
+}
+
+.schedule-grid__time-header,
+.schedule-grid__day-header {
+  color: var(--han-ink-soft);
+  font-weight: 700;
+}
+
+.schedule-grid__time-col {
+  border-right-color: rgba(216, 194, 164, 0.6);
+  background: rgba(255, 249, 240, 0.72);
+}
+
+.schedule-grid__time-label {
+  color: var(--han-muted);
+}
+
+.schedule-grid__day-col {
+  background: rgba(255, 250, 241, 0.72);
+}
+
+.schedule-grid__day-col[data-weekend="true"],
+.schedule-grid__day-header[data-weekend="true"] {
+  background: rgba(216, 194, 164, 0.12);
+}
+
+.schedule-grid__grid-line {
+  border-top-color: rgba(216, 194, 164, 0.42);
+}
+
+.schedule-grid__slot {
+  border-radius: 12px;
+  border-color: rgba(178, 123, 70, 0.36);
+  border-left-width: 4px;
+  border-left-color: var(--han-cinnabar);
+  background: linear-gradient(180deg, rgba(255, 249, 240, 0.98) 0%, rgba(248, 236, 214, 0.98) 100%);
+  box-shadow: 0 10px 20px rgba(82, 53, 35, 0.08);
+}
+
+.schedule-grid__slot:hover {
+  background: linear-gradient(180deg, rgba(255, 248, 237, 0.99) 0%, rgba(243, 226, 196, 0.99) 100%);
+  border-color: rgba(159, 48, 36, 0.34);
+  box-shadow: 0 14px 24px rgba(82, 53, 35, 0.12);
+}
+
+.schedule-grid__slot--overlap {
+  border-left-color: var(--han-bronze);
+  background: linear-gradient(180deg, rgba(255, 251, 236, 0.98) 0%, rgba(248, 234, 200, 0.98) 100%);
+}
+
+.schedule-grid__slot--overlap:hover {
+  background: linear-gradient(180deg, rgba(255, 249, 231, 0.98) 0%, rgba(243, 223, 180, 0.98) 100%);
+}
+
+.schedule-grid__slot--cancelled {
+  border-left-color: #9e8a7b;
+  background: linear-gradient(180deg, rgba(244, 240, 235, 0.96) 0%, rgba(232, 224, 214, 0.96) 100%);
+}
+
+.schedule-grid__slot--done {
+  border-left-color: var(--han-jade);
+  background: linear-gradient(180deg, rgba(243, 247, 242, 0.96) 0%, rgba(227, 236, 231, 0.96) 100%);
+}
+
+.schedule-grid__slot-inner {
+  gap: 0.18rem;
+  color: var(--han-ink);
+}
+
+.schedule-grid__slot-time {
+  color: var(--han-muted);
+}
+
+.schedule-grid__slot-title {
+  color: var(--han-ink);
+}
+
+.schedule-grid__slot-subtitle {
+  color: var(--han-ink-soft);
+}
+
+.schedule-grid__slot-chip {
+  border-color: rgba(178, 123, 70, 0.28);
+  background: rgba(255, 250, 241, 0.92);
+  color: var(--han-ink-soft);
+}
+
+.schedule-grid__slot--cancelled .schedule-grid__slot-badge {
+  background: #8f7a69;
+}
+
+.schedule-grid__slot--overlap .schedule-grid__slot-chip {
+  color: #8a5b20;
+  border-color: rgba(178, 123, 70, 0.28);
+}

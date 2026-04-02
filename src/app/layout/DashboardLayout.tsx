@@ -98,7 +98,7 @@ export function DashboardLayout() {
             : '/dashboards/admin/invitations/new';
 
   return (
-    <div className="app-dashboard-layout">
+    <div className="app-dashboard-layout app-dashboard-layout--admin">
       <aside className="app-dashboard-sidebar">
         <div className="app-dashboard-sidebar-brand">
           <div className="app-dashboard-sidebar-brand-logo-wrapper">

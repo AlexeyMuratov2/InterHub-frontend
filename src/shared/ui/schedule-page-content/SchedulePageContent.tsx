@@ -89,9 +89,7 @@ export function SchedulePageContent({
         )}
 
         {loading ? (
-          <p className="ed-empty" style={{ margin: 0 }}>
-            {loadingLabel}
-          </p>
+          <p className="ed-empty ed-empty--loading">{loadingLabel}</p>
         ) : empty ? (
           <div className="schedule-tab-empty ed-schedule-empty">{emptyLabel}</div>
         ) : (

@@ -149,6 +149,19 @@ export function DashboardSelectorPage() {
               </p>
             </section>
 
+            <section className="dashboard-selector-context">
+              <h2 className="dashboard-selector-context-title">
+                {copy.contextTitle}
+              </h2>
+              <div className="dashboard-selector-context-grid">
+                {copy.contextPoints.map((point) => (
+                  <p key={point} className="dashboard-selector-context-point">
+                    {point}
+                  </p>
+                ))}
+              </div>
+            </section>
+
             {state.status === 'loading' ? (
               <StatusPanel
                 icon={LoaderCircle}

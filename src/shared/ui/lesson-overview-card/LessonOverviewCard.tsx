@@ -11,7 +11,13 @@ import {
   getTeacherDisplayName,
   formatCompositionRoomLine,
 } from '../../lib';
-import type { CompositionLessonDto, CompositionRoomDto, CompositionTeacherDto, CompositionSubjectDto, CompositionOfferingSlotDto } from '../../api/types';
+import type {
+  CompositionLessonDto,
+  CompositionRoomDto,
+  CompositionTeacherDto,
+  CompositionSubjectDto,
+  CompositionOfferingSlotDto,
+} from '../../api/types';
 
 export interface LessonOverviewCardProps {
   lesson: CompositionLessonDto;
@@ -19,7 +25,6 @@ export interface LessonOverviewCardProps {
   room: CompositionRoomDto | null;
   mainTeacher: CompositionTeacherDto | null;
   offeringSlot: CompositionOfferingSlotDto | null;
-  /** Дополнительные действия (например, кнопка «Редактировать урок» для преподавателя) */
   actions?: React.ReactNode;
 }
 
@@ -46,81 +51,37 @@ export function LessonOverviewCard({
   const lessonTypeKey = getLessonTypeDisplayKey(offeringSlot?.lessonType ?? null);
 
   return (
-    <section
-      className="entity-view-card lesson-overview-card"
-      style={{
-        marginBottom: '1.5rem',
-        padding: '1.25rem 1.5rem',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '0.75rem 1rem',
-          marginBottom: '0.75rem',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '9999px',
-            backgroundColor: '#3b82f6',
-            color: '#fff',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-          }}
-        >
-          {subjectName}
-        </span>
+    <section className="entity-view-card lesson-overview-card">
+      <div className="lesson-overview-card__meta">
+        <span className="lesson-overview-card__subject">{subjectName}</span>
         {dateTimeLine && (
-          <span style={{ fontSize: '0.9375rem', color: '#475569' }}>{dateTimeLine}</span>
+          <span className="lesson-overview-card__datetime">{dateTimeLine}</span>
         )}
         {showStatus && statusKey && (
-          <span
-            style={{
-              padding: '0.2rem 0.6rem',
-              borderRadius: '6px',
-              backgroundColor: '#fef2f2',
-              color: '#b91c1c',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
-            }}
-          >
+          <span className="lesson-overview-card__status">
             {t(statusKey as 'lessonModalStatusCancelled')}
           </span>
         )}
         {offeringSlot?.lessonType && (
-          <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+          <span className="lesson-overview-card__type">
             {t(lessonTypeKey as 'scheduleLessonTypeLecture')}
           </span>
         )}
       </div>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.5rem 1.25rem',
-          fontSize: '0.9375rem',
-          color: '#334155',
-        }}
-      >
+
+      <div className="lesson-overview-card__details">
         {roomDisplay !== '—' && <span>{roomDisplay}</span>}
         <span>
           {t('lessonDetailsTeacherLabel')}: {teacherDisplay}
         </span>
       </div>
+
       {lesson.topic?.trim() && (
-        <p style={{ margin: '0.75rem 0 0', fontSize: '0.9375rem', color: '#475569' }}>
-          {lesson.topic.trim()}
-        </p>
+        <p className="lesson-overview-card__topic">{lesson.topic.trim()}</p>
       )}
+
       {actions && (
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {actions}
-        </div>
+        <div className="lesson-overview-card__actions">{actions}</div>
       )}
     </section>
   );

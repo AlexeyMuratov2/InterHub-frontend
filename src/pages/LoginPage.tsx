@@ -137,13 +137,34 @@ export default function LoginPage() {
     state.code !== 'VALIDATION_FAILED' &&
     state.message;
 
+  const contextPoints = [
+    t('contextPointOne'),
+    t('contextPointTwo'),
+    t('contextPointThree'),
+  ];
+
   return (
     <div className="auth-card-page">
-      <div className="auth-card">
+      <div className="auth-card auth-card--login">
         <div className="auth-card-header">
-          <img src={universityLogo} alt="" className="auth-card-icon" />
+          <div className="auth-card-mark">
+            <img src={universityLogo} alt="" className="auth-card-icon" />
+            <div className="auth-card-seal" aria-hidden="true">
+              汉
+            </div>
+          </div>
+          <p className="auth-card-kicker">{t('contextEyebrow')}</p>
           <h1 className="auth-card-title">{t('title')}</h1>
           <p className="auth-card-subtitle">{t('loginSubtitle')}</p>
+          <p className="auth-card-intro">{t('loginContext')}</p>
+          <div className="auth-card-context">
+            <p className="auth-card-context-title">{t('contextTitle')}</p>
+            <ul className="auth-card-context-list">
+              {contextPoints.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          </div>
           <LanguageSwitcher className="auth-card-lang" variant="select" />
         </div>
         <div className="auth-card-body">
@@ -210,6 +231,7 @@ export default function LoginPage() {
             <button type="submit" className="auth-card-btn auth-card-btn--primary" disabled={state.status === 'submitting'}>
               {state.status === 'submitting' ? t('submitting') : t('submit')}
             </button>
+            <p className="auth-card-note">{t('loginSupportNote')}</p>
 
             <p className="auth-card-footer">
               {t('noAccount')}{' '}
