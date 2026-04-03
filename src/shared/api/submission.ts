@@ -2,33 +2,41 @@ import { request } from './client';
 import type { ErrorResponse } from './types';
 import type { HomeworkSubmissionDto } from './types';
 
-export type CreateSubmissionRequestBody = {
-  description?: string | null;
-  storedFileIds?: string[] | null;
-};
-
 export type SubmissionApiResult<T> = {
   data?: T;
   error?: ErrorResponse & { status?: number };
   status?: number;
 };
 
+/** Тело части `payload` при multipart POST /api/homework/{id}/submissions */
+export type CreateSubmissionPayload = {
+  description?: string | null;
+};
+
+function buildMultipartPayload(payload: CreateSubmissionPayload, files?: File[]): FormData {
+  const formData = new FormData();
+  formData.append(
+    'payload',
+    new Blob([JSON.stringify({ description: payload.description ?? null })], { type: 'application/json' })
+  );
+  for (const file of files ?? []) {
+    formData.append('files', file);
+  }
+  return formData;
+}
+
 /**
  * Create or replace a submission for a homework assignment.
- * POST /api/homework/{homeworkId}/submissions
- * At most one submission per student per homework; existing one is replaced.
+ * POST /api/homework/{homeworkId}/submissions (multipart: JSON payload + optional files)
  */
 export async function createSubmission(
   homeworkId: string,
-  body: CreateSubmissionRequestBody
+  body: CreateSubmissionPayload,
+  files: File[] = []
 ): Promise<SubmissionApiResult<HomeworkSubmissionDto>> {
-  const b = {
-    description: body.description ?? null,
-    storedFileIds: body.storedFileIds ?? [],
-  };
   const result = await request<HomeworkSubmissionDto>(
     `/api/homework/${encodeURIComponent(homeworkId)}/submissions`,
-    { method: 'POST', body: JSON.stringify(b) }
+    { method: 'POST', body: buildMultipartPayload(body, files) }
   );
   return {
     data: result.data,

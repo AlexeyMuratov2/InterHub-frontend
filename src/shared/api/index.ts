@@ -154,7 +154,7 @@ export type { HomeworkApiResult, DownloadArchiveResult } from './homework';
 export { getDocumentAttachment, downloadDocumentAttachment } from './documentAttachments';
 export type { DocumentAttachmentsApiResult } from './documentAttachments';
 export { createSubmission, deleteSubmission } from './submission';
-export type { SubmissionApiResult, CreateSubmissionRequestBody } from './submission';
+export type { SubmissionApiResult, CreateSubmissionPayload } from './submission';
 export type {
   LessonFullDetailsDto,
   CompositionLessonDto,

@@ -1,6 +1,7 @@
 /**
  * Секция отправки решений по домашним заданиям урока.
  * Стиль entity-detail (ed-submission-*), переиспользуемый на дашборде студента и преподавателя.
+ * Файлы уходят одним multipart-запросом вместе с payload (как в HomeworkModal / LessonMaterialModal).
  */
 import { useState, useCallback } from 'react';
 import { Upload, Send, Trash2, FileText } from 'lucide-react';
@@ -9,7 +10,6 @@ import type { Locale } from '../../i18n';
 import {
   createSubmission,
   deleteSubmission,
-  uploadFile,
 } from '../../api';
 import type {
   CompositionHomeworkDto,
@@ -18,7 +18,6 @@ import type {
 } from '../../api/types';
 import { SectionCard } from '../section-card';
 import { FileUploadArea } from '../file-upload-area/FileUploadArea';
-import type { FileUploadItem } from '../file-upload-area/FileUploadArea';
 import { ConfirmModal } from '../ConfirmModal';
 import { formatFileSize } from '../../lib/fileUtils';
 
@@ -91,51 +90,38 @@ function HomeworkSubmissionCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [description, setDescription] = useState('');
-  const [fileItems, setFileItems] = useState<FileUploadItem[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const text = useCallback(
+    (key: string, fallback: string) => {
+      const translated = t(key);
+      return translated === key ? fallback : translated;
+    },
+    [t]
+  );
+
   const hasSubmission = Boolean(submissionWithFiles?.submission);
   const showForm = !hasSubmission || editing;
 
   const handleAddFiles = useCallback((files: File[]) => {
-    setFileItems((prev) => [
-      ...prev,
-      ...files.map((file) => ({ file, uploading: false as const })),
-    ]);
+    setPendingFiles((prev) => [...prev, ...files]);
   }, []);
 
   const handleRemoveFile = useCallback((index: number) => {
-    setFileItems((prev) => prev.filter((_, i) => i !== index));
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
     setError(null);
-    const ids: string[] = [];
     const desc = description.trim() || null;
 
     try {
-      for (const item of fileItems) {
-        if (item.uploaded?.id) {
-          ids.push(item.uploaded.id);
-          continue;
-        }
-        const res = await uploadFile(item.file);
-        if (res.error || !res.data?.id) {
-          setError(res.error?.message ?? t('lessonDetailsSubmissionErrorCreate'));
-          setSubmitting(false);
-          return;
-        }
-        ids.push(res.data.id);
-      }
-
-      const res = await createSubmission(homework.id, {
-        description: desc,
-        storedFileIds: ids,
-      });
+      const res = await createSubmission(homework.id, { description: desc }, pendingFiles);
       if (res.error) {
         setError(res.error.message ?? t('lessonDetailsSubmissionErrorCreate'));
         setSubmitting(false);
@@ -143,13 +129,13 @@ function HomeworkSubmissionCard({
       }
       setEditing(false);
       setDescription('');
-      setFileItems([]);
+      setPendingFiles([]);
       onRefresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('lessonDetailsSubmissionErrorCreate'));
     }
     setSubmitting(false);
-  }, [homework.id, description, fileItems, onRefresh, t]);
+  }, [homework.id, description, pendingFiles, onRefresh, t]);
 
   const handleDelete = useCallback(async () => {
     if (!submissionWithFiles?.submission) return;
@@ -167,7 +153,7 @@ function HomeworkSubmissionCard({
 
   const startReplace = useCallback(() => {
     setDescription(submissionWithFiles?.submission?.description ?? '');
-    setFileItems([]);
+    setPendingFiles([]);
     setEditing(true);
     setError(null);
   }, [submissionWithFiles?.submission?.description]);
@@ -175,7 +161,7 @@ function HomeworkSubmissionCard({
   const cancelReplace = useCallback(() => {
     setEditing(false);
     setDescription('');
-    setFileItems([]);
+    setPendingFiles([]);
     setError(null);
   }, []);
 
@@ -206,6 +192,23 @@ function HomeworkSubmissionCard({
 
       {showForm ? (
         <div className="ed-submission-form">
+          <div
+            style={{
+              marginBottom: '1rem',
+              padding: '0.9rem 1rem',
+              borderRadius: '16px',
+              background:
+                'linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(37, 99, 235, 0.08) 100%)',
+              color: '#334155',
+              fontSize: '0.9rem',
+              lineHeight: 1.5,
+            }}
+          >
+            {text(
+              'attachmentAsyncHint',
+              'Files are uploaded together with the form and then processed in the background. They become available for download as soon as the safety checks finish.'
+            )}
+          </div>
           <div className="ed-submission-form__field">
             <label className="ed-submission-form__label" htmlFor={`submission-desc-${homework.id}`}>
               {t('lessonDetailsSubmissionDescription')}
@@ -223,15 +226,17 @@ function HomeworkSubmissionCard({
           </div>
           <div className="ed-submission-form__field">
             <FileUploadArea
-              items={fileItems}
+              items={pendingFiles.map((file) => ({ file }))}
               onAdd={handleAddFiles}
               onRemove={handleRemoveFile}
+              disabled={submitting}
               multiple
               label={t('lessonDetailsSubmissionFiles')}
               dropZoneText={t('homeworkClickToUpload')}
               buttonText={t('homeworkUploadFile')}
               inputId={`submission-files-${homework.id}`}
-              uploadingText={t('lessonDetailsSubmissionSubmitting')}
+              deleteTitle={t('remove')}
+              uploadingText={t('uploading')}
             />
           </div>
           <div className="ed-submission-form__actions">
